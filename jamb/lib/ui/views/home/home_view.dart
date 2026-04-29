@@ -2,6 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:jamb/domain/entities/obiettivo.dart';
 import 'package:jamb/ui/core/widgets/empty_background_screen.dart';
 import 'package:jamb/ui/views/home/widgets/programma_unita_card.dart';
+import 'package:jamb/ui/views/home/widgets/alert_medici_widget.dart';
+import 'package:jamb/ui/views/home/widgets/azioni_rapide_widget.dart';
+import 'package:jamb/ui/views/home/widgets/reparto_card_widget.dart';
+import 'package:jamb/ui/views/home/widgets/stato_amministrativo_widget.dart';
+import 'package:jamb/ui/views/home/widgets/pillole_metodo_widget.dart';
+import 'package:jamb/ui/views/home/widgets/cassa_branca_widget.dart';
 import 'package:jamb/ui/views/verifica_obiettivi/verifica_obiettivi_view.dart';
 
 class HomeView extends StatefulWidget {
@@ -71,6 +77,31 @@ class _HomeViewState extends State<HomeView> {
                     onTap: () => _navigateToVerifica(context),
                     child: ProgrammaUnitaCard(obiettivi: _obiettivi),
                   ),
+                  
+                  // Iniezione del Widget di Allerta con dati "Mock"
+                  AlertMediciWidget(
+                    schedeInScadenza: 3, // <-- Basterà passare 0 qui per farlo scomparire
+                    onVediTap: () {
+                      // TODO: Naviga alla pagina dei documenti/medici
+                      print("Navigazione a documenti in scadenza");
+                    },
+                  ),
+                  
+                  // Iniezione della griglia Azioni Rapide
+                  const AzioniRapideWidget(),
+                  
+                  // Iniezione Card Reparto
+                  const RepartoCardWidget(),
+                  
+                  // Iniezione widget Stato Amministrativo
+                  const StatoAmministrativoWidget(),
+                  
+                  // Iniezione widget Pillole del Metodo
+                  const PilloleMetodoWidget(),
+                  
+                  // Iniezione widget Cassa di Branca
+                  const CassaBrancaWidget(),
+                  
                   // Altri widget andranno qui
                 ],
               ),
