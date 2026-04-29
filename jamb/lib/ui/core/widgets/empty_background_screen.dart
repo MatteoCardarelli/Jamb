@@ -24,7 +24,8 @@ class _EmptyBackgroundScreenState extends State<EmptyBackgroundScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      extendBody: true, // Questo permette alla Navigation Bar di coprire l'inizio dello sfondo
+      extendBody: true, 
+      resizeToAvoidBottomInset: false, // Impedisce alla tastiera di alzare lo sfondo
       bottomNavigationBar: BottomNavBar(currentIndex: widget.currentIndex),
       body: SizedBox(
         width: double.infinity,

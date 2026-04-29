@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:jamb/ui/views/home/home_view.dart';
+import 'package:jamb/ui/views/ragazzi/ragazzi_view.dart';
 
 class BottomNavBar extends StatelessWidget {
   final int currentIndex;
@@ -35,10 +36,17 @@ class BottomNavBar extends StatelessWidget {
                 },
               ),
               _NavBarItem(
-                iconPath: 'assets/icons/ragazzi_1.svg',
+                iconPath: currentIndex == 1 ? 'assets/icons/ragazzi_2.svg' : 'assets/icons/ragazzi_1.svg',
                 label: 'Ragazzi',
                 onTap: () {
-                  // TODO: rotta per i ragazzi
+                  Navigator.of(context).pushAndRemoveUntil(
+                    PageRouteBuilder(
+                      pageBuilder: (_, __, ___) => const RagazziView(),
+                      transitionDuration: Duration.zero,
+                      reverseTransitionDuration: Duration.zero,
+                    ),
+                    (route) => false,
+                  );
                 },
               ),
               _NavBarItem(
