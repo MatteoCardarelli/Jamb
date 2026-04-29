@@ -4,7 +4,14 @@ import 'package:jamb/ui/core/widgets/topbar.dart';
 import 'package:jamb/ui/core/widgets/bottom_navbar.dart';
 
 class EmptyBackgroundScreen extends StatefulWidget {
-  const EmptyBackgroundScreen({super.key});
+  final Widget? child;
+  final int currentIndex;
+
+  const EmptyBackgroundScreen({
+    super.key, 
+    this.child,
+    this.currentIndex = 0,
+  });
 
   @override
   State<EmptyBackgroundScreen> createState() => _EmptyBackgroundScreenState();
@@ -18,7 +25,7 @@ class _EmptyBackgroundScreenState extends State<EmptyBackgroundScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       extendBody: true, // Questo permette alla Navigation Bar di coprire l'inizio dello sfondo
-      bottomNavigationBar: const BottomNavBar(),
+      bottomNavigationBar: BottomNavBar(currentIndex: widget.currentIndex),
       body: SizedBox(
         width: double.infinity,
         height: double.infinity,
@@ -36,6 +43,17 @@ class _EmptyBackgroundScreenState extends State<EmptyBackgroundScreen> {
                 fit: BoxFit.cover,
               ),
             ),
+            
+            // Corpo Principale Iniettato (Home, ecc.)
+            if (widget.child != null)
+              Positioned.fill(
+                // Ripristinato a 0: la pagina coprirà l'intero schermo e spetterà 
+                // ai singoli elementi interni (es. un ListView) darsi il padding iniziale.
+                // Così scorrendo andranno dolcemente "sotto" la TopBar!
+                top: 0, 
+                child: widget.child!,
+              ),
+
             // TopBar fissa in alto
             const Positioned(
               left: 0,
