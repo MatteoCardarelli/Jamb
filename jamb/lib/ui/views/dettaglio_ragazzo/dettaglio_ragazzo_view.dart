@@ -6,6 +6,7 @@ import 'package:jamb/ui/views/dettaglio_ragazzo/widgets/dettaglio_ragazzo_header
 import 'package:jamb/ui/views/dettaglio_ragazzo/widgets/edit_ragazzo_sheet.dart';
 import 'package:jamb/ui/views/dettaglio_ragazzo/widgets/privacy_widget.dart';
 import 'package:jamb/ui/views/dettaglio_ragazzo/widgets/sentiero_widget.dart';
+import 'package:jamb/ui/views/dettaglio_ragazzo/widgets/brevetti_widget.dart';
 import 'package:jamb/ui/views/dettaglio_ragazzo/widgets/specialita_widget.dart';
 
 class DettaglioRagazzoView extends StatefulWidget {
@@ -131,8 +132,6 @@ class _DettaglioRagazzoViewState extends State<DettaglioRagazzoView> {
                     specialita: [
                       Specialita(
                         nome: "Infermiere",
-                        icona: Icons.medical_services_outlined,
-                        coloreIcona: const Color(0xFFF59E0B),
                         prove: [
                           Prova(descrizione: "", completata: false),
                           Prova(descrizione: "", completata: false),
@@ -141,14 +140,30 @@ class _DettaglioRagazzoViewState extends State<DettaglioRagazzoView> {
                       ),
                       Specialita(
                         nome: "Cuoco",
-                        icona: Icons.restaurant_outlined,
-                        coloreIcona: const Color(0xFF16A34A),
                         prove: [
                           Prova(descrizione: "Pasto completo da campo", completata: true),
                           Prova(descrizione: "Gestione fuoco da campo", completata: true),
                           Prova(descrizione: "Pane su stecco", completata: true),
                         ],
                         dataRaggiunta: DateTime(2026, 4, 26),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  // Brevetti
+                  BrevettiWidget(
+                    brevetti: [
+                      Brevetto(
+                        nome: "Naturalista",
+                        provaFinaleDescrizione: "Escursione notturna autonoma",
+                        specialitaRichieste: [
+                          RequisitoBrevetto(nomeSpecialita: "Naturalista", raggiunta: true),
+                          RequisitoBrevetto(nomeSpecialita: "Cuoco", raggiunta: true),
+                          RequisitoBrevetto(nomeSpecialita: "Topografo", raggiunta: false),
+                          RequisitoBrevetto(nomeSpecialita: "Meteorologo", raggiunta: false),
+                        ],
                       ),
                     ],
                   ),

@@ -37,8 +37,6 @@ final List<_RagazzoData> _tuttiRagazzi = [
     specialita: [
       Specialita(
         nome: "Infermiere",
-        icona: Icons.medical_services_outlined,
-        coloreIcona: Color(0xFFF59E0B),
         prove: [
           Prova(descrizione: "Kit di primo soccorso", completata: true),
           Prova(descrizione: "Fasciatura d'emergenza", completata: false),
@@ -56,8 +54,6 @@ final List<_RagazzoData> _tuttiRagazzi = [
     specialita: [
       Specialita(
         nome: "Cuoco",
-        icona: Icons.restaurant_outlined,
-        coloreIcona: Color(0xFF16A34A),
         prove: [
           Prova(descrizione: "Pasto completo da campo", completata: true),
           Prova(descrizione: "Gestione fuoco da campo", completata: true),
@@ -75,8 +71,6 @@ final List<_RagazzoData> _tuttiRagazzi = [
     specialita: [
       Specialita(
         nome: "Cuoco",
-        icona: Icons.restaurant_outlined,
-        coloreIcona: Color(0xFF16A34A),
         prove: [
           Prova(descrizione: "Pasto", completata: true),
           Prova(descrizione: "Fuoco", completata: true),
@@ -103,8 +97,6 @@ final List<_RagazzoData> _tuttiRagazzi = [
     specialita: [
       Specialita(
         nome: "Fotografo",
-        icona: Icons.photo_camera_outlined,
-        coloreIcona: Color(0xFF2563EB),
         prove: [
           Prova(descrizione: "Portfolio da campo", completata: true),
           Prova(descrizione: "Reportage evento", completata: true),
