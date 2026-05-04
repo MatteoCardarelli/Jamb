@@ -1,45 +1,41 @@
 import 'package:flutter/material.dart';
 
 class AlertMediciWidget extends StatelessWidget {
-  final int schedeInScadenza;
+  final String messaggio;
   final VoidCallback onVediTap;
 
   const AlertMediciWidget({
     super.key,
-    required this.schedeInScadenza,
+    required this.messaggio,
     required this.onVediTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    // Se non ci sono schede in scadenza, il widget si auto-distrugge e non occupa spazio!
-    if (schedeInScadenza <= 0) return const SizedBox.shrink();
+    if (messaggio.isEmpty) return const SizedBox.shrink();
 
     return Container(
       margin: const EdgeInsets.only(top: 16),
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
-        color: const Color(0xFFFCF5EB), // Sfondo crema chiaro
+        color: const Color(0xFFFCF5EB),
         borderRadius: BorderRadius.circular(8),
       ),
       child: IntrinsicHeight(
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Striscia laterale arancione solida
             Container(
               width: 5,
-              color: const Color(0xFFE96A25), // Arancione scuro
+              color: const Color(0xFFE96A25),
             ),
-            
-            // Blocco Icona
             Padding(
               padding: const EdgeInsets.all(12.0),
               child: Container(
                 width: 44,
                 height: 44,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF7E5D4), // Arancione sbiadito per lo sfondo dell'icona
+                  color: const Color(0xFFF7E5D4),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: const Icon(
@@ -49,8 +45,6 @@ class AlertMediciWidget extends StatelessWidget {
                 ),
               ),
             ),
-            
-            // Blocco Testi Centrale
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 12.0),
@@ -59,7 +53,7 @@ class AlertMediciWidget extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     const Text(
-                      "ALERT MEDICI/PRIVACY",
+                      "ALERT AMMINISTRAZIONE",
                       style: TextStyle(
                         color: Color(0xFFE96A25),
                         fontWeight: FontWeight.w800,
@@ -70,9 +64,9 @@ class AlertMediciWidget extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      "$schedeInScadenza Schede mediche in scadenza questa settimana.",
+                      messaggio,
                       style: const TextStyle(
-                        color: Color(0xFF374151), // Grigio/Blu scuro
+                        color: Color(0xFF374151),
                         fontSize: 12,
                         height: 1.3,
                         fontFamily: 'Lexend',

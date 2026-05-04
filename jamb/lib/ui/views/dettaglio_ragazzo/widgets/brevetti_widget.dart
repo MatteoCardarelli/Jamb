@@ -15,7 +15,7 @@ class Brevetto {
   bool provaFinaleSuperata;
   DateTime? dataOttenimento;
 
-  String get imagePath => 'assets/brevetti/${nome.toLowerCase().replaceAll(' ', '_')}.jpg';
+  String get imagePath => 'assets/brevetti/${nome.replaceAll(' ', '_')}.jpg';
   bool get prerequisitiRaggunti => specialitaRichieste.every((s) => s.raggiunta);
   bool get ottenuto => prerequisitiRaggunti && provaFinaleSuperata && dataOttenimento != null;
 
@@ -436,8 +436,8 @@ class _AggiungiBrevettoSheetState extends State<_AggiungiBrevettoSheet> {
     'Grafico multimediale': ['Grafico', 'Fotografo', 'Esperto del computer', 'Scenografo'],
     'Cittadino del mondo': ['Europeista', 'Interprete', 'Guida', 'Folclorista'],
     'Liturgista': ['Servizio liturgico', 'Servizio della Parola', 'Servizio missionario', 'Musicista'],
-    'Animatore sportivo': ['Atleta', 'Hebertista', 'Nuotatore', 'Maestro dei giochi'],
-    'Guida alpina': ['Alpinista', 'Topografo', 'Campeggiatore', 'Hebertista'],
+    'Animatore sportivo': ['Atleta', 'Hébertista', 'Nuotatore', 'Maestro dei giochi'],
+    'Guida alpina': ['Alpinista', 'Topografo', 'Campeggiatore', 'Hébertista'],
     'Mani Abili': ['Falegname', 'Muratore', 'Elettricista', 'Artigiano'],
     'Pioniere': ['Campeggiatore', 'Boscaiolo', 'Maestro dei nodi', 'Topografo'],
     'Soccorritore': ['Infermiere', 'Pompiere', 'Nuotatore', 'Atleta'],
@@ -538,7 +538,7 @@ class _AggiungiBrevettoSheetState extends State<_AggiungiBrevettoSheet> {
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(color: const Color(0xFFE2E8F0), width: 2),
                     image: DecorationImage(
-                      image: AssetImage('assets/brevetti/${_nome!.toLowerCase().replaceAll(' ', '_')}.jpg'),
+                      image: AssetImage('assets/brevetti/${_nome!.replaceAll(' ', '_')}.jpg'),
                       fit: BoxFit.cover,
                     ),
                   ),
@@ -619,7 +619,7 @@ class _BrevettoPickerSheetState extends State<_BrevettoPickerSheet> {
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(6),
                   image: DecorationImage(
-                    image: AssetImage('assets/brevetti/${v.toLowerCase().replaceAll(' ', '_')}.jpg'),
+                    image: AssetImage('assets/brevetti/${v.replaceAll(' ', '_')}.jpg'),
                     fit: BoxFit.cover,
                   ),
                 ),

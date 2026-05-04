@@ -5,11 +5,13 @@ import 'package:jamb/ui/core/widgets/bottom_navbar.dart';
 
 class EmptyBackgroundScreen extends StatefulWidget {
   final Widget? child;
+  final Widget? floatingActionButton;
   final int currentIndex;
 
   const EmptyBackgroundScreen({
     super.key, 
     this.child,
+    this.floatingActionButton,
     this.currentIndex = 0,
   });
 
@@ -25,8 +27,9 @@ class _EmptyBackgroundScreenState extends State<EmptyBackgroundScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       extendBody: true, 
-      resizeToAvoidBottomInset: false, // Impedisce alla tastiera di alzare lo sfondo
+      resizeToAvoidBottomInset: false,
       bottomNavigationBar: BottomNavBar(currentIndex: widget.currentIndex),
+      floatingActionButton: widget.floatingActionButton,
       body: SizedBox(
         width: double.infinity,
         height: double.infinity,

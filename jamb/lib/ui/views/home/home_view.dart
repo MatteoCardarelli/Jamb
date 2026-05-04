@@ -5,10 +5,13 @@ import 'package:jamb/ui/views/home/widgets/programma_unita_card.dart';
 import 'package:jamb/ui/views/home/widgets/alert_medici_widget.dart';
 import 'package:jamb/ui/views/home/widgets/azioni_rapide_widget.dart';
 import 'package:jamb/ui/views/home/widgets/reparto_card_widget.dart';
-import 'package:jamb/ui/views/home/widgets/stato_amministrativo_widget.dart';
 import 'package:jamb/ui/views/home/widgets/pillole_metodo_widget.dart';
 import 'package:jamb/ui/views/home/widgets/cassa_branca_widget.dart';
+import 'package:jamb/ui/views/documenti/amministrazione_view.dart';
 import 'package:jamb/ui/views/verifica_obiettivi/verifica_obiettivi_view.dart';
+import 'package:provider/provider.dart';
+import 'package:jamb/core/providers/amministrazione_provider.dart';
+import 'package:jamb/ui/views/documenti/widgets/status_row_card.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({super.key});
@@ -64,6 +67,20 @@ class _HomeViewState extends State<HomeView> {
 
   @override
   Widget build(BuildContext context) {
+    final adminProvider = Provider.of<AmministrazioneProvider>(context);
+
+    // Calcolo allerta dinamica dai dati centralizzati
+    int medScadute = adminProvider.ragazzi.where((e) => e.medica == DocumentStatus.missing).length;
+    int medInScadenza = adminProvider.ragazzi.where((e) => e.medica == DocumentStatus.expiring).length;
+    int censMancanti = adminProvider.ragazzi.where((e) => e.censimento == DocumentStatus.none || e.censimento == DocumentStatus.missing).length;
+
+    List<String> alerts = [];
+    if (medScadute > 0) alerts.add("$medScadute schede mediche scadute");
+    if (medInScadenza > 0) alerts.add("$medInScadenza in scadenza");
+    if (censMancanti > 0) alerts.add("$censMancanti censimenti mancanti");
+
+    String alertMessage = alerts.isNotEmpty ? "${alerts.join(", ")}." : "";
+
     return EmptyBackgroundScreen(
       child: Stack(
         children: [
@@ -78,12 +95,17 @@ class _HomeViewState extends State<HomeView> {
                     child: ProgrammaUnitaCard(obiettivi: _obiettivi),
                   ),
                   
-                  // Iniezione del Widget di Allerta con dati "Mock"
+                  // Iniezione del Widget di Allerta DINAMICO
                   AlertMediciWidget(
-                    schedeInScadenza: 3, // <-- Basterà passare 0 qui per farlo scomparire
+                    messaggio: alertMessage,
                     onVediTap: () {
-                      // TODO: Naviga alla pagina dei documenti/medici
-                      print("Navigazione a documenti in scadenza");
+                      Navigator.of(context).push(
+                        PageRouteBuilder(
+                          pageBuilder: (context, animation, secondaryAnimation) => const AmministrazioneView(),
+                          transitionDuration: Duration.zero,
+                          reverseTransitionDuration: Duration.zero,
+                        ),
+                      );
                     },
                   ),
                   
@@ -92,9 +114,6 @@ class _HomeViewState extends State<HomeView> {
                   
                   // Iniezione Card Reparto
                   const RepartoCardWidget(),
-                  
-                  // Iniezione widget Stato Amministrativo
-                  const StatoAmministrativoWidget(),
                   
                   // Iniezione widget Pillole del Metodo
                   const PilloleMetodoWidget(),

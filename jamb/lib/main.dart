@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:jamb/ui/views/home/home_view.dart';
+import 'package:provider/provider.dart';
+import 'package:jamb/core/providers/amministrazione_provider.dart';
 
 void main() {
   runApp(const JambApp());
@@ -10,14 +12,19 @@ class JambApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Jamb MVP',
-      debugShowCheckedModeBanner: true,
-      theme: ThemeData(
-        useMaterial3: true,
-        colorSchemeSeed: const Color(0xFF003366),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AmministrazioneProvider()),
+      ],
+      child: MaterialApp(
+        title: 'Jamb MVP',
+        debugShowCheckedModeBanner: true,
+        theme: ThemeData(
+          useMaterial3: true,
+          colorSchemeSeed: const Color(0xFF003366),
+        ),
+        home: const HomeView(),
       ),
-      home: const HomeView(),
     );
   }
 }
