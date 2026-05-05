@@ -1,17 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+/// Card informativa che mostra il nome del reparto e le statistiche degli iscritti.
+/// Utilizza un design "Dark" con colori istituzionali e il logo AGESCI come sfondo decorativo.
 class RepartoCardWidget extends StatelessWidget {
   const RepartoCardWidget({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: double.infinity, // Forza la card a prendere tutta la larghezza disponibile
+      width: double.infinity,
       margin: const EdgeInsets.only(top: 24),
-      height: 130, // Altezza fissa calcolata in proporzione al design
+      height: 130, // Altezza fissa per coerenza col design
       decoration: BoxDecoration(
-        color: const Color(0xFF1B2A42), // Blu notte profondo
+        color: const Color(0xFF1B2A42), // Blu notte profondo del brand
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
@@ -21,17 +23,17 @@ class RepartoCardWidget extends StatelessWidget {
           ),
         ],
       ),
-      clipBehavior: Clip.antiAlias, // Taglia la grafica che sborda
+      clipBehavior: Clip.antiAlias, // Assicura che la filigrana non esca dai bordi stondati
       child: Stack(
         children: [
-          // Grafica di sfondo decorativa sulla destra
-          // Ho usato il logo AGESCI ingrandito e decentrato per simulare i due alberi di sfondo!
+          // FILIGRANA DECORATIVA
+          // Logo AGESCI ingrandito, decentrato e semitrasparente
           Positioned(
             right: -60,
             top: -30,
             bottom: -30,
             child: Opacity(
-              opacity: 0.15, // Leggera trasparenza per fare l'effetto "filigrana"
+              opacity: 0.15,
               child: SvgPicture.asset(
                 'assets/icons/logo_agesci.svg',
                 height: 200,
@@ -43,12 +45,12 @@ class RepartoCardWidget extends StatelessWidget {
             ),
           ),
           
-          // Contenuto Testuale
+          // CONTENUTO TESTUALE
           Padding(
             padding: const EdgeInsets.all(20.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween, // Spinge titolo in alto e sottotitolo in basso
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -60,13 +62,13 @@ class RepartoCardWidget extends StatelessWidget {
                         fontSize: 22,
                         fontWeight: FontWeight.w900,
                         fontFamily: 'Lexend',
-                        height: 1.0, // Interlinea strettissima come da design
+                        height: 1.0, // Interlinea stretta per effetto tipografico compatto
                       ),
                     ),
                     Text(
                       "VELINO",
                       style: TextStyle(
-                        color: Color(0xFFFFC500), // Giallo Agesci
+                        color: Color(0xFFFFC500), // Giallo Agesci istituzionale
                         fontSize: 22,
                         fontWeight: FontWeight.w900,
                         fontFamily: 'Lexend',
@@ -78,10 +80,10 @@ class RepartoCardWidget extends StatelessWidget {
                 Text(
                   "32 GUIDE ED ESPLORATORI ATTIVI",
                   style: TextStyle(
-                    color: Colors.white.withOpacity(0.7), // Grigio/Bianco sporco
+                    color: Colors.white.withOpacity(0.7),
                     fontSize: 9,
                     fontWeight: FontWeight.bold,
-                    letterSpacing: 1.2, // Spaziatura larga tra le lettere
+                    letterSpacing: 1.2,
                     fontFamily: 'Lexend',
                   ),
                 ),

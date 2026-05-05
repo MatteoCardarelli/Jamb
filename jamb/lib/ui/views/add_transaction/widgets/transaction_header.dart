@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+/// Widget superiore della vista AddTransaction.
+/// Gestisce il toggle tra Entrata/Uscita e l'input numerico dell'importo.
 class TransactionHeader extends StatefulWidget {
   const TransactionHeader({super.key});
 
@@ -10,12 +12,20 @@ class TransactionHeader extends StatefulWidget {
 class _TransactionHeaderState extends State<TransactionHeader> {
   bool isUscita = true;
   final TextEditingController _amountCtrl = TextEditingController(text: "0,00");
+  final FocusNode _amountFocus = FocusNode(); // Nodo di focus per controllo manuale
+
+  @override
+  void dispose() {
+    _amountCtrl.dispose();
+    _amountFocus.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        // Toggle Uscita / Entrata
+        // --- TOGGLE TIPO TRANSAZIONE (Uscita / Entrata) ---
         Container(
           padding: const EdgeInsets.all(4),
           decoration: BoxDecoration(
@@ -29,7 +39,10 @@ class _TransactionHeaderState extends State<TransactionHeader> {
                   label: "Uscita",
                   icon: Icons.remove_circle_rounded,
                   isSelected: isUscita,
-                  onTap: () => setState(() => isUscita = true),
+                  onTap: () {
+                    _amountFocus.unfocus(); // Toglie focus se si preme il toggle
+                    setState(() => isUscita = true);
+                  },
                 ),
               ),
               Expanded(
@@ -37,7 +50,10 @@ class _TransactionHeaderState extends State<TransactionHeader> {
                   label: "Entrata",
                   icon: Icons.add_circle_rounded,
                   isSelected: !isUscita,
-                  onTap: () => setState(() => isUscita = false),
+                  onTap: () {
+                    _amountFocus.unfocus(); // Toglie focus se si preme il toggle
+                    setState(() => isUscita = false);
+                  },
                 ),
               ),
             ],
@@ -45,16 +61,16 @@ class _TransactionHeaderState extends State<TransactionHeader> {
         ),
         const SizedBox(height: 24),
 
-        // Display Importo EDITABILE
+        // --- DISPLAY IMPORTO EDITABILE ---
         Container(
           width: double.infinity,
           padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
           decoration: BoxDecoration(
-            color: Colors.white, // SFONDO BIANCO SOLIDO
+            color: Colors.white,
             borderRadius: BorderRadius.circular(24),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.05),
+                color: Colors.black.withOpacity(0.04),
                 blurRadius: 15,
                 offset: const Offset(0, 8),
               ),
@@ -66,9 +82,9 @@ class _TransactionHeaderState extends State<TransactionHeader> {
                 "IMPORTO TOTALE",
                 style: TextStyle(
                   color: Color(0xFF94A3B8),
-                  fontSize: 12,
+                  fontSize: 11,
                   letterSpacing: 1.2,
-                  fontWeight: FontWeight.w600,
+                  fontWeight: FontWeight.w800,
                   fontFamily: 'Lexend',
                 ),
               ),
@@ -80,7 +96,7 @@ class _TransactionHeaderState extends State<TransactionHeader> {
                   const Text(
                     "€",
                     style: TextStyle(
-                      color: Color(0xFF000066),
+                      color: Color(0xFF1D2660),
                       fontSize: 32,
                       fontWeight: FontWeight.w900,
                       fontFamily: 'Lexend',
@@ -90,10 +106,11 @@ class _TransactionHeaderState extends State<TransactionHeader> {
                   Expanded(
                     child: TextField(
                       controller: _amountCtrl,
+                      focusNode: _amountFocus,
                       keyboardType: const TextInputType.numberWithOptions(decimal: true),
                       textAlign: TextAlign.center,
                       style: const TextStyle(
-                        color: Color(0xFF000066),
+                        color: Color(0xFF1D2660),
                         fontSize: 48,
                         fontWeight: FontWeight.w900,
                         fontFamily: 'Lexend',
@@ -102,7 +119,13 @@ class _TransactionHeaderState extends State<TransactionHeader> {
                         border: InputBorder.none,
                         isDense: true,
                         contentPadding: EdgeInsets.zero,
+                        hintText: "0,00",
+                        hintStyle: TextStyle(color: Color(0xFFE2E8F0)),
                       ),
+                      onTap: () {
+                        // Se l'utente clicca esplicitamente, prendi il focus
+                        _amountFocus.requestFocus();
+                      },
                     ),
                   ),
                 ],
@@ -114,6 +137,7 @@ class _TransactionHeaderState extends State<TransactionHeader> {
     );
   }
 
+  /// Costruisce un pulsante di toggle per la selezione del tipo di transazione
   Widget _buildToggleButton({
     required String label,
     required IconData icon,
@@ -122,8 +146,9 @@ class _TransactionHeaderState extends State<TransactionHeader> {
   }) {
     return GestureDetector(
       onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 10),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
           color: isSelected ? Colors.white : Colors.transparent,
           borderRadius: BorderRadius.circular(12),
@@ -143,13 +168,13 @@ class _TransactionHeaderState extends State<TransactionHeader> {
             Icon(
               icon,
               size: 18,
-              color: isSelected ? const Color(0xFF000066) : const Color(0xFF94A3B8),
+              color: isSelected ? const Color(0xFF1D2660) : const Color(0xFF94A3B8),
             ),
-            const SizedBox(width: 6),
+            const SizedBox(width: 8),
             Text(
               label,
               style: TextStyle(
-                color: isSelected ? const Color(0xFF000066) : const Color(0xFF94A3B8),
+                color: isSelected ? const Color(0xFF1D2660) : const Color(0xFF94A3B8),
                 fontSize: 14,
                 fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
                 fontFamily: 'Lexend',

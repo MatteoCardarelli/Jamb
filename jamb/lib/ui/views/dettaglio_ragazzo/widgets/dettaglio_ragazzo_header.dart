@@ -1,10 +1,18 @@
 import 'package:flutter/material.dart';
 
+/// Intestazione della vista di dettaglio scout.
+/// Visualizza il nome prominente, il chip della squadriglia, il ruolo e 
+/// segnala visivamente eventuali alert medici critici.
 class DettaglioRagazzoHeader extends StatelessWidget {
+  /// Nome e cognome dello scout
   final String nome;
+  /// Squadriglia di appartenenza
   final String squadriglia;
+  /// Ruolo nella squadriglia (es. "C.S.")
   final String ruolo;
+  /// Se true, mostra un'icona medica rossa di pericolo
   final bool hasAlert;
+  /// Callback per l'apertura del menu di modifica
   final VoidCallback? onEdit;
 
   const DettaglioRagazzoHeader({
@@ -18,70 +26,82 @@ class DettaglioRagazzoHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        // RIGA 1: NOME, ALERT E TASTO EDIT
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              child: Row(
                 children: [
-                  Row(
-                    children: [
-                      Text(
-                        nome,
-                        style: const TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.w900,
-                          color: Color(0xFF00005C),
-                          fontFamily: 'Lexend',
-                        ),
-                      ),
-                      if (hasAlert) ...[
-                        const SizedBox(width: 12),
-                        const Icon(Icons.medical_services, size: 24, color: Color(0xFFE11D48)),
-                      ],
-                    ],
-                  ),
-                  GestureDetector(
-                    onTap: onEdit,
-                    child: const Icon(Icons.more_vert, color: Color(0xFF64748B), size: 28),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFFFEDD5),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
+                  Flexible(
                     child: Text(
-                      squadriglia,
+                      nome,
                       style: const TextStyle(
-                        color: Color(0xFFEA580C),
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
+                        fontSize: 28,
+                        fontWeight: FontWeight.w900,
+                        color: Color(0xFF1D2660),
                         fontFamily: 'Lexend',
+                        height: 1.1,
                       ),
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  Text(
-                    ruolo,
-                    style: const TextStyle(
-                      color: Color(0xFF94A3B8),
-                      fontSize: 16,
-                      fontFamily: 'Lexend',
+                  if (hasAlert) ...[
+                    const SizedBox(width: 12),
+                    const Icon(
+                      Icons.medical_services_rounded, 
+                      size: 26, 
+                      color: Color(0xFFE11D48), // Alert Red
                     ),
-                  ),
+                  ],
                 ],
               ),
-            ],
-          ),
+            ),
+            IconButton(
+              onPressed: onEdit,
+              icon: const Icon(Icons.more_vert_rounded, color: Color(0xFF94A3B8), size: 28),
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        
+        // RIGA 2: SQUADRIGLIA E RUOLO
+        Row(
+          children: [
+            // Chip Squadriglia
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFEDD5), // Orange 100
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                squadriglia.toUpperCase(),
+                style: const TextStyle(
+                  color: Color(0xFFEA580C), // Orange 600
+                  fontSize: 11,
+                  fontWeight: FontWeight.w800,
+                  fontFamily: 'Lexend',
+                  letterSpacing: 0.5,
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            // Testo Ruolo
+            Text(
+              ruolo,
+              style: const TextStyle(
+                color: Color(0xFF94A3B8), // Slate 400
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+                fontFamily: 'Lexend',
+              ),
+            ),
+          ],
         ),
       ],
     );

@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
 
+/// Pulsante d'azione flottante espandibile (FAB) con animazione a ventaglio.
+/// Quando premuto, rivela opzioni aggiuntive (Crea Cartella, Carica Documento) 
+/// con animazioni coordinate di rotazione, scala e opacità.
 class JambExpandableFab extends StatefulWidget {
+  /// Callback invocata alla pressione di "Crea Cartella"
   final VoidCallback? onCreateFolder;
+  /// Callback invocata alla pressione di "Carica Documento"
   final VoidCallback? onUploadDocument;
 
   const JambExpandableFab({
@@ -27,6 +32,8 @@ class _JambExpandableFabState extends State<JambExpandableFab> with SingleTicker
       duration: const Duration(milliseconds: 250),
       vsync: this,
     );
+    
+    // Curva di animazione fluida per l'espansione
     _expandAnimation = CurvedAnimation(
       curve: Curves.fastOutSlowIn,
       reverseCurve: Curves.easeOutQuad,
@@ -40,6 +47,7 @@ class _JambExpandableFabState extends State<JambExpandableFab> with SingleTicker
     super.dispose();
   }
 
+  /// Alterna lo stato di apertura/chiusura del menu
   void _toggle() {
     setState(() {
       _isOpen = !_isOpen;
@@ -57,31 +65,35 @@ class _JambExpandableFabState extends State<JambExpandableFab> with SingleTicker
       alignment: Alignment.bottomRight,
       clipBehavior: Clip.none,
       children: [
-        // Overlay scuro quando aperto
+        // OVERLAY SEMITRASPARENTE: Chiude il menu se si tocca fuori
         if (_isOpen)
           GestureDetector(
             onTap: _toggle,
             child: Container(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withOpacity(0.02),
               width: MediaQuery.of(context).size.width * 2,
               height: MediaQuery.of(context).size.height * 2,
             ),
           ),
         
-        // Opzioni che compaiono
+        // BOTTONE PRINCIPALE (Trigger)
         _buildTapToCloseFab(),
+        
+        // OPZIONE 1: Carica Documento (Distanza 80px)
         _buildStep(
           label: "Carica Documento",
-          icon: Icons.file_upload_outlined,
+          icon: Icons.file_upload_rounded,
           distance: 80,
           onTap: () {
             _toggle();
             widget.onUploadDocument?.call();
           },
         ),
+        
+        // OPZIONE 2: Crea Cartella (Distanza 145px)
         _buildStep(
           label: "Crea Cartella",
-          icon: Icons.create_new_folder_outlined,
+          icon: Icons.create_new_folder_rounded,
           distance: 145,
           onTap: () {
             _toggle();
@@ -92,6 +104,7 @@ class _JambExpandableFabState extends State<JambExpandableFab> with SingleTicker
     );
   }
 
+  /// Costruisce una singola opzione che "vola" fuori dal FAB principale
   Widget _buildStep({
     required String label,
     required IconData icon,
@@ -103,7 +116,7 @@ class _JambExpandableFabState extends State<JambExpandableFab> with SingleTicker
       builder: (context, child) {
         return Positioned(
           right: 0,
-          bottom: distance * _expandAnimation.value,
+          bottom: distance * _expandAnimation.value, // Posizionamento dinamico basato sull'animazione
           child: FadeTransition(
             opacity: _expandAnimation,
             child: ScaleTransition(
@@ -118,7 +131,7 @@ class _JambExpandableFabState extends State<JambExpandableFab> with SingleTicker
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Label
+            // ETICHETTA (Label)
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
               decoration: BoxDecoration(
@@ -126,7 +139,7 @@ class _JambExpandableFabState extends State<JambExpandableFab> with SingleTicker
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
+                    color: Colors.black.withOpacity(0.08),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
@@ -135,7 +148,7 @@ class _JambExpandableFabState extends State<JambExpandableFab> with SingleTicker
               child: Text(
                 label,
                 style: const TextStyle(
-                  color: Color(0xFF25315B),
+                  color: Color(0xFF1D2660),
                   fontWeight: FontWeight.w800,
                   fontSize: 14,
                   fontFamily: 'Lexend',
@@ -143,7 +156,8 @@ class _JambExpandableFabState extends State<JambExpandableFab> with SingleTicker
               ),
             ),
             const SizedBox(width: 12),
-            // Icona
+            
+            // ICONA CIRCOLARE
             Container(
               width: 50,
               height: 50,
@@ -152,13 +166,13 @@ class _JambExpandableFabState extends State<JambExpandableFab> with SingleTicker
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.08),
+                    color: Colors.black.withOpacity(0.1),
                     blurRadius: 12,
                     offset: const Offset(0, 4),
                   ),
                 ],
               ),
-              child: Icon(icon, color: const Color(0xFF25315B), size: 24),
+              child: Icon(icon, color: const Color(0xFF1D2660), size: 24),
             ),
           ],
         ),
@@ -166,6 +180,7 @@ class _JambExpandableFabState extends State<JambExpandableFab> with SingleTicker
     );
   }
 
+  /// Costruisce il FAB principale che ruota di 45 gradi quando aperto
   Widget _buildTapToCloseFab() {
     return SizedBox(
       width: 56,
@@ -174,19 +189,19 @@ class _JambExpandableFabState extends State<JambExpandableFab> with SingleTicker
         child: Material(
           shape: const CircleBorder(),
           clipBehavior: Clip.antiAlias,
-          elevation: 4,
-          color: const Color(0xFF25315B),
+          elevation: 6,
+          color: const Color(0xFF1D2660),
           child: InkWell(
             onTap: _toggle,
             child: Padding(
               padding: const EdgeInsets.all(12),
               child: AnimatedRotation(
                 duration: const Duration(milliseconds: 250),
-                turns: _isOpen ? 0.125 : 0, // Ruota di 45 gradi per far diventare + una x
-                child: Icon(
-                  _isOpen ? Icons.add : Icons.add, // Uso sempre add ma ruoto
+                turns: _isOpen ? 0.125 : 0, // Ruota di 1/8 di giro (45°) per trasformare '+' in 'x'
+                child: const Icon(
+                  Icons.add_rounded,
                   color: Colors.white,
-                  size: 28,
+                  size: 32,
                 ),
               ),
             ),

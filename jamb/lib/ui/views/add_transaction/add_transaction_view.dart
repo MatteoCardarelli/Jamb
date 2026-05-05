@@ -5,7 +5,8 @@ import 'widgets/transaction_header.dart';
 import 'widgets/transaction_details_cards.dart';
 import 'widgets/receipt_upload_card.dart';
 
-
+/// Vista per l'inserimento di una nuova transazione (Entrata o Uscita).
+/// Organizzata in sezioni: Header (Importo), Dettagli (Data/Categoria/Note) e Allegati (Scontrino).
 class AddTransactionView extends StatelessWidget {
   const AddTransactionView({super.key});
 
@@ -13,16 +14,16 @@ class AddTransactionView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       extendBody: true,
-      resizeToAvoidBottomInset: false, // SFONDO DI NUOVO FISSO
+      resizeToAvoidBottomInset: false, // Evita che lo sfondo si sposti con la tastiera
       backgroundColor: Colors.transparent,
       body: EmptyBackgroundScreen(
-        currentIndex: 2,
-        resizeToAvoidBottomInset: false, // SFONDO DI NUOVO FISSO
+        currentIndex: 2, // Indice per la sezione contabilità
+        resizeToAvoidBottomInset: false,
         child: Stack(
           children: [
-            // Contenuto Scorrevole
+            // --- CONTENUTO SCORREVOLE ---
             SingleChildScrollView(
-              padding: const EdgeInsets.only(top: 170, left: 20, right: 20, bottom: 250),
+              padding: const EdgeInsets.fromLTRB(20, 170, 20, 250),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -30,62 +31,62 @@ class AddTransactionView extends StatelessWidget {
                     "Nuova Transazione",
                     style: TextStyle(
                       color: Color(0xFF0F172A),
-                      fontSize: 24,
+                      fontSize: 26,
                       fontWeight: FontWeight.w900,
                       fontFamily: 'Lexend',
                     ),
                   ),
                   const SizedBox(height: 24),
 
-                  // WIDGET SUPERIORE (Importo Editabile)
+                  // SEZIONE IMPORTO (Editabile)
                   const TransactionHeader(),
-
                   const SizedBox(height: 16),
 
-                  // CARTE DETTAGLI (Data e Categoria)
+                  // SEZIONE DETTAGLI (Data, Categoria, Note)
                   const TransactionDetailsCards(),
-
                   const SizedBox(height: 16),
 
-                  // CARICA SCONTRINO
+                  // SEZIONE ALLEGATI (Scontrino)
                   const ReceiptUploadCard(),
                 ],
               ),
             ),
 
-            // Barra di Azione Inferiore (Flottante)
+            // --- BARRA DI AZIONE INFERIORE (Flottante) ---
             Positioned(
-              bottom: 130, // Sopra la barra di navigazione
+              bottom: 130, // Posizionata sopra la barra di navigazione
               left: 20,
               right: 20,
               child: Row(
                 children: [
+                  // Tasto Indietro Core
                   const BackActionButton(),
                   const SizedBox(width: 16),
+                  
+                  // Tasto Salvataggio
                   Expanded(
                     child: SizedBox(
-                      height: 56,
+                      height: 58,
                       child: ElevatedButton(
                         onPressed: () => Navigator.of(context).pop(),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF000066),
+                          backgroundColor: const Color(0xFF1D2660),
                           foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
                           elevation: 0,
                         ),
                         child: const Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Icon(Icons.save_rounded, size: 20),
-                            const SizedBox(width: 8),
+                            SizedBox(width: 12),
                             Text(
                               "SALVA TRANSAZIONE",
                               style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
+                                fontSize: 15,
+                                fontWeight: FontWeight.w800,
                                 fontFamily: 'Lexend',
+                                letterSpacing: 0.5,
                               ),
                             ),
                           ],
@@ -98,32 +99,6 @@ class AddTransactionView extends StatelessWidget {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildPlaceholderField(String hint, IconData icon) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.8),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.black.withOpacity(0.05)),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, size: 20, color: const Color(0xFF000066)),
-          const SizedBox(width: 12),
-          Text(
-            hint,
-            style: const TextStyle(
-              color: Color(0xFF64748B),
-              fontSize: 14,
-              fontFamily: 'Lexend',
-            ),
-          ),
-        ],
       ),
     );
   }

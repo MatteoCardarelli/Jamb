@@ -5,7 +5,10 @@ import 'package:jamb/ui/views/verifica_obiettivi/widgets/edit_obiettivo_dialog.d
 import 'package:jamb/ui/views/verifica_obiettivi/widgets/obiettivo_card.dart';
 import 'package:jamb/ui/core/widgets/empty_background_screen.dart';
 
+/// Schermata per la verifica e la modifica degli obiettivi del programma d'unità.
+/// Permette di aggiornare il grado di raggiungimento e i dettagli di ogni obiettivo.
 class VerificaObiettiviView extends StatefulWidget {
+  /// Lista iniziale degli obiettivi passata dalla Home
   final List<Obiettivo> obiettivi;
 
   const VerificaObiettiviView({
@@ -18,26 +21,40 @@ class VerificaObiettiviView extends StatefulWidget {
 }
 
 class _VerificaObiettiviViewState extends State<VerificaObiettiviView> {
+  // Lista mutabile locale per gestire le modifiche prima del salvataggio definitivo
   late List<Obiettivo> _currentObiettivi;
 
   @override
   void initState() {
     super.initState();
-    // Create a local mutable copy of the passed list
+    // Creiamo una copia della lista per non sporcare i dati originali fino al pop()
     _currentObiettivi = List.from(widget.obiettivi);
   }
 
+  // --- LOGICA DI MODIFICA ---
+
+  /// Aggiorna il punteggio (grado) di un obiettivo specifico
   void _updateScore(int index, int newScore) {
     setState(() {
       _currentObiettivi[index] = _currentObiettivi[index].copyWith(grado: newScore);
     });
   }
 
+  /// Apre il dialogo per modificare i testi e il colore dell'obiettivo
   Future<void> _openEditDialog(int index) async {
     final target = _currentObiettivi[index];
+    // Calcoliamo i colori occupati dagli ALTRI obiettivi
+    final occupiedColors = _currentObiettivi
+        .where((o) => o.id != target.id)
+        .map((o) => o.colore)
+        .toList();
+
     final updatedObiettivo = await showDialog<Obiettivo>(
       context: context,
-      builder: (context) => EditObiettivoDialog(obiettivo: target),
+      builder: (context) => EditObiettivoDialog(
+        obiettivo: target,
+        usedColors: occupiedColors,
+      ),
     );
 
     if (updatedObiettivo != null) {
@@ -47,17 +64,100 @@ class _VerificaObiettiviViewState extends State<VerificaObiettiviView> {
     }
   }
 
+  /// Crea un nuovo obiettivo vuoto e apre il dialogo di modifica
+  Future<void> _addNewObiettivo() async {
+    // Tutti i colori attualmente in uso sono "occupati" per il nuovo obiettivo
+    final occupiedColors = _currentObiettivi.map((o) => o.colore).toList();
+
+    final nuovo = Obiettivo(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      dominio: "NUOVO DOMINIO",
+      descrizione: "Descrizione obiettivo...",
+      icona: Icons.star_rounded,
+      colore: const Color(0xFF1D2660),
+      grado: 1,
+      diarioDiBordo: "",
+    );
+
+    final creato = await showDialog<Obiettivo>(
+      context: context,
+      builder: (context) => EditObiettivoDialog(
+        obiettivo: nuovo,
+        usedColors: occupiedColors,
+      ),
+    );
+
+    if (creato != null) {
+      setState(() {
+        _currentObiettivi.add(creato);
+      });
+    }
+  }
+
+  /// Elimina un obiettivo dalla lista locale previa conferma
+  Future<void> _deleteObiettivo(int index) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text(
+          "Elimina Obiettivo",
+          style: TextStyle(
+            fontFamily: 'Lexend',
+            fontWeight: FontWeight.w900,
+            color: Color(0xFF1D2660),
+          ),
+        ),
+        content: const Text(
+          "Sei sicuro di voler eliminare questo punto su cui lavorare? Questa azione non può essere annullata.",
+          style: TextStyle(fontFamily: 'Lexend', color: Color(0xFF475569)),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text(
+              "ANNULLA",
+              style: TextStyle(fontFamily: 'Lexend', color: Color(0xFF64748B), fontWeight: FontWeight.bold),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFEF4444),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              elevation: 0,
+            ),
+            child: const Text(
+              "ELIMINA",
+              style: TextStyle(fontFamily: 'Lexend', fontWeight: FontWeight.bold),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      setState(() {
+        _currentObiettivi.removeAt(index);
+      });
+    }
+  }
+
+  /// Chiude la schermata restituendo la lista aggiornata alla Home
   void _saveAndReturn() {
     Navigator.of(context).pop(_currentObiettivi);
   }
 
+  // --- COSTRUZIONE INTERFACCIA ---
+
   @override
   Widget build(BuildContext context) {
     return EmptyBackgroundScreen(
-      currentIndex: 0, // Icona home piena
+      currentIndex: 0,
       child: Stack(
         children: [
-          // List of Objectives
+          // AREA SCORREVOLE: Lista degli Obiettivi
           Positioned.fill(
             child: ListView.builder(
               padding: const EdgeInsets.only(top: 170, left: 20, right: 20, bottom: 200),
@@ -67,27 +167,47 @@ class _VerificaObiettiviViewState extends State<VerificaObiettiviView> {
                   obiettivo: _currentObiettivi[index],
                   onScoreChanged: (score) => _updateScore(index, score),
                   onEditTap: () => _openEditDialog(index),
+                  onDeleteTap: () => _deleteObiettivo(index), // Nuova callback
                 );
               },
             ),
           ),
           
-          // Bottom Action Bar (Floating)
+          // BARRA DI AZIONE INFERIORE (Flottante)
           Positioned(
-            bottom: 130, // bottom 130 alza i pulsanti sopra la nav bar
+            bottom: 130,
             left: 20,
             right: 20,
             child: Row(
               children: [
                 const BackActionButton(),
-                const SizedBox(width: 16),
+                const SizedBox(width: 12),
+                
+                // Pulsante AGGIUNGI (Nuovo)
+                Container(
+                  height: 56,
+                  width: 56,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                  ),
+                  child: IconButton(
+                    onPressed: _addNewObiettivo,
+                    icon: const Icon(Icons.add_rounded, color: Color(0xFF1D2660), size: 28),
+                  ),
+                ),
+                
+                const SizedBox(width: 12),
+                
+                // Pulsante di Salvataggio
                 Expanded(
                   child: SizedBox(
                     height: 56,
                     child: ElevatedButton(
                       onPressed: _saveAndReturn,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF00005C), // Deep dark blue
+                        backgroundColor: const Color(0xFF00005C),
                         foregroundColor: Colors.white,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16),
@@ -97,13 +217,14 @@ class _VerificaObiettiviViewState extends State<VerificaObiettiviView> {
                       child: const Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.save, size: 20),
+                          Icon(Icons.save_rounded, size: 20),
                           SizedBox(width: 8),
                           Text(
-                            "Salva Verifica di Staff",
+                            "Salva Verifica",
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
+                              fontFamily: 'Lexend',
                             ),
                           ),
                         ],

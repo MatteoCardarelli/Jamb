@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+/// Widget decorativo che mostra citazioni o pillole metodologiche scout.
+/// Caratterizzato da uno sfondo verde foresta e un layout con icone in filigrana.
 class PilloleMetodoWidget extends StatelessWidget {
   const PilloleMetodoWidget({super.key});
 
@@ -9,7 +11,7 @@ class PilloleMetodoWidget extends StatelessWidget {
       width: double.infinity,
       margin: const EdgeInsets.only(top: 24),
       decoration: BoxDecoration(
-        color: const Color(0xFF325D32), // Verde foresta opaco come da design
+        color: const Color(0xFF325D32), // Verde foresta profondo (Metodo Scout)
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
@@ -19,17 +21,17 @@ class PilloleMetodoWidget extends StatelessWidget {
           ),
         ],
       ),
-      clipBehavior: Clip.antiAlias, // Per evitare che l'icona di sfondo sbordi
+      clipBehavior: Clip.antiAlias, 
       child: Stack(
         children: [
-          // Icona decorativa in filigrana in basso a destra
-          // Ho usato "local_library" perché ricorda la sagoma con la testa e il libro aperto!
+          // FILIGRANA DECORATIVA
+          // Icona che richiama l'apprendimento e lo studio del metodo
           Positioned(
             right: -20,
             bottom: -30,
             child: Opacity(
               opacity: 0.15,
-              child: Icon(
+              child: const Icon(
                 Icons.local_library_outlined, 
                 size: 150,
                 color: Colors.white,
@@ -37,18 +39,18 @@ class PilloleMetodoWidget extends StatelessWidget {
             ),
           ),
           
-          // Contenuto Principale
+          // CONTENUTO PRINCIPALE
           Padding(
             padding: const EdgeInsets.all(20.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Intestazione con Lampadina
+                // Intestazione con icona lampadina (Insight/Idea)
                 const Row(
                   children: [
                     Icon(
                       Icons.lightbulb_outline_rounded,
-                      color: Color(0xFFFFC500), // Giallo brillante
+                      color: Color(0xFFFFC500),
                       size: 24,
                     ),
                     SizedBox(width: 8),
@@ -66,14 +68,14 @@ class PilloleMetodoWidget extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
                 
-                // Testo della "Pillola"
+                // Testo della citazione/consiglio
                 Text(
                   "\"L'importanza del Consiglio della Legge: Non è solo un momento di verifica, ma il cuore della democrazia in Squadriglia.\"",
                   style: TextStyle(
                     color: Colors.white.withOpacity(0.85),
                     fontSize: 14,
-                    fontWeight: FontWeight.w300, // Molto sottile per contrastare col titolo
-                    height: 1.6, // Interlinea generosa
+                    fontWeight: FontWeight.w300, // Peso leggero per distinguere la citazione dal titolo
+                    height: 1.6, // Interlinea aumentata per favorire la lettura
                     fontFamily: 'Lexend',
                   ),
                 ),

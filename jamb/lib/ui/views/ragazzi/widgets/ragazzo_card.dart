@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:jamb/ui/views/dettaglio_ragazzo/dettaglio_ragazzo_view.dart';
 import 'package:jamb/ui/views/dettaglio_ragazzo/widgets/specialita_widget.dart';
 
+/// Card riassuntiva per un singolo scout nella lista ragazzi.
+/// Mostra informazioni anagrafiche, ruolo, tappa del sentiero e stato della specialità in corso.
 class RagazzoCard extends StatelessWidget {
   final String nome;
   final String squadriglia;
@@ -24,6 +26,7 @@ class RagazzoCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
+        // Navigazione verso il dettaglio completo del ragazzo
         Navigator.of(context).push(
           PageRouteBuilder(
             pageBuilder: (_, __, ___) => DettaglioRagazzoView(
@@ -52,6 +55,7 @@ class RagazzoCard extends StatelessWidget {
         ),
         child: Column(
           children: [
+            // --- HEADER: NOME, SQUADRIGLIA E RUOLO ---
             Row(
               children: [
                 Expanded(
@@ -72,21 +76,24 @@ class RagazzoCard extends StatelessWidget {
                                   fontFamily: 'Lexend',
                                 ),
                               ),
+                              // Badge per segnalazioni mediche
                               if (hasAlert) ...[
                                 const SizedBox(width: 8),
-                                const Icon(Icons.medical_services, size: 16, color: Color(0xFFE11D48)),
+                                const Icon(Icons.medical_services_rounded, size: 16, color: Color(0xFFE11D48)),
                               ],
                             ],
                           ),
-                          const Icon(Icons.more_vert, color: Color(0xFF64748B)),
+                          const Icon(Icons.more_vert_rounded, color: Color(0xFF64748B)),
                         ],
                       ),
+                      const SizedBox(height: 4),
                       Row(
                         children: [
+                          // Tag Squadriglia
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFFFEDD5),
+                              color: const Color(0xFFFFEDD5), // Arancione pallido
                               borderRadius: BorderRadius.circular(4),
                             ),
                             child: Text(
@@ -100,6 +107,7 @@ class RagazzoCard extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(width: 8),
+                          // Etichetta Ruolo
                           Text(
                             ruolo,
                             style: const TextStyle(
@@ -115,9 +123,12 @@ class RagazzoCard extends StatelessWidget {
                 ),
               ],
             ),
+            
             const SizedBox(height: 20),
-            const Divider(color: Color(0xFFF1F5F9)),
+            const Divider(color: Color(0xFFF1F5F9), height: 1),
             const SizedBox(height: 12),
+            
+            // --- FOOTER: TAPPA SENTIERO E PROGRESSO SPECIALITÀ ---
             Row(
               children: [
                 Expanded(
@@ -146,6 +157,7 @@ class RagazzoCard extends StatelessWidget {
                     ],
                   ),
                 ),
+                // Sezione dinamica per le specialità
                 Expanded(
                   child: _buildSpecialitaInfo(),
                 ),
@@ -157,46 +169,59 @@ class RagazzoCard extends StatelessWidget {
     );
   }
 
-  // Calcola e visualizza le info della specialità in corso
+  /// Calcola e visualizza le info della specialità in corso
   Widget _buildSpecialitaInfo() {
     if (specialita.isEmpty) {
-      return _specialitaColonna("SPECIALITÀ", 0.0, "Nessuna specialità");
+      return _buildInfoColumn("SPECIALITÀ", 0.0, "Nessuna specialità");
     }
 
-    // Tutte le specialità completate?
+    // Verifica se tutte le specialità in lista sono già state raggiunte
     final tutteCompletate = specialita.every((s) => s.raggiunta);
     if (tutteCompletate) {
-      return _specialitaColonna("SPECIALITÀ", 1.0, "Specialità ottenuta", colore: const Color(0xFF16A34A));
+      return _buildInfoColumn("SPECIALITÀ", 1.0, "Specialità ottenuta", color: const Color(0xFF16A34A));
     }
 
-    // Prima specialità in corso (non ancora raggiunta)
+    // Prende la prima specialità non ancora completata come "in corso"
     final inCorso = specialita.firstWhere((s) => !s.raggiunta);
     final completate = inCorso.prove.where((p) => p.completata).length;
     final totale = inCorso.prove.length;
-    return _specialitaColonna(
+    
+    return _buildInfoColumn(
       inCorso.nome.toUpperCase(),
       totale > 0 ? completate / totale : 0.0,
       "$completate/$totale prove",
     );
   }
 
-  Widget _specialitaColonna(String label, double valore, String testo, {Color colore = const Color(0xFF1E293B)}) {
+  /// Helper per costruire una colonna informativa con barra di progresso
+  Widget _buildInfoColumn(String label, double progress, String footerText, {Color color = const Color(0xFF1E293B)}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 10, fontWeight: FontWeight.bold, fontFamily: 'Lexend')),
+        Text(
+          label, 
+          style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 10, fontWeight: FontWeight.bold, fontFamily: 'Lexend'),
+        ),
         const SizedBox(height: 8),
         ClipRRect(
           borderRadius: BorderRadius.circular(4),
           child: LinearProgressIndicator(
-            value: valore,
+            value: progress,
             minHeight: 6,
             backgroundColor: const Color(0xFFF1F5F9),
-            valueColor: AlwaysStoppedAnimation<Color>(colore),
+            valueColor: AlwaysStoppedAnimation<Color>(color),
           ),
         ),
         const SizedBox(height: 4),
-        Text(testo, style: TextStyle(color: valore >= 1.0 ? colore : const Color(0xFF475569), fontSize: 11, fontWeight: FontWeight.w500, fontFamily: 'Lexend')),
+        Text(
+          footerText, 
+          style: TextStyle(
+            color: progress >= 1.0 ? color : const Color(0xFF475569), 
+            fontSize: 11, 
+            fontWeight: FontWeight.w500, 
+            fontFamily: 'Lexend',
+          ),
+        ),
       ],
     );
   }

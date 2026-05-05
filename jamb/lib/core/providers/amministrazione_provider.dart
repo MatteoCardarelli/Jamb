@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:jamb/ui/views/documenti/widgets/status_row_card.dart';
+import 'package:jamb/ui/views/amministrazione/widgets/status_row_card.dart';
 
 class RagazzoDocumenti {
   final String id;
@@ -84,6 +84,20 @@ class AmministrazioneProvider extends ChangeNotifier {
     bool m = r.medica == DocumentStatus.valid || r.medica == DocumentStatus.expiring;
     return c && p && m;
   }).length;
+
+  /// Restituisce un messaggio riassuntivo degli avvisi amministrativi (schede mediche, censimenti).
+  String get alertMessage {
+    int medScadute = _ragazzi.where((e) => e.medica == DocumentStatus.missing).length;
+    int medInScadenza = _ragazzi.where((e) => e.medica == DocumentStatus.expiring).length;
+    int censMancanti = _ragazzi.where((e) => e.censimento == DocumentStatus.none || e.censimento == DocumentStatus.missing).length;
+
+    List<String> alerts = [];
+    if (medScadute > 0) alerts.add("$medScadute schede mediche scadute");
+    if (medInScadenza > 0) alerts.add("$medInScadenza in scadenza");
+    if (censMancanti > 0) alerts.add("$censMancanti censimenti mancanti");
+
+    return alerts.isNotEmpty ? "${alerts.join(", ")}." : "";
+  }
 
   void cycleStatus(String id, String field) {
     final index = _ragazzi.indexWhere((r) => r.id == id);

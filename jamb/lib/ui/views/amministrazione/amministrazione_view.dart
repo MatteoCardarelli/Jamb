@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:jamb/ui/core/widgets/empty_background_screen.dart';
-import 'package:jamb/ui/views/documenti/widgets/status_documento_card.dart';
-import 'package:jamb/ui/views/documenti/widgets/status_row_card.dart';
 import 'package:provider/provider.dart';
+import 'package:jamb/ui/core/widgets/empty_background_screen.dart';
+import 'package:jamb/ui/core/widgets/back_action_button.dart';
+import 'package:jamb/ui/views/amministrazione/widgets/status_documento_card.dart';
+import 'package:jamb/ui/views/amministrazione/widgets/status_row_card.dart';
 import 'package:jamb/core/providers/amministrazione_provider.dart';
 
+/// Vista dedicata alla gestione amministrativa dei ragazzi (Censimenti, Privacy, Schede Mediche).
+/// Permette di monitorare lo stato dei documenti globali e di ogni singolo scout attraverso
+/// filtri dinamici e una tabella riassuntiva interattiva.
 class AmministrazioneView extends StatefulWidget {
   const AmministrazioneView({super.key});
 
@@ -13,13 +17,14 @@ class AmministrazioneView extends StatefulWidget {
 }
 
 class _AmministrazioneViewState extends State<AmministrazioneView> {
+  // Filtro attualmente attivo nella tabella
   String _selectedFilter = "Tutti";
 
   @override
   Widget build(BuildContext context) {
     final adminProvider = Provider.of<AmministrazioneProvider>(context);
 
-    // Gestione filtri sulla lista globale del provider
+    // LOGICA DI FILTRAGGIO DEI DATI
     List<RagazzoDocumenti> filteredData = adminProvider.ragazzi;
     if (_selectedFilter == "Incompleti") {
       filteredData = adminProvider.ragazzi.where((row) => 
@@ -44,31 +49,22 @@ class _AmministrazioneViewState extends State<AmministrazioneView> {
       body: EmptyBackgroundScreen(
         currentIndex: 2,
         child: SingleChildScrollView(
+          // Padding top di 170 per stare sotto la TopBar
           padding: const EdgeInsets.only(top: 170, left: 20, right: 20, bottom: 120),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Intestazione con tasto back
+              // --- INTESTAZIONE ---
               Row(
                 children: [
-                  GestureDetector(
-                    onTap: () => Navigator.of(context).pop(),
-                    child: Container(
-                      padding: const EdgeInsets.all(6),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: const Color(0xFFE2E8F0)),
-                      ),
-                      child: const Icon(Icons.arrow_back_ios_new_rounded, size: 16, color: Color(0xFF25315B)),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
+                  // Tasto Indietro (Componente Core)
+                  const BackActionButton(),
+                  const SizedBox(width: 16),
                   const Text(
                     "Amministrazione",
                     style: TextStyle(
                       color: Color(0xFF0F172A),
-                      fontSize: 20,
+                      fontSize: 22,
                       fontWeight: FontWeight.w900,
                       fontFamily: 'Lexend',
                     ),
@@ -77,68 +73,75 @@ class _AmministrazioneViewState extends State<AmministrazioneView> {
               ),
               const SizedBox(height: 24),
 
-              // Card di stato dinamiche dal provider
+              // --- STATISTICHE GLOBALI (Card dinamiche) ---
               StatusDocumentoCard(
                 titolo: "Censimenti",
-                icona: Icons.assignment_ind_outlined,
+                icona: Icons.assignment_ind_rounded,
                 attuali: adminProvider.censValid,
                 totali: adminProvider.totali,
               ),
+              const SizedBox(height: 12),
               StatusDocumentoCard(
                 titolo: "Privacy",
-                icona: Icons.verified_user_outlined,
+                icona: Icons.verified_user_rounded,
                 attuali: adminProvider.privValid,
                 totali: adminProvider.totali,
               ),
+              const SizedBox(height: 12),
               StatusDocumentoCard(
                 titolo: "Schede Mediche",
-                icona: Icons.medical_services_outlined,
+                icona: Icons.medical_services_rounded,
                 attuali: adminProvider.medValid,
                 totali: adminProvider.totali,
               ),
 
               const SizedBox(height: 32),
 
-              // Filtri
-              Row(
-                children: [
-                  _buildFilterChip("Tutti"),
-                  const SizedBox(width: 8),
-                  _buildFilterChip("Incompleti"),
-                  const SizedBox(width: 8),
-                  _buildFilterChip("In Scadenza"),
-                ],
+              // --- FILTRI TABELLA ---
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                physics: const BouncingScrollPhysics(),
+                child: Row(
+                  children: [
+                    _buildFilterChip("Tutti"),
+                    const SizedBox(width: 8),
+                    _buildFilterChip("Incompleti"),
+                    const SizedBox(width: 8),
+                    _buildFilterChip("In Scadenza"),
+                  ],
+                ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 16),
 
-              // Legenda
+              // --- LEGENDA ---
               Row(
                 children: [
                   _buildLegendItem(const Color(0xFF22C55E), "Valido"),
                   const SizedBox(width: 16),
                   _buildLegendItem(const Color(0xFFF59E0B), "In Scadenza"),
                   const SizedBox(width: 16),
-                  _buildLegendItem(const Color(0xFFEF4444), "Scaduto/Mancante"),
+                  _buildLegendItem(const Color(0xFFEF4444), "Mancante"),
                 ],
               ),
 
               const SizedBox(height: 24),
 
-              // Header Tabella
+              // --- HEADER TABELLA ---
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: Row(
                   children: const [
-                    SizedBox(width: 48),
+                    SizedBox(width: 48), // Spazio per le iniziali
                     Expanded(
                       flex: 3,
                       child: Text(
                         "NOMINATIVO",
                         style: TextStyle(
                           color: Color(0xFF94A3B8),
-                          fontSize: 11,
+                          fontSize: 10,
                           fontWeight: FontWeight.w800,
                           fontFamily: 'Lexend',
+                          letterSpacing: 0.5,
                         ),
                       ),
                     ),
@@ -150,17 +153,29 @@ class _AmministrazioneViewState extends State<AmministrazioneView> {
               ),
               const SizedBox(height: 12),
 
-              // Lista Ragazzi dal Provider
-              ...filteredData.map((ragazzo) => StatusRowCard(
-                initials: ragazzo.initials,
-                nome: ragazzo.nome,
-                censimento: ragazzo.censimento,
-                privacy: ragazzo.privacy,
-                medica: ragazzo.medica,
-                onCensimentoTap: () => adminProvider.cycleStatus(ragazzo.id, 'censimento'),
-                onPrivacyTap: () => adminProvider.cycleStatus(ragazzo.id, 'privacy'),
-                onMedicaTap: () => adminProvider.cycleStatus(ragazzo.id, 'medica'),
-              )),
+              // --- LISTA RAGAZZI ---
+              if (filteredData.isEmpty)
+                const Center(
+                  child: Padding(
+                    padding: EdgeInsets.only(top: 40),
+                    child: Text(
+                      "Nessun dato corrispondente ai filtri",
+                      style: TextStyle(color: Color(0xFF94A3B8), fontFamily: 'Lexend'),
+                    ),
+                  ),
+                )
+              else
+                ...filteredData.map((ragazzo) => StatusRowCard(
+                  initials: ragazzo.initials,
+                  nome: ragazzo.nome,
+                  censimento: ragazzo.censimento,
+                  privacy: ragazzo.privacy,
+                  medica: ragazzo.medica,
+                  // Logica di interazione diretta con il Provider (Dumb UI -> Action)
+                  onCensimentoTap: () => adminProvider.cycleStatus(ragazzo.id, 'censimento'),
+                  onPrivacyTap: () => adminProvider.cycleStatus(ragazzo.id, 'privacy'),
+                  onMedicaTap: () => adminProvider.cycleStatus(ragazzo.id, 'medica'),
+                )),
             ],
           ),
         ),
@@ -173,29 +188,29 @@ class _AmministrazioneViewState extends State<AmministrazioneView> {
     fontSize: 10,
     fontWeight: FontWeight.w800,
     fontFamily: 'Lexend',
+    letterSpacing: 0.5,
   );
 
+  /// Helper per la creazione dei chip di filtraggio
   Widget _buildFilterChip(String label) {
     bool isSelected = _selectedFilter == label;
     return GestureDetector(
-      onTap: () {
-        setState(() {
-          _selectedFilter = label;
-        });
-      },
-      child: Container(
+      onTap: () => setState(() => _selectedFilter = label),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF1E293B) : Colors.white,
+          color: isSelected ? const Color(0xFF1D2660) : Colors.white,
           borderRadius: BorderRadius.circular(30),
           border: Border.all(
-            color: isSelected ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0),
+            color: isSelected ? const Color(0xFF1D2660) : const Color(0xFFE2E8F0),
+            width: 1.5,
           ),
         ),
         child: Text(
           label,
           style: TextStyle(
-            color: isSelected ? Colors.white : const Color(0xFF475569),
+            color: isSelected ? Colors.white : const Color(0xFF64748B),
             fontSize: 13,
             fontWeight: FontWeight.w700,
             fontFamily: 'Lexend',
@@ -205,6 +220,7 @@ class _AmministrazioneViewState extends State<AmministrazioneView> {
     );
   }
 
+  /// Helper per la creazione degli elementi della legenda
   Widget _buildLegendItem(Color color, String label) {
     return Row(
       children: [

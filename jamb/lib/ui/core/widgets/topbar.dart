@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+/// Barra superiore personalizzata con design distintivo Jamb.
+/// Presenta una forma a "tuffo" (dip) al centro che ospita il logo AGESCI,
+/// icone profilo e notifiche, e informazioni sull'utente corrente.
 class TopBar extends StatelessWidget implements PreferredSizeWidget {
   const TopBar({super.key});
 
@@ -11,22 +14,23 @@ class TopBar extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     final double statusBarHeight = MediaQuery.of(context).padding.top;
     const double defaultBarHeight = 70.0;
-    const double dipRadius = 36.0; // The curve drops by 36px
+    const double dipRadius = 36.0; // Raggio della curvatura centrale
     final double totalHeight = defaultBarHeight + statusBarHeight + dipRadius;
-    const Color greenColor = Color(0xFF2F4F39);
+    const Color greenColor = Color(0xFF2F4F39); // Colore istituzionale verde scout
 
     return SizedBox(
       height: totalHeight,
       child: Stack(
         clipBehavior: Clip.none,
         children: [
+          // SFONDO SAGOMATO CON OMBRA
           Container(
             decoration: ShapeDecoration(
               color: Colors.white,
               shape: const TopBarShape(),
               shadows: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.2), // Ombra molto più visibile
+                  color: Colors.black.withOpacity(0.12),
                   blurRadius: 10,
                   spreadRadius: 1,
                   offset: const Offset(0, 5),
@@ -34,6 +38,8 @@ class TopBar extends StatelessWidget implements PreferredSizeWidget {
               ],
             ),
           ),
+          
+          // CONTENUTO DELLA BARRA (Avatar, Info Utente, Icone)
           Positioned(
             top: statusBarHeight,
             left: 0,
@@ -43,14 +49,15 @@ class TopBar extends StatelessWidget implements PreferredSizeWidget {
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: Row(
                 children: [
-                  // User Avatar
+                  // Avatar Utente (SVG)
                   SvgPicture.asset(
                     'assets/icons/profilo.svg',
                     width: 36,
                     height: 36,
                   ),
                   const SizedBox(width: 10),
-                  // User info
+                  
+                  // Info Utente: Nome e Totem
                   const Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -61,6 +68,7 @@ class TopBar extends StatelessWidget implements PreferredSizeWidget {
                           color: greenColor,
                           fontWeight: FontWeight.bold,
                           fontSize: 14,
+                          fontFamily: 'Lexend',
                         ),
                       ),
                       Text(
@@ -68,42 +76,44 @@ class TopBar extends StatelessWidget implements PreferredSizeWidget {
                         style: TextStyle(
                           color: greenColor,
                           fontWeight: FontWeight.w600,
-                          fontSize: 8,
+                          fontSize: 9,
+                          fontFamily: 'Lexend',
                         ),
                       ),
                     ],
                   ),
                   const Spacer(),
-                  // Compass Icon
+                  
+                  // Icone d'azione (Opzioni e Notifiche)
                   SvgPicture.asset(
                     'assets/icons/opzioni.svg',
-                    width: 30, // Ingrandite
-                    height: 30,
+                    width: 28,
+                    height: 28,
                   ),
                   const SizedBox(width: 24),
-                  // Bell Icon
                   SvgPicture.asset(
                     'assets/icons/notifiche.svg',
-                    width: 30, // Ingrandite
-                    height: 30,
+                    width: 28,
+                    height: 28,
                   ),
                 ],
               ),
             ),
           ),
-          // AGESCI Logo on the semicircle dip
+          
+          // LOGO AGESCI: Posizionato esattamente nella curvatura centrale
           Positioned(
             bottom: 0,
             left: 0,
             right: 0,
             child: Center(
               child: SizedBox(
-                width: dipRadius * 2, // 72px totali
-                height: dipRadius * 2, // 72px totali
+                width: dipRadius * 2,
+                height: dipRadius * 2,
                 child: Center(
                   child: SvgPicture.asset(
                     'assets/icons/logo_agesci.svg',
-                    width: 66, // Ingrandito
+                    width: 66,
                     height: 66,
                     fit: BoxFit.contain,
                   ),
@@ -117,6 +127,8 @@ class TopBar extends StatelessWidget implements PreferredSizeWidget {
   }
 }
 
+/// Definizione della forma geometrica personalizzata per la TopBar.
+/// Crea un rettangolo con un semicerchio scavato verso il basso al centro.
 class TopBarShape extends ShapeBorder {
   const TopBarShape();
 
@@ -134,20 +146,23 @@ class TopBarShape extends ShapeBorder {
     const double dipRadius = 36.0;
     const double dipDiameter = dipRadius * 2;
     
+    // Calcola l'altezza della parte rettangolare prima della curva
     final double bottomY = rect.height - dipRadius;
     
     path.lineTo(0, bottomY);
     
+    // Disegna la linea fino all'inizio del semicerchio centrale
     double startX = (rect.width - dipDiameter) / 2;
     path.lineTo(startX, bottomY);
     
-    // Semicerchio
+    // Crea la curvatura verso il basso (dip)
     path.arcToPoint(
       Offset(startX + dipDiameter, bottomY),
       radius: const Radius.circular(dipRadius),
       clockwise: false,
     );
     
+    // Prosegue fino alla fine del rettangolo
     path.lineTo(rect.width, bottomY);
     path.lineTo(rect.width, 0);
     path.close();

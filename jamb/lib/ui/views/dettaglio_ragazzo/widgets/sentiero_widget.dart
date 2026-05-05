@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+/// Rappresenta un singolo obiettivo all'interno di una tappa del sentiero
 class ObiettivoSentiero {
   String titolo;
   bool completato;
@@ -7,9 +8,15 @@ class ObiettivoSentiero {
   ObiettivoSentiero({required this.titolo, required this.completato});
 }
 
+/// Widget per la visualizzazione e gestione del Sentiero scout (E/G).
+/// Mostra la tappa corrente, la descrizione dell'impegno e una lista di obiettivi
+/// che l'utente può spuntare direttamente. Include un pannello di modifica per la tappa.
 class SentieroWidget extends StatefulWidget {
+  /// Nome della tappa (es. "Tappa della Responsabilità")
   final String tappa;
+  /// Descrizione dell'impegno preso dallo scout
   final String descrizione;
+  /// Lista degli obiettivi specifici della tappa
   final List<ObiettivoSentiero> obiettivi;
 
   const SentieroWidget({
@@ -33,16 +40,18 @@ class _SentieroWidgetState extends State<SentieroWidget> {
     super.initState();
     _tappa = widget.tappa;
     _descrizione = widget.descrizione;
-    // Creiamo una copia mutabile della lista
+    // Copia mutabile della lista per la gestione dello stato locale
     _obiettivi = widget.obiettivi.map((o) => ObiettivoSentiero(titolo: o.titolo, completato: o.completato)).toList();
   }
 
+  /// Inverte lo stato di completamento di un obiettivo
   void _toggleObiettivo(int index) {
     setState(() {
       _obiettivi[index].completato = !_obiettivi[index].completato;
     });
   }
 
+  /// Apre il pannello di modifica per aggiornare la tappa e gli obiettivi
   void _apriModifica() {
     showModalBottomSheet(
       context: context,
@@ -85,118 +94,98 @@ class _SentieroWidgetState extends State<SentieroWidget> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header
+          // --- HEADER: TITOLO E TASTO EDIT ---
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    "SENTIERO E/G",
-                    style: TextStyle(
-                      color: Color(0xFF16A34A),
-                      fontSize: 11,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 0.8,
-                      fontFamily: 'Lexend',
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      "SENTIERO E/G",
+                      style: TextStyle(
+                        color: Color(0xFF16A34A), // Scout Green
+                        fontSize: 10,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.8,
+                        fontFamily: 'Lexend',
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    _tappa,
-                    style: const TextStyle(
-                      color: Color(0xFF00005C),
-                      fontSize: 22,
-                      fontWeight: FontWeight.w900,
-                      fontFamily: 'Lexend',
-                      height: 1.2,
+                    const SizedBox(height: 4),
+                    Text(
+                      _tappa,
+                      style: const TextStyle(
+                        color: Color(0xFF1D2660), // Navy Blue
+                        fontSize: 22,
+                        fontWeight: FontWeight.w900,
+                        fontFamily: 'Lexend',
+                        height: 1.2,
+                      ),
                     ),
-                  ),
-                ],
-              ),
-              GestureDetector(
-                onTap: _apriModifica,
-                child: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF1F5F9),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: const Icon(
-                    Icons.edit_outlined,
-                    size: 18,
-                    color: Color(0xFF64748B),
-                  ),
+                  ],
                 ),
+              ),
+              IconButton(
+                onPressed: _apriModifica,
+                icon: const Icon(Icons.edit_note_rounded, color: Color(0xFF94A3B8), size: 24),
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
               ),
             ],
           ),
 
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
 
+          // DESCRIZIONE DELL'IMPEGNO
           Text(
             _descrizione,
             style: const TextStyle(
-              color: Color(0xFF334155),
+              color: Color(0xFF475569),
               fontSize: 14,
               fontFamily: 'Lexend',
+              height: 1.5,
             ),
           ),
 
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
 
-          const Text(
-            "Obiettivi:",
-            style: TextStyle(
-              color: Color(0xFF334155),
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              fontFamily: 'Lexend',
-            ),
-          ),
-
-          const SizedBox(height: 10),
-
-          // Lista obiettivi interattiva
+          // LISTA OBIETTIVI INTERATTIVA
           ...List.generate(_obiettivi.length, (i) {
             final obj = _obiettivi[i];
             return Padding(
-              padding: const EdgeInsets.only(bottom: 8),
+              padding: const EdgeInsets.only(bottom: 10),
               child: GestureDetector(
                 onTap: () => _toggleObiettivo(i),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                   decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                    color: obj.completato ? const Color(0xFFF0FDF4) : Colors.white,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(
+                      color: obj.completato ? const Color(0xFFBBF7D0) : const Color(0xFFE2E8F0),
+                    ),
                   ),
                   child: Row(
                     children: [
-                      AnimatedSwitcher(
-                        duration: const Duration(milliseconds: 200),
-                        child: obj.completato
-                            ? const Icon(Icons.check_circle, color: Color(0xFF16A34A), size: 22, key: ValueKey('checked'))
-                            : Container(
-                                key: const ValueKey('unchecked'),
-                                width: 22,
-                                height: 22,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  border: Border.all(color: const Color(0xFFCBD5E1), width: 2),
-                                ),
-                              ),
+                      Icon(
+                        obj.completato ? Icons.check_circle_rounded : Icons.circle_outlined,
+                        color: obj.completato ? const Color(0xFF16A34A) : const Color(0xFFCBD5E1),
+                        size: 22,
                       ),
-                      const SizedBox(width: 12),
-                      Text(
-                        obj.titolo,
-                        style: TextStyle(
-                          color: obj.completato ? const Color(0xFF334155) : const Color(0xFF94A3B8),
-                          fontSize: 14,
-                          fontWeight: obj.completato ? FontWeight.w500 : FontWeight.w400,
-                          fontFamily: 'Lexend',
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Text(
+                          obj.titolo,
+                          style: TextStyle(
+                            color: obj.completato ? const Color(0xFF14532D) : const Color(0xFF64748B),
+                            fontSize: 14,
+                            fontWeight: obj.completato ? FontWeight.w700 : FontWeight.w500,
+                            fontFamily: 'Lexend',
+                            decoration: obj.completato ? TextDecoration.lineThrough : null,
+                          ),
                         ),
                       ),
                     ],
@@ -211,7 +200,7 @@ class _SentieroWidgetState extends State<SentieroWidget> {
   }
 }
 
-// ─── Bottom Sheet di Modifica ────────────────────────────────────────────────
+// --- COMPONENTE PRIVATO: BOTTOM SHEET DI MODIFICA ---
 
 class _EditSentieroSheet extends StatefulWidget {
   final String tappa;
@@ -237,7 +226,7 @@ class _EditSentieroSheetState extends State<_EditSentieroSheet> {
   late List<bool> _obiettiviCompletati;
 
   static const List<String> _opzioniTappa = [
-    '-',
+    'Nessuna',
     'Scoperta',
     'Competenza',
     'Responsabilità',
@@ -246,7 +235,7 @@ class _EditSentieroSheetState extends State<_EditSentieroSheet> {
   @override
   void initState() {
     super.initState();
-    _tappaSelezionata = widget.tappa;
+    _tappaSelezionata = widget.tappa.isEmpty ? 'Nessuna' : widget.tappa;
     _descCtrl = TextEditingController(text: widget.descrizione);
     _obiettiviCtrl = widget.obiettivi.map((o) => TextEditingController(text: o.titolo)).toList();
     _obiettiviCompletati = widget.obiettivi.map((o) => o.completato).toList();
@@ -277,7 +266,7 @@ class _EditSentieroSheetState extends State<_EditSentieroSheet> {
     final nuoviObiettivi = List.generate(_obiettiviCtrl.length, (i) =>
       ObiettivoSentiero(titolo: _obiettiviCtrl[i].text, completato: _obiettiviCompletati[i]),
     );
-    widget.onSalva(_tappaSelezionata, _descCtrl.text, nuoviObiettivi);
+    widget.onSalva(_tappaSelezionata == 'Nessuna' ? '' : _tappaSelezionata, _descCtrl.text, nuoviObiettivi);
   }
 
   @override
@@ -295,41 +284,45 @@ class _EditSentieroSheetState extends State<_EditSentieroSheet> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Maniglietta
+              // MANIGLIA DI CHIUSURA
               Center(
                 child: Container(
                   width: 40, height: 4,
                   decoration: BoxDecoration(color: const Color(0xFFE2E8F0), borderRadius: BorderRadius.circular(2)),
                 ),
               ),
-              const SizedBox(height: 20),
-              const Text("Modifica Sentiero", style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: Color(0xFF00005C), fontFamily: 'Lexend')),
-              const SizedBox(height: 20),
+              const SizedBox(height: 24),
+              const Text(
+                "Modifica Sentiero", 
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: Color(0xFF1D2660), fontFamily: 'Lexend')
+              ),
+              const SizedBox(height: 24),
 
-              _label("Tappa"),
-              const SizedBox(height: 4),
+              _buildLabel("Tappa Corrente"),
+              const SizedBox(height: 8),
               Wrap(
                 spacing: 8,
+                runSpacing: 8,
                 children: _opzioniTappa.map((opzione) {
-                  final selezionato = _tappaSelezionata == opzione ||
-                      (_tappaSelezionata.isEmpty && opzione == '-');
+                  final bool isSelected = _tappaSelezionata == opzione;
                   return GestureDetector(
-                    onTap: () => setState(() => _tappaSelezionata = opzione == '-' ? '' : opzione),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    onTap: () => setState(() => _tappaSelezionata = opzione),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                       decoration: BoxDecoration(
-                        color: selezionato ? const Color(0xFF00005C) : const Color(0xFFF8FAFC),
+                        color: isSelected ? const Color(0xFF1D2660) : const Color(0xFFF8FAFC),
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
-                          color: selezionato ? const Color(0xFF00005C) : const Color(0xFFE2E8F0),
+                          color: isSelected ? const Color(0xFF1D2660) : const Color(0xFFE2E8F0),
                         ),
                       ),
                       child: Text(
                         opzione,
                         style: TextStyle(
-                          color: selezionato ? Colors.white : const Color(0xFF64748B),
-                          fontSize: 14,
-                          fontWeight: selezionato ? FontWeight.w700 : FontWeight.w400,
+                          color: isSelected ? Colors.white : const Color(0xFF64748B),
+                          fontSize: 13,
+                          fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
                           fontFamily: 'Lexend',
                         ),
                       ),
@@ -337,43 +330,42 @@ class _EditSentieroSheetState extends State<_EditSentieroSheet> {
                   );
                 }).toList(),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 24),
 
-              _label("Descrizione"),
-              _textField(_descCtrl, maxLines: 3),
-              const SizedBox(height: 20),
+              _buildLabel("Impegno / Descrizione"),
+              _buildTextField(_descCtrl, maxLines: 3, hint: "Descrivi l'impegno preso per questa tappa..."),
+              const SizedBox(height: 24),
 
-              _label("Obiettivi"),
-              const SizedBox(height: 8),
+              _buildLabel("Obiettivi della Tappa"),
+              const SizedBox(height: 12),
 
               ...List.generate(_obiettiviCtrl.length, (i) => Padding(
-                padding: const EdgeInsets.only(bottom: 8),
+                padding: const EdgeInsets.only(bottom: 12),
                 child: Row(
                   children: [
                     GestureDetector(
                       onTap: () => setState(() => _obiettiviCompletati[i] = !_obiettiviCompletati[i]),
-                      child: _obiettiviCompletati[i]
-                          ? const Icon(Icons.check_circle, color: Color(0xFF16A34A), size: 24)
-                          : Container(
-                              width: 24, height: 24,
-                              decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: const Color(0xFFCBD5E1), width: 2)),
-                            ),
+                      child: Icon(
+                        _obiettiviCompletati[i] ? Icons.check_circle_rounded : Icons.circle_outlined, 
+                        color: _obiettiviCompletati[i] ? const Color(0xFF16A34A) : const Color(0xFFCBD5E1),
+                        size: 24,
+                      ),
                     ),
-                    const SizedBox(width: 10),
+                    const SizedBox(width: 12),
                     Expanded(
                       child: TextField(
                         controller: _obiettiviCtrl[i],
                         style: const TextStyle(fontFamily: 'Lexend', fontSize: 14),
                         decoration: const InputDecoration(
-                          hintText: "Descrivi l'obiettivo...",
+                          hintText: "es. Specialità di Cuoco",
                           border: InputBorder.none,
                           isDense: true,
                         ),
                       ),
                     ),
-                    GestureDetector(
-                      onTap: () => _rimuoviObiettivo(i),
-                      child: const Icon(Icons.close, color: Color(0xFFCBD5E1), size: 20),
+                    IconButton(
+                      onPressed: () => _rimuoviObiettivo(i),
+                      icon: const Icon(Icons.remove_circle_outline_rounded, color: Color(0xFFE11D48), size: 20),
                     ),
                   ],
                 ),
@@ -381,23 +373,24 @@ class _EditSentieroSheetState extends State<_EditSentieroSheet> {
 
               TextButton.icon(
                 onPressed: _aggiungiObiettivo,
-                icon: const Icon(Icons.add, size: 16),
-                label: const Text("Aggiungi obiettivo", style: TextStyle(fontFamily: 'Lexend')),
+                icon: const Icon(Icons.add_circle_outline_rounded, size: 20),
+                label: const Text("Aggiungi obiettivo", style: TextStyle(fontWeight: FontWeight.w700, fontFamily: 'Lexend')),
                 style: TextButton.styleFrom(foregroundColor: const Color(0xFF16A34A)),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 32),
 
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: _salva,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF00005C),
+                    backgroundColor: const Color(0xFF1D2660),
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    elevation: 0,
                   ),
-                  child: const Text("Salva", style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, fontFamily: 'Lexend')),
+                  child: const Text("SALVA MODIFICHE", style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, fontFamily: 'Lexend')),
                 ),
               ),
             ],
@@ -407,23 +400,31 @@ class _EditSentieroSheetState extends State<_EditSentieroSheet> {
     );
   }
 
-  Widget _label(String text) => Padding(
-    padding: const EdgeInsets.only(bottom: 6),
-    child: Text(text, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF94A3B8), letterSpacing: 0.5, fontFamily: 'Lexend')),
+  Widget _buildLabel(String text) => Padding(
+    padding: const EdgeInsets.only(bottom: 8),
+    child: Text(
+      text.toUpperCase(), 
+      style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: Color(0xFF94A3B8), letterSpacing: 0.8, fontFamily: 'Lexend')
+    ),
   );
 
-  Widget _textField(TextEditingController ctrl, {int maxLines = 1}) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+  Widget _buildTextField(TextEditingController ctrl, {int maxLines = 1, String? hint}) => Container(
+    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
     decoration: BoxDecoration(
       color: const Color(0xFFF8FAFC),
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(14),
       border: Border.all(color: const Color(0xFFE2E8F0)),
     ),
     child: TextField(
       controller: ctrl,
       maxLines: maxLines,
       style: const TextStyle(fontFamily: 'Lexend', fontSize: 14, color: Color(0xFF1E293B)),
-      decoration: const InputDecoration(border: InputBorder.none, isDense: true),
+      decoration: InputDecoration(
+        hintText: hint,
+        hintStyle: const TextStyle(color: Color(0xFF94A3B8)),
+        border: InputBorder.none, 
+        isDense: true
+      ),
     ),
   );
 }

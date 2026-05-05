@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:jamb/domain/entities/obiettivo.dart';
 
+/// Card riassuntiva del Programma d'Unità visualizzata nella Home.
+/// Mostra il progresso degli obiettivi (PEG) tramite barre colorate e una legenda dettagliata.
 class ProgrammaUnitaCard extends StatelessWidget {
+  /// Lista degli obiettivi correnti
   final List<Obiettivo> obiettivi;
 
   const ProgrammaUnitaCard({
@@ -32,7 +35,7 @@ class ProgrammaUnitaCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Header
+          // INTESTAZIONE: Titolo e Data
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -44,6 +47,7 @@ class ProgrammaUnitaCard extends StatelessWidget {
                     color: darkBlue,
                     fontSize: 20,
                     fontWeight: FontWeight.w800,
+                    fontFamily: 'Lexend',
                   ),
                 ),
               ),
@@ -53,6 +57,7 @@ class ProgrammaUnitaCard extends StatelessWidget {
                   color: darkBlue.withOpacity(0.9),
                   fontSize: 14,
                   fontWeight: FontWeight.w700,
+                  fontFamily: 'Lexend',
                 ),
               ),
             ],
@@ -64,11 +69,12 @@ class ProgrammaUnitaCard extends StatelessWidget {
               color: textGrey,
               fontSize: 14,
               fontWeight: FontWeight.w500,
+              fontFamily: 'Lexend',
             ),
           ),
           const SizedBox(height: 20),
 
-          // Progress Bars
+          // BARRE DI PROGRESSO: Una per ogni obiettivo
           ...obiettivi.map((ob) => Padding(
                 padding: const EdgeInsets.only(bottom: 12.0),
                 child: _buildProgressBarRow(ob.colore, ob.grado, 5),
@@ -76,10 +82,9 @@ class ProgrammaUnitaCard extends StatelessWidget {
           
           const SizedBox(height: 12),
 
-          // Legend
+          // LEGENDA: Griglia flessibile a 2 colonne
           LayoutBuilder(
             builder: (context, constraints) {
-              // Calculate width for 2 columns with 16px spacing
               final itemWidth = (constraints.maxWidth - 16) / 2;
               return Wrap(
                 spacing: 16,
@@ -98,6 +103,7 @@ class ProgrammaUnitaCard extends StatelessWidget {
     );
   }
 
+  /// Costruisce una riga di segmenti per mostrare il progresso (1-5)
   Widget _buildProgressBarRow(Color filledColor, int filledCount, int totalCount) {
     return Row(
       children: List.generate(totalCount, (index) {
@@ -115,16 +121,21 @@ class ProgrammaUnitaCard extends StatelessWidget {
     );
   }
 
+  /// Costruisce un elemento della legenda con pallino colorato e testo
   Widget _buildLegendItem(Color dotColor, String label, int score, Color textColor) {
     return Row(
       mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start, // Allinea in alto se il testo va a capo
       children: [
-        Container(
-          width: 10,
-          height: 10,
-          decoration: BoxDecoration(
-            color: dotColor,
-            shape: BoxShape.circle,
+        Padding(
+          padding: const EdgeInsets.only(top: 4.0), // Allinea il pallino alla prima riga di testo
+          child: Container(
+            width: 10,
+            height: 10,
+            decoration: BoxDecoration(
+              color: dotColor,
+              shape: BoxShape.circle,
+            ),
           ),
         ),
         const SizedBox(width: 8),
@@ -134,9 +145,10 @@ class ProgrammaUnitaCard extends StatelessWidget {
             style: TextStyle(
               color: textColor,
               fontSize: 13,
-              fontWeight: FontWeight.w400,
+              fontWeight: FontWeight.bold,
+              fontFamily: 'Lexend',
             ),
-            maxLines: 1,
+            maxLines: 2, // Permette l'andata a capo per evitare il clipping
             overflow: TextOverflow.ellipsis,
           ),
         ),
@@ -144,4 +156,3 @@ class ProgrammaUnitaCard extends StatelessWidget {
     );
   }
 }
-

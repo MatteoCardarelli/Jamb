@@ -1,18 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:jamb/ui/core/widgets/empty_background_screen.dart';
-import 'package:jamb/ui/core/widgets/jamb_expandable_fab.dart';
 import 'package:jamb/ui/views/add_transaction/add_transaction_view.dart';
 import 'package:jamb/ui/views/contabilita/widgets/balance_card.dart';
 import 'package:jamb/ui/views/contabilita/widgets/expenses_distribution_card.dart';
 import 'package:jamb/ui/views/contabilita/widgets/recent_transactions_list.dart';
-
-
+import 'package:provider/provider.dart';
+import 'package:jamb/core/providers/contabilita_provider.dart';
 
 class ContabilitaView extends StatelessWidget {
   const ContabilitaView({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final financeProvider = context.watch<ContabilitaProvider>();
+
     return Scaffold(
       extendBody: true,
       backgroundColor: Colors.transparent,
@@ -56,8 +57,8 @@ class ContabilitaView extends StatelessWidget {
               ),
               const SizedBox(height: 32),
 
-              // IL WIDGET SALDO
-              const BalanceCard(saldo: 1248.50),
+              // IL WIDGET SALDO (Dati dal Provider)
+              BalanceCard(saldo: financeProvider.saldoAttuale),
 
               const SizedBox(height: 16),
 

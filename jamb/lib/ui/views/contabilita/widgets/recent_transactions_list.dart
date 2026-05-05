@@ -1,10 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:jamb/core/providers/contabilita_provider.dart';
+import 'package:intl/intl.dart';
 
 class RecentTransactionsList extends StatelessWidget {
   const RecentTransactionsList({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final financeProvider = context.watch<ContabilitaProvider>();
+    final DateFormat dateFormat = DateFormat('dd/MM/yyyy');
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -37,43 +43,16 @@ class RecentTransactionsList extends StatelessWidget {
         ),
         const SizedBox(height: 16),
 
-        // Lista Transazioni
-        _buildTransactionItem(
-          icon: Icons.add_circle_outline_rounded,
-          iconColor: const Color(0xFF1B5E20),
-          bgColor: const Color(0xFFE8F5E9),
-          title: "Quota Uscita San Giorgio",
-          subtitle: "Oggi, 14:30 • Entrata",
-          amount: "+ € 240,00",
-          amountColor: const Color(0xFF1B5E20),
-        ),
-        _buildTransactionItem(
-          icon: Icons.shopping_cart_outlined,
-          iconColor: const Color(0xFFB91C1C),
-          bgColor: const Color(0xFFFEF2F2),
-          title: "Spesa Alimentare Reparto",
-          subtitle: "Ieri, 18:15 • Uscita",
-          amount: "- € 84,20",
-          amountColor: const Color(0xFFB91C1C),
-        ),
-        _buildTransactionItem(
-          icon: Icons.build_outlined,
-          iconColor: const Color(0xFFB91C1C),
-          bgColor: const Color(0xFFFEF2F2),
-          title: "Materiale Pioneristica",
-          subtitle: "12 Mag • Uscita",
-          amount: "- € 36,10",
-          amountColor: const Color(0xFFB91C1C),
-        ),
-        _buildTransactionItem(
-          icon: Icons.savings_outlined,
-          iconColor: const Color(0xFFB91C1C),
-          bgColor: const Color(0xFFFEF2F2),
-          title: "Rimborso Carburante Capo",
-          subtitle: "10 Mag • Entrata",
-          amount: "- € 25,00",
-          amountColor: const Color(0xFFB91C1C),
-        ),
+        // Lista Transazioni dal Provider
+        ...financeProvider.transactions.map((t) => _buildTransactionItem(
+          icon: t.isPositive ? Icons.add_circle_outline_rounded : Icons.shopping_cart_outlined,
+          iconColor: t.isPositive ? const Color(0xFF1B5E20) : const Color(0xFFB91C1C),
+          bgColor: t.isPositive ? const Color(0xFFE8F5E9) : const Color(0xFFFEF2F2),
+          title: t.title,
+          subtitle: "${dateFormat.format(t.date)} • ${t.isPositive ? 'Entrata' : 'Uscita'}",
+          amount: "${t.isPositive ? '+' : '-'} € ${t.amount.toStringAsFixed(2).replaceAll('.', ',')}",
+          amountColor: t.isPositive ? const Color(0xFF1B5E20) : const Color(0xFFB91C1C),
+        )),
       ],
     );
   }

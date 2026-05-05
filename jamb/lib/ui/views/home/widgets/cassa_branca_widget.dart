@@ -1,17 +1,26 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:jamb/core/providers/contabilita_provider.dart';
+import 'package:intl/intl.dart';
 
+/// Widget riassuntivo della situazione finanziaria del reparto.
+/// Mostra il saldo attuale, l'utilizzo del budget mensile e le ultime due transazioni.
 class CassaBrancaWidget extends StatelessWidget {
   const CassaBrancaWidget({super.key});
 
   @override
   Widget build(BuildContext context) {
+    // Ascolta i cambiamenti della contabilità
+    final financeProvider = context.watch<ContabilitaProvider>();
+    final NumberFormat currencyFormat = NumberFormat.currency(locale: 'it_IT', symbol: '€');
+
     return Container(
       margin: const EdgeInsets.only(top: 24),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFF3F4F6)), // Grigio chiarissimo per il bordino
+        border: Border.all(color: const Color(0xFFF3F4F6)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.02),
@@ -23,19 +32,19 @@ class CassaBrancaWidget extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header: Icona, Titolo, Freccia
+          // INTESTAZIONE: Titolo e icona portafoglio
           Row(
             children: [
               Container(
                 width: 44,
                 height: 44,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFFEF3D7), // Giallo pallido
+                  color: const Color(0xFFFEF3D7),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Icon(
                   Icons.account_balance_wallet_outlined,
-                  color: Color(0xFF3E2D20), // Marrone scuro/grigio
+                  color: Color(0xFF3E2D20),
                   size: 22,
                 ),
               ),
@@ -43,7 +52,7 @@ class CassaBrancaWidget extends StatelessWidget {
               const Text(
                 "Cassa di Branca",
                 style: TextStyle(
-                  color: Color(0xFF00005C), // Blu navy scurissimo
+                  color: Color(0xFF00005C),
                   fontSize: 18,
                   fontWeight: FontWeight.w900,
                   fontFamily: 'Lexend',
@@ -53,7 +62,7 @@ class CassaBrancaWidget extends StatelessWidget {
               const Spacer(),
               const Icon(
                 Icons.chevron_right_rounded,
-                color: Color(0xFF94A3B8), // Grigio ardesia chiaro
+                color: Color(0xFF94A3B8),
                 size: 24,
               ),
             ],
@@ -61,16 +70,16 @@ class CassaBrancaWidget extends StatelessWidget {
           
           const SizedBox(height: 24),
           
-          // Saldo e Budget (Row con allineamento in basso)
+          // AREA DATI: Saldo e Budget
           Row(
             crossAxisAlignment: CrossAxisAlignment.end,
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              // Blocco Saldo
-              const Column(
+              // Visualizzazione Saldo Attuale (Dinamico)
+              Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
+                  const Text(
                     "SALDO ATTUALE",
                     style: TextStyle(
                       color: Color(0xFF718096),
@@ -81,9 +90,9 @@ class CassaBrancaWidget extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    "450,00 €",
-                    style: TextStyle(
-                      color: Color(0xFF00005C), // Navy scurissimo
+                    currencyFormat.format(financeProvider.saldoAttuale),
+                    style: const TextStyle(
+                      color: Color(0xFF00005C),
                       fontSize: 32,
                       fontWeight: FontWeight.w900,
                       fontFamily: 'Lexend',
@@ -93,7 +102,7 @@ class CassaBrancaWidget extends StatelessWidget {
                   ),
                 ],
               ),
-              // Blocco Budget
+              // Info Budget Mensile (Dinamico)
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
@@ -109,79 +118,74 @@ class CassaBrancaWidget extends StatelessWidget {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    "60% utilizzato",
-                    style: TextStyle(
-                      color: const Color(0xFF1E293B), // Slate scuro
+                    "${(financeProvider.budgetPercentage * 100).toInt()}% utilizzato",
+                    style: const TextStyle(
+                      color: Color(0xFF1E293B),
                       fontSize: 13,
                       fontWeight: FontWeight.w800,
                       fontFamily: 'Lexend',
                     ),
                   ),
-                  const SizedBox(height: 4), // Piccolo offset per allineare alla baseline del saldo
+                  const SizedBox(height: 4),
                 ],
               ),
             ],
           ),
           const SizedBox(height: 12),
           
-          // Barra di Progresso
+          // BARRA DI PROGRESSO BUDGET (Dinamica)
           ClipRRect(
             borderRadius: BorderRadius.circular(4),
-            child: const LinearProgressIndicator(
-              value: 0.6,
+            child: LinearProgressIndicator(
+              value: financeProvider.budgetPercentage,
               minHeight: 6,
-              backgroundColor: Color(0xFFE2E8F0),
-              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFFB300)), // Giallo Ambra
+              backgroundColor: const Color(0xFFE2E8F0),
+              valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFFFFB300)),
             ),
           ),
           
           const SizedBox(height: 20),
-          
-          // Divisore
-          const Divider(
-            color: Color(0xFFF1F5F9),
-            height: 1,
-            thickness: 1,
-          ),
-          
+          const Divider(color: Color(0xFFF1F5F9), height: 1, thickness: 1),
           const SizedBox(height: 20),
           
-          // Transazioni Ricenti
-          _buildTransaction(
-            isPositive: true,
-            title: "Quota S. Giorgio",
-            amount: "+150,00 €",
-          ),
-          const SizedBox(height: 16),
-          _buildTransaction(
-            isPositive: false,
-            title: "Materiale Pionerismo",
-            amount: "-36,10 €",
-          ),
+          // LISTA TRANSAZIONI RECENTI (Ultime 2 dal Provider)
+          ...financeProvider.transactions.take(2).map((t) => Padding(
+            padding: const EdgeInsets.only(bottom: 16),
+            child: _buildTransaction(
+              isPositive: t.isPositive,
+              title: t.title,
+              amount: "${t.isPositive ? '+' : '-'}${currencyFormat.format(t.amount)}",
+            ),
+          )),
         ],
       ),
     );
   }
 
+  /// Costruisce una riga di transazione con colori semantici (Verde/Rosso)
   Widget _buildTransaction({required bool isPositive, required String title, required String amount}) {
+    // Definizione dei colori in base al tipo di transazione (Entrata/Uscita)
+    final Color color = isPositive ? const Color(0xFF1B703C) : const Color(0xFFC8202F);
+    final Color bgColor = isPositive ? const Color(0xFFEAF5EB) : const Color(0xFFFCE9EA);
+
     return Row(
       children: [
-        // Cerchietto + o -
+        // Icona indicatrice (+/-) in cerchio colorato
         Container(
           width: 36,
           height: 36,
           decoration: BoxDecoration(
-            color: isPositive ? const Color(0xFFEAF5EB) : const Color(0xFFFCE9EA), // Verde pallidissimo / Rosso pallidissimo
+            color: bgColor,
             shape: BoxShape.circle,
           ),
           child: Icon(
             isPositive ? Icons.add : Icons.remove,
-            color: isPositive ? const Color(0xFF1B703C) : const Color(0xFFC8202F), // Verde deciso / Rosso deciso
+            color: color,
             size: 20,
           ),
         ),
         const SizedBox(width: 14),
-        // Nome Transazione
+        // Titolo operazione
         Text(
           title,
           style: const TextStyle(
@@ -192,11 +196,11 @@ class CassaBrancaWidget extends StatelessWidget {
           ),
         ),
         const Spacer(),
-        // Importo Transazione
+        // Valore monetario evidenziato
         Text(
           amount,
           style: TextStyle(
-            color: isPositive ? const Color(0xFF1B703C) : const Color(0xFFC8202F),
+            color: color,
             fontSize: 15,
             fontWeight: FontWeight.bold,
             fontFamily: 'Lexend',

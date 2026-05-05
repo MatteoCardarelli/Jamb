@@ -5,10 +5,15 @@ import 'package:jamb/ui/core/widgets/jamb_category_card.dart';
 import 'package:jamb/ui/core/widgets/jamb_expandable_fab.dart';
 import 'package:jamb/ui/core/widgets/jamb_dialogs.dart';
 
+/// Vista per l'esplorazione gerarchica dei documenti e delle cartelle.
+/// Supporta la navigazione ricorsiva, la ricerca e la gestione del percorso (Breadcrumbs).
 class ExplorerView extends StatefulWidget {
+  /// Titolo della cartella corrente
   final String titolo;
+  /// Lista delle sottocartelle contenute
   final List<String> cartelle;
-  final List<String> percorso; // Nuovo: tiene traccia del cammino fatto
+  /// Elenco dei titoli delle cartelle genitrici per ricostruire il percorso
+  final List<String> percorso;
 
   const ExplorerView({
     super.key,
@@ -31,6 +36,7 @@ class _ExplorerViewState extends State<ExplorerView> {
     super.initState();
     _filteredCartelle = widget.cartelle;
     _searchCtrl.addListener(_onSearchChanged);
+    // Costruisce il percorso completo aggiungendo la cartella corrente
     _fullPath = [...widget.percorso, widget.titolo];
   }
 
@@ -41,6 +47,7 @@ class _ExplorerViewState extends State<ExplorerView> {
     super.dispose();
   }
 
+  /// Filtra le cartelle in base alla query di ricerca
   void _onSearchChanged() {
     setState(() {
       _filteredCartelle = widget.cartelle
@@ -56,25 +63,28 @@ class _ExplorerViewState extends State<ExplorerView> {
       backgroundColor: Colors.transparent,
       resizeToAvoidBottomInset: false,
       body: EmptyBackgroundScreen(
-        currentIndex: 2,
+        currentIndex: 2, // Icona documenti selezionata
         floatingActionButton: JambExpandableFab(
           onCreateFolder: () => JambDialogs.showCreateFolderDialog(context, initialPath: _fullPath.join(" > ")),
           onUploadDocument: () => JambDialogs.showUploadDocumentDialog(context, initialPath: _fullPath.join(" > ")),
         ),
         child: SingleChildScrollView(
+          // Padding top di 170 per stare sotto la TopBar
           padding: const EdgeInsets.only(top: 170, left: 20, right: 20, bottom: 120),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // BARRA DI RICERCA
               JambSearchBar(
                 controller: _searchCtrl,
                 hintText: "Cerca file o cartelle...",
               ),
               const SizedBox(height: 24),
 
-              // Breadcrumbs Dinamici e Cliccabili
+              // AREA BREADCRUMBS: Navigazione orizzontale nel percorso
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
+                physics: const BouncingScrollPhysics(),
                 child: Row(
                   children: [
                     _buildBreadcrumbItem(
@@ -95,7 +105,7 @@ class _ExplorerViewState extends State<ExplorerView> {
                             icon: isLast ? Icons.folder_rounded : Icons.folder_outlined,
                             isLast: isLast,
                             onTap: isLast ? null : () {
-                              // Torna indietro di N posizioni nella stack
+                              // Navigazione a ritroso: torna indietro di N posizioni nella stack delle rotte
                               int steps = _fullPath.length - 1 - index;
                               for(int i=0; i<steps; i++) Navigator.of(context).pop();
                             },
@@ -108,16 +118,9 @@ class _ExplorerViewState extends State<ExplorerView> {
               ),
               const SizedBox(height: 24),
 
+              // GRIGLIA CARTELLE
               if (_filteredCartelle.isEmpty)
-                const Center(
-                  child: Padding(
-                    padding: EdgeInsets.only(top: 40.0),
-                    child: Text(
-                      "Nessun risultato trovato",
-                      style: TextStyle(color: Color(0xFF64748B), fontFamily: 'Lexend'),
-                    ),
-                  ),
-                )
+                _buildEmptyState()
               else
                 GridView.builder(
                   padding: EdgeInsets.zero,
@@ -137,10 +140,11 @@ class _ExplorerViewState extends State<ExplorerView> {
                       sottotitolo: "Cartella",
                       icona: Icons.folder_rounded,
                       onTap: () {
+                        // Navigazione ricorsiva verso una nuova ExplorerView
                         Navigator.of(context).push(PageRouteBuilder(
                           pageBuilder: (context, animation, secondaryAnimation) => ExplorerView(
                             titolo: folderName,
-                            cartelle: const [], // Ora si apre come cartella VUOTA
+                            cartelle: const [], // Mock di cartella vuota
                             percorso: _fullPath,
                           ),
                           transitionDuration: Duration.zero,
@@ -156,6 +160,24 @@ class _ExplorerViewState extends State<ExplorerView> {
     );
   }
 
+  /// Stato visualizzato quando non ci sono cartelle o la ricerca fallisce
+  Widget _buildEmptyState() {
+    return const Center(
+      child: Padding(
+        padding: EdgeInsets.only(top: 40.0),
+        child: Text(
+          "Nessun risultato trovato",
+          style: TextStyle(
+            color: Color(0xFF64748B), 
+            fontFamily: 'Lexend',
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Costruisce un singolo elemento del percorso (Breadcrumb)
   Widget _buildBreadcrumbItem({
     required String label, 
     required IconData icon, 
@@ -166,7 +188,11 @@ class _ExplorerViewState extends State<ExplorerView> {
       onTap: onTap,
       child: Row(
         children: [
-          Icon(icon, size: 18, color: isLast ? const Color(0xFF25315B) : const Color(0xFF64748B)),
+          Icon(
+            icon, 
+            size: 18, 
+            color: isLast ? const Color(0xFF25315B) : const Color(0xFF64748B),
+          ),
           const SizedBox(width: 6),
           Text(
             label,

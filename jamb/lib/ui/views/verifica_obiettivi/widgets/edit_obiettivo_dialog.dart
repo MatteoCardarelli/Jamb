@@ -1,12 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:jamb/domain/entities/obiettivo.dart';
 
+/// Dialogo modale per la modifica completa di un obiettivo.
+/// Gestisce l'editing di testi (Dominio, Descrizione, Diario), la scelta del colore e dell'icona.
 class EditObiettivoDialog extends StatefulWidget {
+  /// L'obiettivo originale da pre-caricare nel form
   final Obiettivo obiettivo;
+  /// Lista dei colori già utilizzati da altri obiettivi
+  final List<Color> usedColors;
 
   const EditObiettivoDialog({
     super.key,
     required this.obiettivo,
+    this.usedColors = const [],
   });
 
   @override
@@ -14,38 +20,41 @@ class EditObiettivoDialog extends StatefulWidget {
 }
 
 class _EditObiettivoDialogState extends State<EditObiettivoDialog> {
+  // Controller per i campi di testo
   late TextEditingController _dominioController;
   late TextEditingController _descrizioneController;
   late TextEditingController _diarioController;
   
+  // Stato locale per le selezioni grafiche
   late Color _selectedColor;
   late IconData _selectedIcon;
 
-  // Preset Colors
+  // Palette di colori predefiniti per gli obiettivi
   final List<Color> _availableColors = [
-    const Color(0xFF283664), // Dark Blue
-    const Color(0xFF4A6849), // Green
-    const Color(0xFFE88A42), // Orange
-    const Color(0xFF8B2B33), // Red
-    const Color(0xFF4A90E2), // Light Blue
-    const Color(0xFF8E44AD), // Purple
+    const Color(0xFF283664), // Blu Notte
+    const Color(0xFF4A6849), // Verde Bosco
+    const Color(0xFFE88A42), // Arancione Fuoco
+    const Color(0xFF8B2B33), // Rosso Carminio
+    const Color(0xFF4A90E2), // Azzurro Cielo
+    const Color(0xFF8E44AD), // Viola Scout
   ];
 
-  // Preset Icons
+  // Set di icone tematiche disponibili
   final List<IconData> _availableIcons = [
-    Icons.church,
-    Icons.handyman,
-    Icons.directions_walk,
-    Icons.local_fire_department,
-    Icons.park,
-    Icons.explore,
-    Icons.favorite,
-    Icons.flag,
+    Icons.church_rounded,
+    Icons.handyman_rounded,
+    Icons.directions_walk_rounded,
+    Icons.local_fire_department_rounded,
+    Icons.park_rounded,
+    Icons.explore_rounded,
+    Icons.favorite_rounded,
+    Icons.flag_rounded,
   ];
 
   @override
   void initState() {
     super.initState();
+    // Inizializzazione dei campi con i dati correnti dell'obiettivo
     _dominioController = TextEditingController(text: widget.obiettivo.dominio);
     _descrizioneController = TextEditingController(text: widget.obiettivo.descrizione);
     _diarioController = TextEditingController(text: widget.obiettivo.diarioDiBordo);
@@ -61,6 +70,7 @@ class _EditObiettivoDialogState extends State<EditObiettivoDialog> {
     super.dispose();
   }
 
+  /// Crea una nuova entità Obiettivo con i dati aggiornati e chiude il dialogo
   void _save() {
     final updatedObiettivo = widget.obiettivo.copyWith(
       dominio: _dominioController.text,
@@ -75,89 +85,78 @@ class _EditObiettivoDialogState extends State<EditObiettivoDialog> {
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       insetPadding: const EdgeInsets.all(20),
+      backgroundColor: Colors.white,
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // TITOLO DEL DIALOGO
             const Text(
               "Modifica Obiettivo",
               style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
+                fontSize: 22,
+                fontWeight: FontWeight.w900,
                 color: Color(0xFF1D2660),
+                fontFamily: 'Lexend',
               ),
             ),
             const SizedBox(height: 24),
             
-            // Dominio
-            const Text("Dominio", style: TextStyle(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _dominioController,
-              decoration: InputDecoration(
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-              ),
-            ),
+            // CAMPI DI TESTO
+            _buildInputField("Dominio", _dominioController),
             const SizedBox(height: 16),
-
-            // Descrizione
-            const Text("Descrizione", style: TextStyle(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _descrizioneController,
-              maxLines: 2,
-              decoration: InputDecoration(
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-              ),
-            ),
+            _buildInputField("Descrizione", _descrizioneController, maxLines: 2),
             const SizedBox(height: 16),
-
-            // Diario
-            const Text("Diario di bordo", style: TextStyle(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _diarioController,
-              maxLines: 2,
-              decoration: InputDecoration(
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-              ),
-            ),
+            _buildInputField("Diario di bordo", _diarioController, maxLines: 3),
+            
             const SizedBox(height: 24),
 
-            // Colore
-            const Text("Colore", style: TextStyle(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
+            // SELEZIONE COLORE
+            const Text(
+              "Colore Tematico",
+              style: TextStyle(fontWeight: FontWeight.w800, fontFamily: 'Lexend', fontSize: 14),
+            ),
+            const SizedBox(height: 12),
             Wrap(
               spacing: 12,
               runSpacing: 12,
               children: _availableColors.map((color) {
                 final isSelected = _selectedColor == color;
+                // Un colore è considerato "usato" se è nella lista usedColors
+                final isUsed = widget.usedColors.contains(color);
+                
                 return GestureDetector(
-                  onTap: () => setState(() => _selectedColor = color),
-                  child: Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: color,
-                      shape: BoxShape.circle,
-                      border: isSelected ? Border.all(color: Colors.black, width: 3) : null,
+                  onTap: isUsed ? null : () => setState(() => _selectedColor = color),
+                  child: Opacity(
+                    opacity: isUsed ? 0.3 : 1.0,
+                    child: Container(
+                      width: 38,
+                      height: 38,
+                      decoration: BoxDecoration(
+                        color: color,
+                        shape: BoxShape.circle,
+                        border: isSelected ? Border.all(color: const Color(0xFF1D2660), width: 3) : null,
+                        boxShadow: isSelected ? [BoxShadow(color: color.withOpacity(0.4), blurRadius: 8)] : null,
+                      ),
+                      child: isUsed ? const Icon(Icons.close_rounded, color: Colors.white, size: 20) : null,
                     ),
                   ),
                 );
               }).toList(),
             ),
+            
             const SizedBox(height: 24),
 
-            // Icona
-            const Text("Icona", style: TextStyle(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
+            // SELEZIONE ICONA
+            const Text(
+              "Icona Identificativa",
+              style: TextStyle(fontWeight: FontWeight.w800, fontFamily: 'Lexend', fontSize: 14),
+            ),
+            const SizedBox(height: 12),
             Wrap(
               spacing: 12,
               runSpacing: 12,
@@ -166,13 +165,20 @@ class _EditObiettivoDialogState extends State<EditObiettivoDialog> {
                 return GestureDetector(
                   onTap: () => setState(() => _selectedIcon = icon),
                   child: Container(
-                    padding: const EdgeInsets.all(8),
+                    padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color: isSelected ? _selectedColor.withOpacity(0.2) : Colors.grey.shade100,
-                      borderRadius: BorderRadius.circular(8),
-                      border: isSelected ? Border.all(color: _selectedColor, width: 2) : null,
+                      color: isSelected ? _selectedColor.withOpacity(0.15) : const Color(0xFFF4F6F9),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: isSelected ? _selectedColor : Colors.transparent,
+                        width: 2,
+                      ),
                     ),
-                    child: Icon(icon, color: isSelected ? _selectedColor : Colors.grey.shade600),
+                    child: Icon(
+                      icon, 
+                      color: isSelected ? _selectedColor : const Color(0xFF64748B),
+                      size: 24,
+                    ),
                   ),
                 );
               }).toList(),
@@ -180,29 +186,78 @@ class _EditObiettivoDialogState extends State<EditObiettivoDialog> {
             
             const SizedBox(height: 32),
             
-            // Actions
+            // TASTI DI AZIONE
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(),
-                  child: const Text("Annulla", style: TextStyle(color: Colors.grey)),
+                  child: const Text(
+                    "Annulla", 
+                    style: TextStyle(color: Color(0xFF64748B), fontWeight: FontWeight.bold, fontFamily: 'Lexend'),
+                  ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 12),
                 ElevatedButton(
                   onPressed: _save,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF1D2660),
                     foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    elevation: 0,
                   ),
-                  child: const Text("Salva"),
+                  child: const Text(
+                    "Salva Modifiche",
+                    style: TextStyle(fontWeight: FontWeight.bold, fontFamily: 'Lexend'),
+                  ),
                 ),
               ],
             )
           ],
         ),
       ),
+    );
+  }
+
+  /// Helper per costruire un campo di input coerente con lo stile dell'app
+  Widget _buildInputField(String label, TextEditingController controller, {int maxLines = 1}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontWeight: FontWeight.w800,
+            fontFamily: 'Lexend',
+            fontSize: 13,
+            color: Color(0xFF475569),
+          ),
+        ),
+        const SizedBox(height: 8),
+        TextField(
+          controller: controller,
+          maxLines: maxLines,
+          style: const TextStyle(fontFamily: 'Lexend', fontSize: 15),
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: const Color(0xFFF8FAFC),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Color(0xFF1D2660), width: 2),
+            ),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          ),
+        ),
+      ],
     );
   }
 }

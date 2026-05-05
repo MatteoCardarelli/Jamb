@@ -2,13 +2,24 @@ import 'package:flutter/material.dart';
 import 'package:jamb/ui/views/dettaglio_ragazzo/widgets/contatti_emergenza_widget.dart';
 import 'package:intl/intl.dart';
 
+/// Pannello (BottomSheet) per la modifica dei dati anagrafici e dei contatti di uno scout.
+/// Gestisce lo stato locale tramite TextEditingController per consentire l'annullamento
+/// delle modifiche prima del salvataggio definitivo tramite callback.
 class EditRagazzoSheet extends StatefulWidget {
   final String squadriglia;
   final String ruolo;
   final String allergie;
   final String privacyScadenza;
   final List<ContattoEmergenza> contatti;
-  final Function(String squadriglia, String ruolo, String allergie, String privacyScadenza, List<ContattoEmergenza> contatti) onSalva;
+  
+  /// Callback invocata al salvataggio con i nuovi dati validati
+  final Function(
+    String squadriglia, 
+    String ruolo, 
+    String allergie, 
+    String privacyScadenza, 
+    List<ContattoEmergenza> contatti
+  ) onSalva;
 
   const EditRagazzoSheet({
     super.key,
@@ -25,6 +36,7 @@ class EditRagazzoSheet extends StatefulWidget {
 }
 
 class _EditRagazzoSheetState extends State<EditRagazzoSheet> {
+  // --- STATO LOCALE E CONTROLLER ---
   late String _squadriglia;
   late String _ruolo;
   late TextEditingController _allergieCtrl;
@@ -42,6 +54,8 @@ class _EditRagazzoSheetState extends State<EditRagazzoSheet> {
     _ruolo = widget.ruolo;
     _allergieCtrl = TextEditingController(text: widget.allergie);
     _privacyCtrl = TextEditingController(text: widget.privacyScadenza);
+    
+    // Inizializzazione dinamica dei controller per i contatti
     _nomiCtrl = widget.contatti.map((c) => TextEditingController(text: c.nome)).toList();
     _telCtrl = widget.contatti.map((c) => TextEditingController(text: c.telefono)).toList();
   }
@@ -55,6 +69,7 @@ class _EditRagazzoSheetState extends State<EditRagazzoSheet> {
     super.dispose();
   }
 
+  /// Aggiunge una nuova coppia di campi per un contatto di emergenza
   void _aggiungiContatto() {
     setState(() {
       _nomiCtrl.add(TextEditingController());
@@ -62,6 +77,7 @@ class _EditRagazzoSheetState extends State<EditRagazzoSheet> {
     });
   }
 
+  /// Rimuove un contatto specifico dalla lista
   void _rimuoviContatto(int i) {
     setState(() {
       _nomiCtrl.removeAt(i);
@@ -69,24 +85,17 @@ class _EditRagazzoSheetState extends State<EditRagazzoSheet> {
     });
   }
 
+  /// Mostra il calendario per selezionare la scadenza privacy
   Future<void> _selezionaDataPrivacy() async {
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: DateTime.now(),
       firstDate: DateTime.now(),
       lastDate: DateTime(2035),
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.light(
-              primary: Color(0xFF00005C),
-              onPrimary: Colors.white,
-              onSurface: Color(0xFF00005C),
-            ),
-          ),
-          child: child!,
-        );
-      },
+      builder: (context, child) => Theme(
+        data: Theme.of(context).copyWith(colorScheme: const ColorScheme.light(primary: Color(0xFF1D2660))),
+        child: child!,
+      ),
     );
     if (picked != null) {
       setState(() {
@@ -95,6 +104,7 @@ class _EditRagazzoSheetState extends State<EditRagazzoSheet> {
     }
   }
 
+  /// Raccoglie i dati dai controller e invoca la callback di salvataggio
   void _salva() {
     final contatti = List.generate(_nomiCtrl.length, (i) =>
       ContattoEmergenza(nome: _nomiCtrl[i].text, telefono: _telCtrl[i].text),
@@ -105,6 +115,7 @@ class _EditRagazzoSheetState extends State<EditRagazzoSheet> {
   @override
   Widget build(BuildContext context) {
     final bottomPad = MediaQuery.of(context).viewInsets.bottom + MediaQuery.of(context).padding.bottom;
+    
     return Container(
       decoration: const BoxDecoration(
         color: Colors.white,
@@ -112,218 +123,242 @@ class _EditRagazzoSheetState extends State<EditRagazzoSheet> {
       ),
       padding: EdgeInsets.fromLTRB(24, 16, 24, bottomPad + 24),
       child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Maniglietta
-              Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // MANIGLIA DI CHIUSURA
+            Center(
+              child: Container(
+                width: 40, height: 4,
+                decoration: BoxDecoration(color: const Color(0xFFE2E8F0), borderRadius: BorderRadius.circular(2)),
+              ),
+            ),
+            const SizedBox(height: 24),
+            const Text(
+              "Modifica Ragazzo",
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: Color(0xFF1D2660), fontFamily: 'Lexend'),
+            ),
+            const SizedBox(height: 24),
+
+            // SELEZIONE SQUADRIGLIA
+            _buildLabel("Squadriglia"),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: _squadriglie.map((sq) {
+                final isSelected = _squadriglia.toLowerCase() == sq.toLowerCase();
+                return GestureDetector(
+                  onTap: () => setState(() => _squadriglia = sq),
+                  child: _buildChip(sq.toUpperCase(), isSelected),
+                );
+              }).toList(),
+            ),
+            const SizedBox(height: 24),
+
+            // SELEZIONE RUOLO (Lista verticale)
+            _buildLabel("Ruolo in Squadriglia"),
+            const SizedBox(height: 8),
+            ..._ruoli.map((r) {
+              final isSelected = _ruolo == r;
+              return GestureDetector(
+                onTap: () => setState(() => _ruolo = r),
                 child: Container(
-                  width: 40, height: 4,
+                  margin: const EdgeInsets.only(bottom: 10),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFE2E8F0),
-                    borderRadius: BorderRadius.circular(2),
+                    color: isSelected ? const Color(0xFFEEF2FF) : const Color(0xFFF8FAFC),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: isSelected ? const Color(0xFF1D2660) : const Color(0xFFE2E8F0)),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(r, style: TextStyle(
+                        color: isSelected ? const Color(0xFF1D2660) : const Color(0xFF64748B),
+                        fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
+                        fontFamily: 'Lexend',
+                      )),
+                      if (isSelected) const Icon(Icons.check_circle_rounded, color: Color(0xFF1D2660), size: 20),
+                    ],
                   ),
                 ),
-              ),
-              const SizedBox(height: 20),
-              const Text(
-                "Modifica Ragazzo",
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: Color(0xFF00005C), fontFamily: 'Lexend'),
-              ),
-              const SizedBox(height: 24),
+              );
+            }),
+            const SizedBox(height: 24),
 
-              // ─── Squadriglia ────────────────────────────────────────────
-              _label("Squadriglia"),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: _squadriglie.map((sq) {
-                  final sel = _squadriglia.toLowerCase() == sq.toLowerCase();
-                  return GestureDetector(
-                    onTap: () => setState(() => _squadriglia = sq),
-                    child: _chip(sq.toUpperCase(), sel),
-                  );
-                }).toList(),
-              ),
-              const SizedBox(height: 20),
-
-              // ─── Ruolo ──────────────────────────────────────────────────
-              _label("Ruolo"),
-              const SizedBox(height: 8),
-              Column(
-                children: _ruoli.map((r) {
-                  final sel = _ruolo == r;
-                  return GestureDetector(
-                    onTap: () => setState(() => _ruolo = r),
-                    child: Container(
-                      margin: const EdgeInsets.only(bottom: 8),
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                      decoration: BoxDecoration(
-                        color: sel ? const Color(0xFFEEF2FF) : const Color(0xFFF8FAFC),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: sel ? const Color(0xFF00005C) : const Color(0xFFE2E8F0)),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(r, style: TextStyle(
-                            color: sel ? const Color(0xFF00005C) : const Color(0xFF64748B),
-                            fontWeight: sel ? FontWeight.w700 : FontWeight.w400,
-                            fontFamily: 'Lexend',
-                          )),
-                          if (sel) const Icon(Icons.check_circle, color: Color(0xFF00005C), size: 18),
-                        ],
-                      ),
-                    ),
-                  );
-                }).toList(),
-              ),
-              const SizedBox(height: 20),
-
-              // ─── Allergie ───────────────────────────────────────────────
-              _label("Allergie"),
-              _textField(_allergieCtrl, hintText: "Es. Arachidi, Polline"),
-              const SizedBox(height: 20),
-
-              // ─── Privacy ────────────────────────────────────────────────
-              _label("Scadenza Privacy"),
-              GestureDetector(
-                onTap: _selezionaDataPrivacy,
-                child: AbsorbPointer(
-                  child: _textField(_privacyCtrl, hintText: "Seleziona data"),
+            // CAMPI DI TESTO (Allergie e Privacy)
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildLabel("Allergie"),
+                      _buildTextField(_allergieCtrl, hintText: "Es. Arachidi..."),
+                    ],
+                  ),
                 ),
-              ),
-              const SizedBox(height: 20),
-
-              // ─── Contatti di Emergenza ──────────────────────────────────
-              _label("Contatti di Emergenza"),
-              const SizedBox(height: 8),
-              ...List.generate(_nomiCtrl.length, (i) => Container(
-                margin: const EdgeInsets.only(bottom: 12),
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF8FAFC),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: const Color(0xFFE2E8F0)),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text("Contatto ${i + 1}", style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 11, fontWeight: FontWeight.bold, fontFamily: 'Lexend')),
-                        GestureDetector(
-                          onTap: () => _rimuoviContatto(i),
-                          child: const Icon(Icons.close, color: Color(0xFFCBD5E1), size: 18),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildLabel("Privacy"),
+                      GestureDetector(
+                        onTap: _selezionaDataPrivacy,
+                        child: AbsorbPointer(
+                          child: _buildTextField(_privacyCtrl, hintText: "MM/YY"),
                         ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    _inlineField(_nomiCtrl[i], "Nome (es. Padre - Paolo Rossi)"),
-                    const SizedBox(height: 6),
-                    _inlineField(_telCtrl[i], "Numero di telefono", keyboardType: TextInputType.phone),
-                  ],
+                      ),
+                    ],
+                  ),
                 ),
-              )),
-              TextButton.icon(
-                onPressed: _aggiungiContatto,
-                icon: const Icon(Icons.add, size: 16),
-                label: const Text("Aggiungi contatto", style: TextStyle(fontFamily: 'Lexend')),
-                style: TextButton.styleFrom(foregroundColor: const Color(0xFF00005C)),
-              ),
-              const SizedBox(height: 24),
+              ],
+            ),
+            const SizedBox(height: 24),
 
-              // ─── Pulsanti ───────────────────────────────────────────────
-              Row(
+            // GESTIONE CONTATTI DI EMERGENZA
+            _buildLabel("Contatti di Emergenza"),
+            const SizedBox(height: 12),
+            ...List.generate(_nomiCtrl.length, (i) => Container(
+              margin: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF8FAFC),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: const Color(0xFFE2E8F0)),
+              ),
+              child: Column(
                 children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: () => Navigator.of(context).pop(),
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        side: const BorderSide(color: Color(0xFFE2E8F0)),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text("CONTATTO ${i + 1}", style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 10, fontWeight: FontWeight.w800, fontFamily: 'Lexend')),
+                      IconButton(
+                        onPressed: () => _rimuoviContatto(i),
+                        icon: const Icon(Icons.remove_circle_outline_rounded, color: Color(0xFFE11D48), size: 18),
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
                       ),
-                      child: const Text("Annulla", style: TextStyle(color: Color(0xFF64748B), fontSize: 15, fontFamily: 'Lexend')),
-                    ),
+                    ],
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: _salva,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF00005C),
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                      ),
-                      child: const Text("Salva", style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, fontFamily: 'Lexend')),
-                    ),
-                  ),
+                  const SizedBox(height: 12),
+                  _buildInlineField(_nomiCtrl[i], "Nome (es. Madre)"),
+                  const SizedBox(height: 8),
+                  _buildInlineField(_telCtrl[i], "Numero di telefono", keyboardType: TextInputType.phone),
                 ],
               ),
-            ],
-          ),
+            )),
+            
+            TextButton.icon(
+              onPressed: _aggiungiContatto,
+              icon: const Icon(Icons.add_circle_outline_rounded, size: 20),
+              label: const Text("Aggiungi contatto", style: TextStyle(fontWeight: FontWeight.w700, fontFamily: 'Lexend')),
+              style: TextButton.styleFrom(foregroundColor: const Color(0xFF1D2660)),
+            ),
+            
+            const SizedBox(height: 32),
+
+            // TASTI SALVA / ANNULLA
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      side: const BorderSide(color: Color(0xFFE2E8F0)),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    ),
+                    child: const Text("ANNULLA", style: TextStyle(color: Color(0xFF94A3B8), fontSize: 14, fontWeight: FontWeight.w800, fontFamily: 'Lexend')),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: _salva,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF1D2660),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      elevation: 0,
+                    ),
+                    child: const Text("SALVA", style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, fontFamily: 'Lexend')),
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
-      );
+      ),
+    );
   }
 
-  Widget _label(String text) => Padding(
-    padding: const EdgeInsets.only(bottom: 6),
-    child: Text(text, style: const TextStyle(
-      fontSize: 12, fontWeight: FontWeight.w700,
-      color: Color(0xFF94A3B8), letterSpacing: 0.5, fontFamily: 'Lexend',
-    )),
+  Widget _buildLabel(String text) => Padding(
+    padding: const EdgeInsets.only(bottom: 8),
+    child: Text(
+      text.toUpperCase(), 
+      style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: Color(0xFF94A3B8), letterSpacing: 0.8, fontFamily: 'Lexend')
+    ),
   );
 
-  Widget _chip(String label, bool sel) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+  Widget _buildChip(String label, bool isSelected) => AnimatedContainer(
+    duration: const Duration(milliseconds: 200),
+    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
     decoration: BoxDecoration(
-      color: sel ? const Color(0xFF00005C) : const Color(0xFFF8FAFC),
+      color: isSelected ? const Color(0xFF1D2660) : const Color(0xFFF8FAFC),
       borderRadius: BorderRadius.circular(20),
-      border: Border.all(color: sel ? const Color(0xFF00005C) : const Color(0xFFE2E8F0)),
+      border: Border.all(color: isSelected ? const Color(0xFF1D2660) : const Color(0xFFE2E8F0)),
     ),
     child: Text(label, style: TextStyle(
-      color: sel ? Colors.white : const Color(0xFF64748B),
-      fontSize: 13, fontWeight: sel ? FontWeight.w700 : FontWeight.w400,
+      color: isSelected ? Colors.white : const Color(0xFF64748B),
+      fontSize: 13, fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
       fontFamily: 'Lexend',
     )),
   );
 
-  Widget _textField(TextEditingController ctrl, {String? hintText, TextInputType? keyboardType}) =>
+  Widget _buildTextField(TextEditingController ctrl, {String? hintText, TextInputType? keyboardType}) =>
     Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
         color: const Color(0xFFF8FAFC),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(color: const Color(0xFFE2E8F0)),
       ),
       child: TextField(
         controller: ctrl,
         keyboardType: keyboardType,
         style: const TextStyle(fontFamily: 'Lexend', fontSize: 14, color: Color(0xFF1E293B)),
-        decoration: InputDecoration(border: InputBorder.none, isDense: true, hintText: hintText,
-          hintStyle: const TextStyle(color: Color(0xFFCBD5E1), fontFamily: 'Lexend')),
+        decoration: InputDecoration(
+          border: InputBorder.none, 
+          isDense: true, 
+          hintText: hintText,
+          hintStyle: const TextStyle(color: Color(0xFFCBD5E1), fontFamily: 'Lexend')
+        ),
       ),
     );
 
-  Widget _inlineField(TextEditingController ctrl, String hint, {TextInputType? keyboardType}) =>
+  Widget _buildInlineField(TextEditingController ctrl, String hint, {TextInputType? keyboardType}) =>
     Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(10),
         border: Border.all(color: const Color(0xFFE2E8F0)),
       ),
       child: TextField(
         controller: ctrl,
         keyboardType: keyboardType,
-        style: const TextStyle(fontFamily: 'Lexend', fontSize: 13, color: Color(0xFF1E293B)),
-        decoration: InputDecoration(border: InputBorder.none, isDense: true, hintText: hint,
-          hintStyle: const TextStyle(color: Color(0xFFCBD5E1), fontFamily: 'Lexend', fontSize: 13)),
+        style: const TextStyle(fontFamily: 'Lexend', fontSize: 14, color: Color(0xFF1E293B)),
+        decoration: InputDecoration(
+          border: InputBorder.none, 
+          isDense: true, 
+          hintText: hint,
+          hintStyle: const TextStyle(color: Color(0xFFCBD5E1), fontFamily: 'Lexend', fontSize: 13)
+        ),
       ),
     );
 }

@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 
+/// Griglia di pulsanti rapidi per le azioni comuni (Crea Avviso, Nuovo Evento, ecc.).
+/// Visualizzata sotto gli avvisi amministrativi nella HomeView.
 class AzioniRapideWidget extends StatelessWidget {
   const AzioniRapideWidget({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      // Margin top 24 lo distanzia da qualsiasi cosa ci sia sopra. 
-      // Se l'alert scompare, questo margine lo distanzierà direttamente dalla card principale!
+      // Distanziamento flessibile dalla sezione precedente
       margin: const EdgeInsets.only(top: 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -15,21 +16,24 @@ class AzioniRapideWidget extends StatelessWidget {
           const Text(
             "Azioni Rapide",
             style: TextStyle(
-              color: Color(0xFF0B192C), // Blu scurissimo
+              color: Color(0xFF0B192C),
               fontSize: 16,
               fontWeight: FontWeight.w800,
               fontFamily: 'Lexend',
               letterSpacing: 0.3,
             ),
           ),
+          const SizedBox(height: 12),
+          
+          // Griglia fissa di pulsanti d'azione
           GridView.count(
-            padding: EdgeInsets.zero, // Rimuove il padding implicito invisibile della griglia
-            crossAxisCount: 2,
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
+            padding: EdgeInsets.zero,
+            crossAxisCount: 2, // 2 colonne
+            shrinkWrap: true, // Necessario per l'uso dentro un SingleChildScrollView
+            physics: const NeverScrollableScrollPhysics(), // La griglia non deve scorrere autonomamente
             mainAxisSpacing: 12,
             crossAxisSpacing: 12,
-            childAspectRatio: 1.7, // Rende i bottoni rettangolari larghi
+            childAspectRatio: 1.7, // Rende i bottoni rettangolari per un look più moderno
             children: [
               _buildAzioneCard(
                 icon: Icons.campaign_outlined,
@@ -58,6 +62,7 @@ class AzioniRapideWidget extends StatelessWidget {
     );
   }
 
+  /// Costruisce una singola card d'azione cliccabile
   Widget _buildAzioneCard({
     required IconData icon,
     required String label,
@@ -70,7 +75,7 @@ class AzioniRapideWidget extends StatelessWidget {
           color: Colors.white,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: const Color(0xFFCBD5E1), // Bordo grigio chiaro
+            color: const Color(0xFFCBD5E1),
             width: 1,
           ),
         ),
@@ -79,7 +84,7 @@ class AzioniRapideWidget extends StatelessWidget {
           children: [
             Icon(
               icon,
-              color: const Color(0xFF1D2660), // Blu scuro
+              color: const Color(0xFF1D2660),
               size: 26,
             ),
             const SizedBox(height: 8),
