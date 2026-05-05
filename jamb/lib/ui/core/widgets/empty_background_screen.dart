@@ -7,12 +7,14 @@ class EmptyBackgroundScreen extends StatefulWidget {
   final Widget? child;
   final Widget? floatingActionButton;
   final int currentIndex;
+  final bool resizeToAvoidBottomInset; // AGGIUNTO PARAMETRO
 
   const EmptyBackgroundScreen({
     super.key, 
     this.child,
     this.floatingActionButton,
     this.currentIndex = 0,
+    this.resizeToAvoidBottomInset = false, // Default a false per compatibilità
   });
 
   @override
@@ -20,15 +22,16 @@ class EmptyBackgroundScreen extends StatefulWidget {
 }
 
 class _EmptyBackgroundScreenState extends State<EmptyBackgroundScreen> {
-  int _selectedIndex = 0;
-
   @override
   Widget build(BuildContext context) {
+    // Calcoliamo lo spazio occupato dalla tastiera
+    final bool isKeyboardOpen = MediaQuery.of(context).viewInsets.bottom > 0;
+
     return Scaffold(
       backgroundColor: Colors.white,
       extendBody: true, 
-      resizeToAvoidBottomInset: false,
-      bottomNavigationBar: BottomNavBar(currentIndex: widget.currentIndex),
+      resizeToAvoidBottomInset: widget.resizeToAvoidBottomInset, // USA IL PARAMETRO
+      bottomNavigationBar: isKeyboardOpen ? null : BottomNavBar(currentIndex: widget.currentIndex), // Nasconde navbar se tastiera aperta
       floatingActionButton: widget.floatingActionButton,
       body: SizedBox(
         width: double.infinity,
@@ -36,9 +39,9 @@ class _EmptyBackgroundScreenState extends State<EmptyBackgroundScreen> {
         child: Stack(
           clipBehavior: Clip.none,
           children: [
-            // Sfondo dell'app
+            // Sfondo dell'app - FISSO (Non usa Positioned bottom: 0 per evitare fisarmonica)
             Positioned(
-              bottom: 0,
+              top: MediaQuery.of(context).size.height - 590, // Fissato dall'alto rispetto alla altezza totale
               left: 0,
               right: 0,
               height: 590,
@@ -48,12 +51,9 @@ class _EmptyBackgroundScreenState extends State<EmptyBackgroundScreen> {
               ),
             ),
             
-            // Corpo Principale Iniettato (Home, ecc.)
+            // Corpo Principale
             if (widget.child != null)
               Positioned.fill(
-                // Ripristinato a 0: la pagina coprirà l'intero schermo e spetterà 
-                // ai singoli elementi interni (es. un ListView) darsi il padding iniziale.
-                // Così scorrendo andranno dolcemente "sotto" la TopBar!
                 top: 0, 
                 child: widget.child!,
               ),

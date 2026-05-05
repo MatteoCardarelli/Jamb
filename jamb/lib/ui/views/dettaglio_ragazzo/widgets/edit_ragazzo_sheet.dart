@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:jamb/ui/views/dettaglio_ragazzo/widgets/contatti_emergenza_widget.dart';
+import 'package:intl/intl.dart';
 
 class EditRagazzoSheet extends StatefulWidget {
   final String squadriglia;
@@ -66,6 +67,32 @@ class _EditRagazzoSheetState extends State<EditRagazzoSheet> {
       _nomiCtrl.removeAt(i);
       _telCtrl.removeAt(i);
     });
+  }
+
+  Future<void> _selezionaDataPrivacy() async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime.now(),
+      lastDate: DateTime(2035),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: Color(0xFF00005C),
+              onPrimary: Colors.white,
+              onSurface: Color(0xFF00005C),
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+    if (picked != null) {
+      setState(() {
+        _privacyCtrl.text = DateFormat('MM/yy').format(picked);
+      });
+    }
   }
 
   void _salva() {
@@ -161,8 +188,13 @@ class _EditRagazzoSheetState extends State<EditRagazzoSheet> {
               const SizedBox(height: 20),
 
               // ─── Privacy ────────────────────────────────────────────────
-              _label("Scadenza Privacy (es. 09/24)"),
-              _textField(_privacyCtrl, hintText: "MM/AA", keyboardType: TextInputType.datetime),
+              _label("Scadenza Privacy"),
+              GestureDetector(
+                onTap: _selezionaDataPrivacy,
+                child: AbsorbPointer(
+                  child: _textField(_privacyCtrl, hintText: "Seleziona data"),
+                ),
+              ),
               const SizedBox(height: 20),
 
               // ─── Contatti di Emergenza ──────────────────────────────────

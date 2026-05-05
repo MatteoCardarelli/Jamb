@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-class CategoriaCard extends StatelessWidget {
+class JambCategoryCard extends StatelessWidget {
   final String titolo;
   final String sottotitolo;
   final IconData icona;
@@ -8,7 +8,7 @@ class CategoriaCard extends StatelessWidget {
   final String? progressoTesto;
   final VoidCallback? onTap;
 
-  const CategoriaCard({
+  const JambCategoryCard({
     super.key,
     required this.titolo,
     required this.sottotitolo,
@@ -56,6 +56,7 @@ class CategoriaCard extends StatelessWidget {
                 fontSize: 13,
                 fontWeight: FontWeight.w800,
                 fontFamily: 'Lexend',
+                height: 1.2,
               ),
             ),
             if (sottotitolo.isNotEmpty) ...[
@@ -75,7 +76,7 @@ class CategoriaCard extends StatelessWidget {
             
             // Barra di progresso (opzionale)
             if (progresso != null) ...[
-              const SizedBox(height: 4),
+              const Spacer(),
               Row(
                 children: [
                   Expanded(
