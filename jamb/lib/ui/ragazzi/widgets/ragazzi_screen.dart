@@ -46,19 +46,19 @@ class RagazziScreen extends StatelessWidget {
                   const SizedBox(height: 24),
 
                   // LISTA RISULTATI
-                  if (risultati.isEmpty)
+                  if (viewModel.isLoading)
+                    const Center(
+                      child: Padding(
+                        padding: EdgeInsets.only(top: 60),
+                        child: CircularProgressIndicator(color: Color(0xFF1D2660)),
+                      ),
+                    )
+                  else if (risultati.isEmpty)
                     _buildEmpty()
                   else
                     ...risultati.map((r) => Padding(
                       padding: const EdgeInsets.only(bottom: 16),
-                      child: RagazzoCard(
-                        nome: r.nome,
-                        squadriglia: r.squadriglia.toUpperCase(),
-                        ruolo: r.ruolo,
-                        tappa: r.tappa,
-                        hasAlert: r.hasAlert,
-                        specialita: r.specialita,
-                      ),
+                      child: RagazzoCard(scout: r),
                     )),
                 ],
               ),

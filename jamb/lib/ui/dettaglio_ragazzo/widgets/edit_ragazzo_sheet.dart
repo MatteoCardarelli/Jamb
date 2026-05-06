@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:jamb/ui/dettaglio_ragazzo/widgets/contatti_emergenza_widget.dart';
+import 'package:jamb/domain/entities/scout.dart'; // Importa entità di dominio
 import 'package:intl/intl.dart';
 
 /// Pannello (BottomSheet) per la modifica dei dati anagrafici e dei contatti di uno scout.
-/// Gestisce lo stato locale tramite TextEditingController per consentire l'annullamento
-/// delle modifiche prima del salvataggio definitivo tramite callback.
+/// Utilizza l'entità di dominio [ContattoEmergenza] (Shared Model).
 class EditRagazzoSheet extends StatefulWidget {
   final String squadriglia;
   final String ruolo;
@@ -55,7 +54,6 @@ class _EditRagazzoSheetState extends State<EditRagazzoSheet> {
     _allergieCtrl = TextEditingController(text: widget.allergie);
     _privacyCtrl = TextEditingController(text: widget.privacyScadenza);
     
-    // Inizializzazione dinamica dei controller per i contatti
     _nomiCtrl = widget.contatti.map((c) => TextEditingController(text: c.nome)).toList();
     _telCtrl = widget.contatti.map((c) => TextEditingController(text: c.telefono)).toList();
   }
@@ -69,7 +67,6 @@ class _EditRagazzoSheetState extends State<EditRagazzoSheet> {
     super.dispose();
   }
 
-  /// Aggiunge una nuova coppia di campi per un contatto di emergenza
   void _aggiungiContatto() {
     setState(() {
       _nomiCtrl.add(TextEditingController());
@@ -77,7 +74,6 @@ class _EditRagazzoSheetState extends State<EditRagazzoSheet> {
     });
   }
 
-  /// Rimuove un contatto specifico dalla lista
   void _rimuoviContatto(int i) {
     setState(() {
       _nomiCtrl.removeAt(i);
@@ -85,7 +81,6 @@ class _EditRagazzoSheetState extends State<EditRagazzoSheet> {
     });
   }
 
-  /// Mostra il calendario per selezionare la scadenza privacy
   Future<void> _selezionaDataPrivacy() async {
     final DateTime? picked = await showDatePicker(
       context: context,
@@ -104,7 +99,6 @@ class _EditRagazzoSheetState extends State<EditRagazzoSheet> {
     }
   }
 
-  /// Raccoglie i dati dai controller e invoca la callback di salvataggio
   void _salva() {
     final contatti = List.generate(_nomiCtrl.length, (i) =>
       ContattoEmergenza(nome: _nomiCtrl[i].text, telefono: _telCtrl[i].text),
@@ -127,7 +121,6 @@ class _EditRagazzoSheetState extends State<EditRagazzoSheet> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // MANIGLIA DI CHIUSURA
             Center(
               child: Container(
                 width: 40, height: 4,
@@ -141,7 +134,6 @@ class _EditRagazzoSheetState extends State<EditRagazzoSheet> {
             ),
             const SizedBox(height: 24),
 
-            // SELEZIONE SQUADRIGLIA
             _buildLabel("Squadriglia"),
             const SizedBox(height: 8),
             Wrap(
@@ -157,7 +149,6 @@ class _EditRagazzoSheetState extends State<EditRagazzoSheet> {
             ),
             const SizedBox(height: 24),
 
-            // SELEZIONE RUOLO (Lista verticale)
             _buildLabel("Ruolo in Squadriglia"),
             const SizedBox(height: 8),
             ..._ruoli.map((r) {
@@ -188,7 +179,6 @@ class _EditRagazzoSheetState extends State<EditRagazzoSheet> {
             }),
             const SizedBox(height: 24),
 
-            // CAMPI DI TESTO (Allergie e Privacy)
             Row(
               children: [
                 Expanded(
@@ -219,7 +209,6 @@ class _EditRagazzoSheetState extends State<EditRagazzoSheet> {
             ),
             const SizedBox(height: 24),
 
-            // GESTIONE CONTATTI DI EMERGENZA
             _buildLabel("Contatti di Emergenza"),
             const SizedBox(height: 12),
             ...List.generate(_nomiCtrl.length, (i) => Container(
@@ -261,7 +250,6 @@ class _EditRagazzoSheetState extends State<EditRagazzoSheet> {
             
             const SizedBox(height: 32),
 
-            // TASTI SALVA / ANNULLA
             Row(
               children: [
                 Expanded(

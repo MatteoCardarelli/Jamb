@@ -1,6 +1,7 @@
-import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:jamb/domain/entities/transazione.dart';
 
 class AddTransactionViewModel extends ChangeNotifier {
   bool isUscita = true;
@@ -11,7 +12,7 @@ class AddTransactionViewModel extends ChangeNotifier {
   String selectedCategory = "Quote";
   String noteText = "";
   
-  File? receiptImage;
+  XFile? receiptFile; // Usiamo XFile che è cross-platform (Web/Mobile)
   final ImagePicker _picker = ImagePicker();
 
   final List<String> categories = ["Quote", "Materiale", "Attività", "Sede", "Trasporti", "Altro"];
@@ -48,7 +49,7 @@ class AddTransactionViewModel extends ChangeNotifier {
     try {
       final XFile? selected = await _picker.pickImage(source: source);
       if (selected != null) {
-        receiptImage = File(selected.path);
+        receiptFile = selected;
         notifyListeners();
       }
     } catch (e) {
@@ -56,8 +57,36 @@ class AddTransactionViewModel extends ChangeNotifier {
     }
   }
 
-  void saveTransaction() {
-    // Qui andrebbe la logica per salvare la transazione nel repository
-    // Per ora facciamo solo il pop (gestito dalla View)
+  Transazione? buildTransaction() {
+    final double? importo = double.tryParse(amountController.text.replaceAll(',', '.'));
+    if (importo == null || importo == 0) return null;
+
+    return Transazione(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      titolo: noteText.isEmpty ? (isUscita ? "Uscita" : "Entrata") : noteText,
+      importo: importo,
+      isUscita: isUscita,
+      categoria: _mapCategory(selectedCategory),
+      data: selectedDate,
+      note: noteText,
+      percorsoRicevuta: receiptFile?.path,
+    );
+  }
+
+  Categoria _mapCategory(String cat) {
+    switch (cat.toLowerCase()) {
+      case 'materiale':
+        return Categoria.materiale;
+      case 'attività':
+        return Categoria.attivita;
+      case 'trasporti':
+        return Categoria.trasporto;
+      case 'sede':
+        return Categoria.sede;
+      case 'quote':
+        return Categoria.quote;
+      default:
+        return Categoria.altro;
+    }
   }
 }

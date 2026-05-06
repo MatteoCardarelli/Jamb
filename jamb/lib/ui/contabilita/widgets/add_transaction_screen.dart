@@ -73,8 +73,15 @@ class AddTransactionScreen extends StatelessWidget {
                       height: 58,
                       child: ElevatedButton(
                         onPressed: () {
-                          viewModel.saveTransaction();
-                          Navigator.of(context).pop();
+                          final transazione = viewModel.buildTransaction();
+                          if (transazione != null) {
+                            Navigator.of(context).pop(transazione);
+                          } else {
+                            // Opzionale: mostrare un errore se l'importo è 0
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text("Inserisci un importo valido")),
+                            );
+                          }
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF1D2660),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:jamb/domain/entities/scout.dart';
 import 'package:jamb/ui/core/widgets/empty_background_screen.dart';
 import 'package:jamb/ui/core/widgets/back_action_button.dart';
 import 'package:jamb/ui/dettaglio_ragazzo/widgets/allergie_widget.dart';
@@ -13,20 +14,18 @@ import 'package:jamb/ui/dettaglio_ragazzo/widgets/specialita_widget.dart';
 import 'package:jamb/ui/dettaglio_ragazzo/view_model/dettaglio_ragazzo_view_model.dart';
 
 /// Schermata di dettaglio profilo di un singolo ragazzo (scout).
-/// Visualizza tutte le informazioni relative all'anagrafica, ai contatti d'emergenza,
-/// ai dati medici e al progresso nel sentiero scout (Tappe, Specialità, Brevetti).
+/// Utilizza l'entità di dominio [Scout] (Shared Model).
 class DettaglioRagazzoScreen extends StatelessWidget {
-  /// Nome e cognome dello scout
-  final String nome;
+  final Scout scout;
 
   const DettaglioRagazzoScreen({
     super.key,
-    required this.nome,
+    required this.scout,
   });
 
-  /// Apre il pannello di modifica dei dati anagrafici e contatti
   void _apriModifica(BuildContext context) {
     final viewModel = context.read<DettaglioRagazzoViewModel>();
+    final s = viewModel.scout;
 
     showModalBottomSheet(
       context: context,
@@ -34,19 +33,19 @@ class DettaglioRagazzoScreen extends StatelessWidget {
       useSafeArea: false,
       backgroundColor: Colors.transparent,
       builder: (ctx) => EditRagazzoSheet(
-        squadriglia: viewModel.squadriglia,
-        ruolo: viewModel.ruolo,
-        allergie: viewModel.allergie,
-        privacyScadenza: viewModel.privacyScadenza,
-        contatti: viewModel.contatti,
+        squadriglia: s.squadriglia,
+        ruolo: s.ruolo,
+        allergie: s.allergie ?? "",
+        privacyScadenza: s.scadenzaPrivacy != null ? "${s.scadenzaPrivacy!.month}/${s.scadenzaPrivacy!.year}" : "",
+        contatti: s.contattiEmergenza,
         onSalva: (squadriglia, ruolo, allergie, privacyScadenza, contatti) {
-          viewModel.aggiornaDati(
-            nuovaSquadriglia: squadriglia,
-            nuovoRuolo: ruolo,
-            nuoveAllergie: allergie,
-            nuovaPrivacy: privacyScadenza,
-            nuoviContatti: contatti,
-          );
+          // In una implementazione reale qui mapperemmo i dati e chiameremmo il ViewModel
+          viewModel.aggiornaDati(s.copyWith(
+            squadriglia: squadriglia,
+            ruolo: ruolo,
+            allergie: allergie,
+            contattiEmergenza: contatti,
+          ));
           Navigator.of(ctx).pop();
         },
       ),
@@ -56,109 +55,80 @@ class DettaglioRagazzoScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final viewModel = context.watch<DettaglioRagazzoViewModel>();
+    final s = viewModel.scout;
 
     return Scaffold(
       extendBody: true,
       backgroundColor: Colors.transparent,
       body: EmptyBackgroundScreen(
-        currentIndex: 1, // Sezione Ragazzi attiva
+        currentIndex: 1,
         child: Stack(
           children: [
-            // --- CORPO DELLA PAGINA (Scrollabile) ---
             Positioned.fill(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.only(top: 170, left: 20, right: 20, bottom: 150),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // INTESTAZIONE: Foto, Nome e Info Base
                     DettaglioRagazzoHeader(
-                      nome: nome,
-                      squadriglia: viewModel.squadriglia,
-                      ruolo: viewModel.ruolo,
+                      nome: s.nome,
+                      squadriglia: s.squadriglia,
+                      ruolo: s.ruolo,
                       hasAlert: viewModel.hasAlert,
                       onEdit: () => _apriModifica(context),
                     ),
                     const SizedBox(height: 24),
 
-                    // INFO MEDICHE E PRIVACY
-                    if (viewModel.allergie.trim().isNotEmpty)
+                    if (s.allergie != null && s.allergie!.trim().isNotEmpty)
                       Row(
                         children: [
-                          Expanded(child: AllergieWidget(allergie: viewModel.allergie)),
+                          Expanded(child: AllergieWidget(allergie: s.allergie!)),
                           const SizedBox(width: 16),
-                          Expanded(child: PrivacyWidget(scadenza: viewModel.privacyScadenza)),
+                          Expanded(child: PrivacyWidget(
+                            scadenza: s.scadenzaPrivacy != null 
+                              ? "${s.scadenzaPrivacy!.month.toString().padLeft(2, '0')}/${s.scadenzaPrivacy!.year.toString().substring(2)}" 
+                              : "N/D"
+                          )),
                         ],
                       )
                     else
-                      PrivacyWidget(scadenza: viewModel.privacyScadenza),
+                      PrivacyWidget(
+                        scadenza: s.scadenzaPrivacy != null 
+                          ? "${s.scadenzaPrivacy!.month.toString().padLeft(2, '0')}/${s.scadenzaPrivacy!.year.toString().substring(2)}" 
+                          : "N/D"
+                      ),
 
                     const SizedBox(height: 24),
 
-                    // CONTATTI DI EMERGENZA
-                    ContattiEmergenzaWidget(contatti: viewModel.contatti),
+                    ContattiEmergenzaWidget(contatti: s.contattiEmergenza),
 
                     const SizedBox(height: 24),
 
-                    // PROGRESSO: IL SENTIERO (Tappe)
                     SentieroWidget(
-                      tappa: "Tappa della Responsabilità",
-                      descrizione: "Acquisire maggiori abilità manuali",
-                      obiettivi: [
-                        ObiettivoSentiero(titolo: "Specialità di artigiano", completato: true),
-                        ObiettivoSentiero(titolo: "Utilizzare il trapano", completato: true),
-                        ObiettivoSentiero(titolo: "Imparare 10 nodi", completato: false),
-                      ],
+                      tappaScout: s.progresso.tappaAttuale,
+                      onChanged: (nuovaTappa) {
+                        viewModel.aggiornaDati(s.copyWith(
+                          progresso: s.progresso.copyWith(tappaAttuale: nuovaTappa),
+                        ));
+                      },
                     ),
 
                     const SizedBox(height: 24),
 
-                    // PROGRESSO: LE SPECIALITÀ
                     SpecialitaWidget(
-                      specialita: [
-                        Specialita(
-                          nome: "Infermiere",
-                          prove: [
-                            Prova(descrizione: "Conoscere il primo soccorso", completata: false),
-                            Prova(descrizione: "Saper fare una fasciatura", completata: false),
-                            Prova(descrizione: "Conoscere i numeri di emergenza", completata: false),
-                          ],
-                        ),
-                        Specialita(
-                          nome: "Cuoco",
-                          prove: [
-                            Prova(descrizione: "Pasto completo da campo", completata: true),
-                            Prova(descrizione: "Gestione fuoco da campo", completata: true),
-                            Prova(descrizione: "Pane su stecco", completata: true),
-                          ],
-                          dataRaggiunta: DateTime(2026, 4, 26),
-                        ),
-                      ],
+                      specialita: s.progresso.specialita,
                     ),
 
                     const SizedBox(height: 24),
 
-                    // PROGRESSO: I BREVETTI
                     BrevettiWidget(
-                      brevetti: [
-                        Brevetto(
-                          nome: "Naturalista",
-                          provaFinaleDescrizione: "Escursione notturna autonoma",
-                          specialitaRichieste: [
-                            RequisitoBrevetto(nomeSpecialita: "Naturalista", raggiunta: true),
-                            RequisitoBrevetto(nomeSpecialita: "Cuoco", raggiunta: true),
-                            RequisitoBrevetto(nomeSpecialita: "Topografo", raggiunta: false),
-                            RequisitoBrevetto(nomeSpecialita: "Meteorologo", raggiunta: false),
-                          ],
-                        ),
-                      ],
+                      brevetti: s.progresso.brevetti,
                     ),
                   ],
                 ),
               ),
             ),
 
-            // --- TASTO BACK (Posizionato in alto a sinistra) ---
             const Positioned(
               top: 60,
               left: 20,

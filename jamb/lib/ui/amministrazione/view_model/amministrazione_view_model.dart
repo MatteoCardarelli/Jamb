@@ -1,66 +1,36 @@
 import 'package:flutter/material.dart';
 import 'package:jamb/domain/entities/scout.dart';
-import 'package:jamb/domain/entities/progresso.dart';
+import 'package:jamb/domain/repositories/scout_repository.dart';
 
 /// ViewModel per la gestione della logica amministrativa.
-/// Gestisce l'elenco degli scout e i loro stati documentali (Censimento, Privacy, Medica).
+/// Ora reattivo: ascolta i cambiamenti del repository per restare sempre aggiornato.
 class AmministrazioneViewModel extends ChangeNotifier {
-  bool _isLoading = false;
+  final IScoutRepository _repository;
+  
+  List<Scout> _ragazzi = [];
+  bool _isLoading = true;
+
+  AmministrazioneViewModel(this._repository) {
+    _repository.addListener(_caricaDati);
+    _caricaDati();
+  }
+
+  @override
+  void dispose() {
+    _repository.removeListener(_caricaDati);
+    super.dispose();
+  }
+
+  Future<void> _caricaDati() async {
+    _isLoading = true;
+    notifyListeners();
+    _ragazzi = await _repository.getRagazzi();
+    _isLoading = false;
+    notifyListeners();
+  }
+
+  // --- GETTERS ---
   bool get isLoading => _isLoading;
-
-  final List<Scout> _ragazzi = [
-    Scout(
-      id: "1",
-      nome: "Marco Rossini",
-      squadriglia: "Volpi",
-      ruolo: "Capo Squadriglia",
-      progresso: const ProgressoScout(),
-      statoCensimento: DocumentoStatus.nessuno,
-      statoPrivacy: DocumentoStatus.valido,
-      statoMedica: DocumentoStatus.valido,
-    ),
-    Scout(
-      id: "2",
-      nome: "Giulia Bianchi",
-      squadriglia: "Aquile",
-      ruolo: "Vice Capo",
-      progresso: const ProgressoScout(),
-      statoCensimento: DocumentoStatus.valido,
-      statoPrivacy: DocumentoStatus.valido,
-      statoMedica: DocumentoStatus.scaduto,
-    ),
-    Scout(
-      id: "3",
-      nome: "Luca Verdi",
-      squadriglia: "Volpi",
-      ruolo: "Esploratore",
-      progresso: const ProgressoScout(),
-      statoCensimento: DocumentoStatus.nessuno,
-      statoPrivacy: DocumentoStatus.valido,
-      statoMedica: DocumentoStatus.valido,
-    ),
-    Scout(
-      id: "4",
-      nome: "Sara Neri",
-      squadriglia: "Aquile",
-      ruolo: "Squadrigliere",
-      progresso: const ProgressoScout(),
-      statoCensimento: DocumentoStatus.valido,
-      statoPrivacy: DocumentoStatus.valido,
-      statoMedica: DocumentoStatus.valido,
-    ),
-    Scout(
-      id: "5",
-      nome: "Davide Gialli",
-      squadriglia: "Pantere",
-      ruolo: "Capo Squadriglia",
-      progresso: const ProgressoScout(),
-      statoCensimento: DocumentoStatus.valido,
-      statoPrivacy: DocumentoStatus.inScadenza,
-      statoMedica: DocumentoStatus.valido,
-    ),
-  ];
-
   List<Scout> get ragazzi => _ragazzi;
 
   // Calcolo statistiche globali
@@ -82,7 +52,7 @@ class AmministrazioneViewModel extends ChangeNotifier {
     return c && p && m;
   }).length;
 
-  /// Restituisce un messaggio riassuntivo degli avvisi amministrativi (schede mediche, censimenti).
+  /// Restituisce un messaggio riassuntivo degli avvisi amministrativi.
   String get alertMessage {
     int medScadute = _ragazzi.where((e) => e.statoMedica == DocumentoStatus.scaduto).length;
     int medInScadenza = _ragazzi.where((e) => e.statoMedica == DocumentoStatus.inScadenza).length;
@@ -96,12 +66,13 @@ class AmministrazioneViewModel extends ChangeNotifier {
     return alerts.isNotEmpty ? "${alerts.join(", ")}." : "";
   }
 
-  /// Metodi per aggiornare lo stato (ciclo)
-  void updateCensimento(String id) => _cycleStatus(id, 'censimento');
-  void updatePrivacy(String id) => _cycleStatus(id, 'privacy');
-  void updateMedica(String id) => _cycleStatus(id, 'medica');
+  // --- AZIONI ---
 
-  void _cycleStatus(String id, String field) {
+  Future<void> updateCensimento(String id) => _cycleStatus(id, 'censimento');
+  Future<void> updatePrivacy(String id) => _cycleStatus(id, 'privacy');
+  Future<void> updateMedica(String id) => _cycleStatus(id, 'medica');
+
+  Future<void> _cycleStatus(String id, String field) async {
     final index = _ragazzi.indexWhere((r) => r.id == id);
     if (index != -1) {
       DocumentoStatus currentStatus;
@@ -117,20 +88,21 @@ class AmministrazioneViewModel extends ChangeNotifier {
         case DocumentoStatus.scaduto: nextStatus = DocumentoStatus.nessuno; break;
       }
 
+      Scout updatedScout;
       if (field == 'censimento') {
-        _ragazzi[index] = _ragazzi[index].copyWith(statoCensimento: nextStatus);
+        updatedScout = _ragazzi[index].copyWith(statoCensimento: nextStatus);
       } else if (field == 'privacy') {
-        _ragazzi[index] = _ragazzi[index].copyWith(statoPrivacy: nextStatus);
+        updatedScout = _ragazzi[index].copyWith(statoPrivacy: nextStatus);
       } else {
-        _ragazzi[index] = _ragazzi[index].copyWith(statoMedica: nextStatus);
+        updatedScout = _ragazzi[index].copyWith(statoMedica: nextStatus);
       }
 
-      notifyListeners();
+      await _repository.salvaRagazzo(updatedScout);
+      // Non serve chiamare _caricaDati() qui, perché l'addListener lo farà per noi!
     }
   }
 
-  void setLoading(bool val) {
-    _isLoading = val;
-    notifyListeners();
+  Future<void> refresh() async {
+    await _caricaDati();
   }
 }

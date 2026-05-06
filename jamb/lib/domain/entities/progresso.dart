@@ -2,10 +2,19 @@ enum TappaSentiero {
     nulla,
     scoperta,
     competenza,
-    responsabilita,
+    responsabilita;
+
+    static TappaSentiero safeByName(String name) {
+      try {
+        return TappaSentiero.values.byName(name);
+      } catch (_) {
+        return TappaSentiero.nulla;
+      }
+    }
 }
 
 enum SpecialitaNome {
+    Aereomodellista,
     Allevatore,
     Alpinista,
     AmicoDegliAnimali,
@@ -71,9 +80,18 @@ enum SpecialitaNome {
     ServizioMissionario,
     Topografo,
     Velista;
+
+    /// Helper per caricare un'enum in sicurezza dal JSON
+    static SpecialitaNome? safeByName(String name) {
+      try {
+        return SpecialitaNome.values.byName(name);
+      } catch (_) {
+        return null;
+      }
+    }
 }
 
-enum BrevettoNome{
+enum BrevettoNome {
     Naturalista, 
     Artista, 
     Giornalista, 
@@ -89,6 +107,140 @@ enum BrevettoNome{
     Trappeur, 
     MaestroDelleTecnologie, 
     EsploratoreDelleAcque;
+
+    /// Helper per caricare un'enum in sicurezza dal JSON
+    static BrevettoNome? safeByName(String name) {
+      try {
+        return BrevettoNome.values.byName(name);
+      } catch (_) {
+        return null;
+      }
+    }
+}
+
+extension BrevettoNomeExtension on BrevettoNome {
+  /// Ritorna la lista di specialità che concorrono all'ottenimento del brevetto
+  List<SpecialitaNome> get specialitaCorrelate {
+    switch (this) {
+      case BrevettoNome.Naturalista:
+        return [
+          SpecialitaNome.Allevatore, SpecialitaNome.Alpinista, SpecialitaNome.AmicoDegliAnimali,
+          SpecialitaNome.Astronomo, SpecialitaNome.Boscaiolo, SpecialitaNome.Botanico,
+          SpecialitaNome.Campeggiatore, SpecialitaNome.Coltivatore, SpecialitaNome.Disegnatore,
+          SpecialitaNome.Fotografo, SpecialitaNome.Giardiniere, SpecialitaNome.GuidaMarina,
+          SpecialitaNome.Hebertista, SpecialitaNome.Naturalista, SpecialitaNome.Osservatore,
+          SpecialitaNome.OsservatoreMeteo, SpecialitaNome.Pescatore, SpecialitaNome.Topografo,
+        ];
+      case BrevettoNome.Artista:
+        return [
+          SpecialitaNome.Attore, SpecialitaNome.Cantante, SpecialitaNome.Danzatore,
+          SpecialitaNome.Disegnatore, SpecialitaNome.Elettricista, SpecialitaNome.Falegname,
+          SpecialitaNome.FaTutto, SpecialitaNome.Fotografo, SpecialitaNome.MaestroDeiGiochi,
+          SpecialitaNome.Musicista, SpecialitaNome.Redattore, SpecialitaNome.Sarto,
+          SpecialitaNome.ServizioDellaParola, SpecialitaNome.ServizioLiturgico,
+        ];
+      case BrevettoNome.Giornalista:
+        return [
+          SpecialitaNome.AmicoDelQuartiere, SpecialitaNome.Corrispondente, SpecialitaNome.CorrispondenteRadio,
+          SpecialitaNome.EspertoDelComputer, SpecialitaNome.Europeista, SpecialitaNome.Folclorista,
+          SpecialitaNome.Fotografo, SpecialitaNome.Guida, SpecialitaNome.Interprete,
+          SpecialitaNome.Osservatore, SpecialitaNome.Redattore,
+        ];
+      case BrevettoNome.GraficoMultimediale:
+        return [
+          SpecialitaNome.Artigiano, SpecialitaNome.Disegnatore, SpecialitaNome.Elettricista,
+          SpecialitaNome.Elettronico, SpecialitaNome.EspertoDelComputer, SpecialitaNome.Europeista,
+          SpecialitaNome.FaTutto, SpecialitaNome.Falegname, SpecialitaNome.Folclorista,
+          SpecialitaNome.Fotografo, SpecialitaNome.Grafico, SpecialitaNome.LavoratoreInCuoio,
+          SpecialitaNome.Osservatore, SpecialitaNome.Redattore, SpecialitaNome.Regista,
+          SpecialitaNome.Sarto, SpecialitaNome.Scenografo,
+        ];
+      case BrevettoNome.CittadinoDelMondo:
+        return [
+          SpecialitaNome.Archeologo, SpecialitaNome.Attore, SpecialitaNome.Collezionista,
+          SpecialitaNome.Corrispondente, SpecialitaNome.CorrispondenteRadio, SpecialitaNome.EspertoDelComputer,
+          SpecialitaNome.Disegnatore, SpecialitaNome.Europeista, SpecialitaNome.Folclorista,
+          SpecialitaNome.Fotografo, SpecialitaNome.Interprete, SpecialitaNome.MaestroDeiGiochi,
+          SpecialitaNome.Musicista, SpecialitaNome.Osservatore, SpecialitaNome.Redattore,
+          SpecialitaNome.ServizioMissionario,
+        ];
+      case BrevettoNome.Liturgista:
+        return [
+          SpecialitaNome.Attore, SpecialitaNome.Cantante, SpecialitaNome.Corrispondente,
+          SpecialitaNome.Disegnatore, SpecialitaNome.Falegname, SpecialitaNome.Folclorista, 
+          SpecialitaNome.Fotografo, SpecialitaNome.Interprete, SpecialitaNome.LavoratoreInCuoio,
+          SpecialitaNome.Musicista, SpecialitaNome.Redattore, SpecialitaNome.Sarto,
+          SpecialitaNome.ServizioDellaParola, SpecialitaNome.ServizioLiturgico, SpecialitaNome.ServizioMissionario,
+        ];
+      case BrevettoNome.AnimatoreSportivo:
+        return [
+          SpecialitaNome.Alpinista, SpecialitaNome.Atleta, SpecialitaNome.Ciclista,
+          SpecialitaNome.Hebertista, SpecialitaNome.Infermiere, SpecialitaNome.MaestroDeiGiochi,
+          SpecialitaNome.Nuotatore,
+        ];
+      case BrevettoNome.GuidaAlpina:
+        return [
+          SpecialitaNome.Alpinista, SpecialitaNome.AmicoDegliAnimali, SpecialitaNome.Astronomo,
+          SpecialitaNome.Botanico, SpecialitaNome.Fotografo, SpecialitaNome.Guida, 
+          SpecialitaNome.Hebertista, SpecialitaNome.Infermiere, SpecialitaNome.Naturalista, 
+          SpecialitaNome.Nuotatore, SpecialitaNome.Osservatore, SpecialitaNome.OsservatoreMeteo, 
+          SpecialitaNome.Pompiere, SpecialitaNome.Segnalatore, SpecialitaNome.Topografo,
+        ];
+      case BrevettoNome.ManiAbili:
+        return [
+          SpecialitaNome.Aereomodellista, SpecialitaNome.Boscaiolo, SpecialitaNome.Campeggiatore, 
+          SpecialitaNome.CarpentiereNavale, SpecialitaNome.Disegnatore, SpecialitaNome.Elettricista,
+          SpecialitaNome.Falegname, SpecialitaNome.FaTutto, SpecialitaNome.Giocattolaio,
+          SpecialitaNome.LavoratoreInCuoio, SpecialitaNome.MaestroDeiNodi, SpecialitaNome.Meccanico, 
+          SpecialitaNome.Modellista, SpecialitaNome.Muratore, SpecialitaNome.Sarto,
+        ];
+      case BrevettoNome.Pioniere:
+        return [
+          SpecialitaNome.Boscaiolo, SpecialitaNome.Campeggiatore, SpecialitaNome.CarpentiereNavale,
+          SpecialitaNome.Disegnatore, SpecialitaNome.Falegname, SpecialitaNome.FaTutto, 
+          SpecialitaNome.Hebertista, SpecialitaNome.Infermiere, SpecialitaNome.LavoratoreInCuoio, 
+          SpecialitaNome.MaestroDeiNodi, SpecialitaNome.Nuotatore, SpecialitaNome.Osservatore, 
+          SpecialitaNome.OsservatoreMeteo, SpecialitaNome.Pompiere, SpecialitaNome.Sarto, 
+          SpecialitaNome.Topografo,
+        ];
+      case BrevettoNome.Soccorritore:
+        return [
+          SpecialitaNome.Alpinista, SpecialitaNome.Botanico, SpecialitaNome.Campeggiatore,
+          SpecialitaNome.CorrispondenteRadio, SpecialitaNome.FaTutto, SpecialitaNome.Hebertista,
+          SpecialitaNome.Infermiere, SpecialitaNome.Naturalista, SpecialitaNome.Nuotatore, 
+          SpecialitaNome.Pompiere, SpecialitaNome.Segnalatore, SpecialitaNome.Topografo,
+        ];
+      case BrevettoNome.Sherpa:
+        return [
+          SpecialitaNome.Alpinista, SpecialitaNome.AmicoDegliAnimali, SpecialitaNome.Astronomo,
+          SpecialitaNome.Boscaiolo, SpecialitaNome.Botanico, SpecialitaNome.Campeggiatore,
+          SpecialitaNome.Ciclista, SpecialitaNome.GuidaMarina, SpecialitaNome.Hebertista, 
+          SpecialitaNome.Infermiere, SpecialitaNome.Naturalista, SpecialitaNome.Nuotatore, 
+          SpecialitaNome.Osservatore, SpecialitaNome.OsservatoreMeteo, SpecialitaNome.Segnalatore, 
+          SpecialitaNome.Topografo,
+        ];
+      case BrevettoNome.Trappeur:
+        return [
+          SpecialitaNome.Astronomo, SpecialitaNome.Battelliere, SpecialitaNome.Boscaiolo,
+          SpecialitaNome.Botanico, SpecialitaNome.Campeggiatore, SpecialitaNome.Falegname, 
+          SpecialitaNome.FaTutto, SpecialitaNome.Hebertista, SpecialitaNome.Infermiere, 
+          SpecialitaNome.LavoratoreInCuoio, SpecialitaNome.Naturalista, SpecialitaNome.Nuotatore, 
+          SpecialitaNome.Osservatore, SpecialitaNome.OsservatoreMeteo, SpecialitaNome.Pescatore, 
+          SpecialitaNome.Pompiere, SpecialitaNome.Sarto, SpecialitaNome.Segnalatore,
+        ];
+      case BrevettoNome.MaestroDelleTecnologie:
+        return [
+          SpecialitaNome.EspertoDelComputer, SpecialitaNome.Elettronico, SpecialitaNome.Meccanico, 
+          SpecialitaNome.Grafico, SpecialitaNome.Fotografo, SpecialitaNome.Elettricista,
+        ];
+      case BrevettoNome.EsploratoreDelleAcque:
+        return [
+          SpecialitaNome.Nuotatore, SpecialitaNome.Canoista, SpecialitaNome.Pescatore,
+          SpecialitaNome.Battelliere, SpecialitaNome.GuidaMarina, SpecialitaNome.CarpentiereNavale,
+          SpecialitaNome.Velista, SpecialitaNome.Modellista,
+        ];
+    }
+  }
 }
 
 class Impegno {
@@ -153,110 +305,123 @@ class Tappa {
 
     factory Tappa.fromMap(Map<String, dynamic> map) {
         return Tappa(
-            tipo: TappaSentiero.values.byName(map['tipo']),
-            impegni: List<Impegno>.from(
-                (map['impegni'] as List).map((x) => Impegno.fromMap(x)),
-            ),
+            tipo: TappaSentiero.safeByName(map['tipo'] ?? ''),
+            impegni: map['impegni'] != null 
+                ? List<Impegno>.from((map['impegni'] as List).map((x) => Impegno.fromMap(x)))
+                : const [],
         );
     }
 }
 
 class Specialita {
-    final SpecialitaNome nome; 
-    final bool isPosseduta;
-    final List<String>? prove;
-    final DateTime? dataConseguimento;
+  final SpecialitaNome nome;
+  final List<Impegno> prove;
+  final DateTime? dataConseguimento;
 
-    const Specialita({
-        required this.nome,
-        this.isPosseduta = false,
-        this.prove,
-        this.dataConseguimento,
-    });
+  const Specialita({
+    required this.nome,
+    this.prove = const [],
+    this.dataConseguimento,
+  });
 
-    Specialita copyWith({
-        SpecialitaNome? nome,
-        bool? isPosseduta,
-        List<String>? prove,
-        DateTime? dataConseguimento,
-    }){
-        return Specialita(
-            nome: nome ?? this.nome,
-            isPosseduta: isPosseduta ?? this.isPosseduta,
-            prove: prove ?? this.prove,
-            dataConseguimento: dataConseguimento ?? this.dataConseguimento,
-        );
-    }
+  /// Indica se la specialità è stata interamente completata e assegnata
+  bool get isPosseduta => prove.isNotEmpty && prove.every((p) => p.isCompletato) && dataConseguimento != null;
 
-    Map<String, dynamic> toMap() {
-        return {
-            'nome': nome.name,
-            'isPosseduta': isPosseduta,
-            'prove': prove,
-            'dataConseguimento': dataConseguimento?.toIso8601String(),
-        };
-    }
+  Specialita copyWith({
+    SpecialitaNome? nome,
+    List<Impegno>? prove,
+    DateTime? dataConseguimento,
+  }) {
+    return Specialita(
+      nome: nome ?? this.nome,
+      prove: prove ?? this.prove,
+      dataConseguimento: dataConseguimento ?? this.dataConseguimento,
+    );
+  }
 
-    factory Specialita.fromMap(Map<String, dynamic> map) {
-        return Specialita(
-            nome: SpecialitaNome.values.byName(map['nome']),
-            isPosseduta: map['isPosseduta'] ?? false,
-            prove: map['prove'] != null ? List<String>.from(map['prove']) : null,
-            dataConseguimento: map['dataConseguimento'] != null 
-                ? DateTime.parse(map['dataConseguimento']) 
-                : null,
-        );
-    }
+  Map<String, dynamic> toMap() {
+    return {
+      'nome': nome.name,
+      'prove': prove.map((x) => x.toMap()).toList(),
+      'dataConseguimento': dataConseguimento?.toIso8601String(),
+    };
+  }
+
+  /// Metodo statico per caricare in sicurezza ignorando nomi obsoleti
+  static Specialita? fromMap(Map<String, dynamic> map) {
+    final nomeEnum = SpecialitaNome.safeByName(map['nome']);
+    if (nomeEnum == null) return null;
+    
+    return Specialita(
+      nome: nomeEnum,
+      prove: map['prove'] != null
+          ? List<Impegno>.from((map['prove'] as List).map((x) => Impegno.fromMap(x)))
+          : const [],
+      dataConseguimento: map['dataConseguimento'] != null ? DateTime.parse(map['dataConseguimento']) : null,
+    );
+  }
 }
 
 class Brevetto {
-    final BrevettoNome nome;
-    final List<SpecialitaNome> specialitaCollegate;
-    final bool isPosseduto;
-    final DateTime? dataConseguimento;
+  final BrevettoNome nome;
+  final List<SpecialitaNome> specialitaCollegate;
+  final bool provaFinaleSuperata;
+  final String? provaFinaleDescrizione;
+  final DateTime? dataConseguimento;
 
-    const Brevetto({
-        required this.nome,
-        required this.specialitaCollegate,
-        this.isPosseduto = false,
-        this.dataConseguimento,
-    });
+  const Brevetto({
+    required this.nome,
+    required this.specialitaCollegate,
+    this.provaFinaleSuperata = false,
+    this.provaFinaleDescrizione,
+    this.dataConseguimento,
+  });
 
-    Brevetto copyWith({
-        BrevettoNome? nome,
-        List<SpecialitaNome>? specialitaCollegate,
-        bool? isPosseduto,
-        DateTime? dataConseguimento,
-    }){
-        return Brevetto(
-            nome: nome ?? this.nome,
-            specialitaCollegate: specialitaCollegate ?? this.specialitaCollegate,
-            isPosseduto: isPosseduto ?? this.isPosseduto,
-            dataConseguimento: dataConseguimento ?? this.dataConseguimento,
-        );
-    }
+  bool get isPosseduto => provaFinaleSuperata && dataConseguimento != null;
 
-    Map<String, dynamic> toMap() {
-        return {
-            'nome': nome.name,
-            'specialitaCollegate': specialitaCollegate.map((e) => e.name).toList(),
-            'isPosseduto': isPosseduto,
-            'dataConseguimento': dataConseguimento?.toIso8601String(),
-        };
-    }
+  Brevetto copyWith({
+    BrevettoNome? nome,
+    List<SpecialitaNome>? specialitaCollegate,
+    bool? provaFinaleSuperata,
+    String? provaFinaleDescrizione,
+    DateTime? dataConseguimento,
+  }) {
+    return Brevetto(
+      nome: nome ?? this.nome,
+      specialitaCollegate: specialitaCollegate ?? this.specialitaCollegate,
+      provaFinaleSuperata: provaFinaleSuperata ?? this.provaFinaleSuperata,
+      provaFinaleDescrizione: provaFinaleDescrizione ?? this.provaFinaleDescrizione,
+      dataConseguimento: dataConseguimento ?? this.dataConseguimento,
+    );
+  }
 
-    factory Brevetto.fromMap(Map<String, dynamic> map) {
-        return Brevetto(
-            nome: BrevettoNome.values.byName(map['nome']),
-            specialitaCollegate: List<SpecialitaNome>.from(
-                (map['specialitaCollegate'] as List).map((e) => SpecialitaNome.values.byName(e))
-            ),
-            isPosseduto: map['isPosseduto'] ?? false,
-            dataConseguimento: map['dataConseguimento'] != null 
-                ? DateTime.parse(map['dataConseguimento']) 
-                : null,
-        );
-    }
+  Map<String, dynamic> toMap() {
+    return {
+      'nome': nome.name,
+      'specialitaCollegate': specialitaCollegate.map((e) => e.name).toList(),
+      'provaFinaleSuperata': provaFinaleSuperata,
+      'provaFinaleDescrizione': provaFinaleDescrizione,
+      'dataConseguimento': dataConseguimento?.toIso8601String(),
+    };
+  }
+
+  /// Metodo statico per caricare in sicurezza ignorando nomi obsoleti
+  static Brevetto? fromMap(Map<String, dynamic> map) {
+    final nomeEnum = BrevettoNome.safeByName(map['nome']);
+    if (nomeEnum == null) return null;
+
+    return Brevetto(
+      nome: nomeEnum,
+      specialitaCollegate: List<SpecialitaNome>.from(
+          (map['specialitaCollegate'] as List)
+          .map((e) => SpecialitaNome.safeByName(e))
+          .whereType<SpecialitaNome>()
+      ),
+      provaFinaleSuperata: map['provaFinaleSuperata'] ?? false,
+      provaFinaleDescrizione: map['provaFinaleDescrizione'],
+      dataConseguimento: map['dataConseguimento'] != null ? DateTime.parse(map['dataConseguimento']) : null,
+    );
+  }
 }
 
 class ProgressoScout{
@@ -292,12 +457,16 @@ class ProgressoScout{
 
     factory ProgressoScout.fromMap(Map<String, dynamic> map) {
         return ProgressoScout(
-            tappaAttuale: Tappa.fromMap(map['tappaAttuale']),
+            tappaAttuale: Tappa.fromMap(map['tappaAttuale'] ?? {}),
             specialita: List<Specialita>.from(
-                (map['specialita'] as List).map((x) => Specialita.fromMap(x)),
+                (map['specialita'] as List? ?? [])
+                .map((x) => Specialita.fromMap(x))
+                .whereType<Specialita>(),
             ),
             brevetti: List<Brevetto>.from(
-                (map['brevetti'] as List).map((x) => Brevetto.fromMap(x)),
+                (map['brevetti'] as List? ?? [])
+                .map((x) => Brevetto.fromMap(x))
+                .whereType<Brevetto>(),
             ),
         );
     }

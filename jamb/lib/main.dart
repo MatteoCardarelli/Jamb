@@ -6,6 +6,12 @@ import 'package:jamb/ui/amministrazione/view_model/amministrazione_view_model.da
 import 'package:jamb/ui/contabilita/view_model/contabilita_view_model.dart';
 import 'package:jamb/ui/ragazzi/view_model/ragazzi_view_model.dart';
 import 'package:jamb/ui/documenti/view_model/documenti_view_model.dart';
+import 'package:jamb/domain/repositories/scout_repository.dart';
+import 'package:jamb/domain/repositories/obiettivo_repository.dart';
+import 'package:jamb/domain/repositories/transazione_repository.dart';
+import 'package:jamb/data/repositories/json_scout_repository.dart';
+import 'package:jamb/data/repositories/json_obiettivo_repository.dart';
+import 'package:jamb/data/repositories/json_transazione_repository.dart';
 
 void main() {
   runApp(const JambApp());
@@ -18,10 +24,27 @@ class JambApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => AmministrazioneViewModel()),
-        ChangeNotifierProvider(create: (_) => ContabilitaViewModel()),
-        ChangeNotifierProvider(create: (_) => HomeViewModel()),
-        ChangeNotifierProvider(create: (_) => RagazziViewModel()),
+        // Repositories
+        ChangeNotifierProvider<IScoutRepository>(create: (_) => JsonScoutRepository()),
+        Provider<IObiettivoRepository>(create: (_) => JsonObiettivoRepository()),
+        ChangeNotifierProvider<ITransazioneRepository>(create: (_) => JsonTransazioneRepository()),
+
+        // ViewModels
+        ChangeNotifierProvider(
+          create: (context) => AmministrazioneViewModel(context.read<IScoutRepository>()),
+        ),
+        ChangeNotifierProvider(
+          create: (context) => ContabilitaViewModel(context.read<ITransazioneRepository>()),
+        ),
+        ChangeNotifierProvider(
+          create: (context) => HomeViewModel(
+            context.read<IScoutRepository>(),
+            context.read<IObiettivoRepository>(),
+          ),
+        ),
+        ChangeNotifierProvider(
+          create: (context) => RagazziViewModel(context.read<IScoutRepository>()),
+        ),
         ChangeNotifierProvider(create: (_) => DocumentiViewModel()),
       ],
       child: MaterialApp(

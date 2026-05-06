@@ -1,95 +1,62 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:jamb/ui/core/widgets/jamb_search_picker.dart';
-
-// --- MODELLI DI DATI ---
-
-/// Rappresenta una singola prova (delle 3 necessarie) per ottenere una specialità.
-class Prova {
-  String descrizione;
-  bool completata;
-  Prova({required this.descrizione, required this.completata});
-}
-
-/// Rappresenta una specialità scout con le sue 3 prove e l'eventuale data di raggiungimento.
-class Specialita {
-  final String nome;
-  final List<Prova> prove;
-  final DateTime? dataRaggiunta;
-
-  /// Percorso dell'immagine della specialità basato sul nome
-  String get imagePath => 'assets/specialita/${nome.toLowerCase().replaceAll(' ', '_')}.jpg';
-  
-  /// Indica se la specialità è stata interamente completata e assegnata
-  bool get raggiunta => prove.every((p) => p.completata) && dataRaggiunta != null;
-
-  Specialita({
-    required this.nome,
-    required this.prove,
-    this.dataRaggiunta,
-  });
-}
-
-// --- WIDGET PRINCIPALE ---
+import 'package:jamb/domain/entities/progresso.dart';
+import 'package:jamb/ui/dettaglio_ragazzo/view_model/dettaglio_ragazzo_view_model.dart';
 
 /// Widget per la visualizzazione e gestione delle Specialità attive di uno scout.
-class SpecialitaWidget extends StatefulWidget {
+/// Ora completamente integrato con il ViewModel.
+class SpecialitaWidget extends StatelessWidget {
   final List<Specialita> specialita;
   const SpecialitaWidget({super.key, required this.specialita});
 
-  @override
-  State<SpecialitaWidget> createState() => _SpecialitaWidgetState();
-}
-
-class _SpecialitaWidgetState extends State<SpecialitaWidget> {
-  late List<Specialita> _specialita;
-
-  @override
-  void initState() {
-    super.initState();
-    _specialita = widget.specialita;
-  }
-
   String _sottotitolo(Specialita s) {
-    if (s.raggiunta) {
-      final d = s.dataRaggiunta!;
+    if (s.isPosseduta) {
+      final d = s.dataConseguimento!;
       return "raggiunta il ${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year}";
     }
-    final idx = s.prove.indexWhere((p) => !p.completata);
-    if (idx == -1) return "Tutte le prove completate";
-    final desc = s.prove[idx].descrizione.trim();
+    final idx = s.prove.indexWhere((p) => !p.isCompletato);
+    if (idx == -1 && s.prove.isNotEmpty) return "Tutte le prove completate";
+    if (s.prove.isEmpty) return "Nessuna prova definita";
+    
+    final desc = s.prove[idx].titolo.trim();
     return "${idx + 1}ª prova: ${desc.isNotEmpty ? desc : 'da definire'}";
   }
 
-  void _apriDettaglio(int index) {
+  String _getImagePath(SpecialitaNome nome) {
+    final snakeCase = nome.name.replaceAllMapped(RegExp(r'([A-Z])'), (match) => '_${match.group(1)!.toLowerCase()}').replaceFirst('_', '');
+    return 'assets/specialita/$snakeCase.jpg';
+  }
+
+  void _apriDettaglio(BuildContext context, int index, DettaglioRagazzoViewModel viewModel) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       useSafeArea: false,
       backgroundColor: Colors.transparent,
       builder: (ctx) => _EditSpecialitaSheet(
-        specialita: _specialita[index],
-        onSalva: (aggiornata) {
-          setState(() => _specialita[index] = aggiornata);
-          Navigator.of(ctx).pop();
-        },
-        onElimina: () {
-          setState(() => _specialita.removeAt(index));
-          Navigator.of(ctx).pop();
-        },
+        specialita: specialita[index],
+        onSalva: (aggiornata) => viewModel.modificaSpecialita(index, aggiornata),
+        onElimina: () => viewModel.rimuoviSpecialita(index),
       ),
     );
   }
 
-  void _apriAggiungi() {
+  void _apriAggiungi(BuildContext context, DettaglioRagazzoViewModel viewModel) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       useSafeArea: false,
       backgroundColor: Colors.transparent,
       builder: (ctx) => _AggiungiSpecialitaSheet(
-        onAggiungi: (nuova) {
-          setState(() => _specialita.add(nuova));
-          Navigator.of(ctx).pop();
+        onAggiungi: (nuova) async {
+          final success = await viewModel.aggiungiSpecialita(nuova);
+          if (!success && context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text("Questo ragazzo ha già questa specialità!")),
+            );
+          }
+          if (ctx.mounted) Navigator.of(ctx).pop();
         },
       ),
     );
@@ -97,6 +64,8 @@ class _SpecialitaWidgetState extends State<SpecialitaWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final viewModel = context.watch<DettaglioRagazzoViewModel>();
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
@@ -115,18 +84,15 @@ class _SpecialitaWidgetState extends State<SpecialitaWidget> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            "Specialità Attive", 
-            style: TextStyle(color: Color(0xFF0F172A), fontSize: 22, fontWeight: FontWeight.w900, fontFamily: 'Lexend')
-          ),
+          const Text("Specialità Attive", style: TextStyle(color: Color(0xFF0F172A), fontSize: 22, fontWeight: FontWeight.w900, fontFamily: 'Lexend')),
           const SizedBox(height: 16),
-          ...List.generate(_specialita.length, (i) {
-            final s = _specialita[i];
+          ...List.generate(specialita.length, (i) {
+            final s = specialita[i];
             return Column(
               children: [
                 if (i > 0) const Divider(color: Color(0xFFF1F5F9), height: 24, thickness: 1.5),
                 GestureDetector(
-                  onTap: () => _apriDettaglio(i),
+                  onTap: () => _apriDettaglio(context, i, viewModel),
                   behavior: HitTestBehavior.opaque,
                   child: Row(
                     children: [
@@ -134,7 +100,7 @@ class _SpecialitaWidgetState extends State<SpecialitaWidget> {
                         width: 48, height: 48,
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(12),
-                          image: DecorationImage(image: AssetImage(s.imagePath), fit: BoxFit.cover),
+                          image: DecorationImage(image: AssetImage(_getImagePath(s.nome)), fit: BoxFit.cover),
                         ),
                       ),
                       const SizedBox(width: 16),
@@ -142,9 +108,9 @@ class _SpecialitaWidgetState extends State<SpecialitaWidget> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(s.nome, style: const TextStyle(color: Color(0xFF1E293B), fontSize: 16, fontWeight: FontWeight.w700, fontFamily: 'Lexend')),
+                            Text(s.nome.name, style: const TextStyle(color: Color(0xFF1E293B), fontSize: 16, fontWeight: FontWeight.w700, fontFamily: 'Lexend')),
                             const SizedBox(height: 2),
-                            Text(_sottotitolo(s), style: TextStyle(color: s.raggiunta ? const Color(0xFF16A34A) : const Color(0xFF94A3B8), fontSize: 13, fontWeight: s.raggiunta ? FontWeight.w600 : FontWeight.w400, fontFamily: 'Lexend')),
+                            Text(_sottotitolo(s), style: TextStyle(color: s.isPosseduta ? const Color(0xFF16A34A) : const Color(0xFF94A3B8), fontSize: 13, fontWeight: s.isPosseduta ? FontWeight.w600 : FontWeight.w400, fontFamily: 'Lexend')),
                           ],
                         ),
                       ),
@@ -157,14 +123,10 @@ class _SpecialitaWidgetState extends State<SpecialitaWidget> {
           }),
           const SizedBox(height: 20),
           GestureDetector(
-            onTap: _apriAggiungi,
+            onTap: () => _apriAggiungi(context, viewModel),
             child: Container(
               padding: const EdgeInsets.symmetric(vertical: 14),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF8FAFC),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: const Color(0xFFE2E8F0)),
-              ),
+              decoration: BoxDecoration(color: const Color(0xFFF8FAFC), borderRadius: BorderRadius.circular(16), border: Border.all(color: const Color(0xFFE2E8F0))),
               child: const Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -194,18 +156,26 @@ class _EditSpecialitaSheet extends StatefulWidget {
 }
 
 class _EditSpecialitaSheetState extends State<_EditSpecialitaSheet> {
-  late List<bool> _prove;
+  late List<bool> _proveStato;
   late List<TextEditingController> _proveCtrl;
   DateTime? _data;
 
-  bool get _tutteCompletate => _prove.every((p) => p);
+  bool get _tutteCompletate => _proveStato.every((p) => p);
 
   @override
   void initState() {
     super.initState();
-    _prove = widget.specialita.prove.map((p) => p.completata).toList();
-    _proveCtrl = widget.specialita.prove.map((p) => TextEditingController(text: p.descrizione)).toList();
-    _data = widget.specialita.dataRaggiunta;
+    _proveStato = widget.specialita.prove.map((p) => p.isCompletato).toList();
+    _proveCtrl = widget.specialita.prove.map((p) => TextEditingController(text: p.titolo)).toList();
+    _data = widget.specialita.dataConseguimento;
+    
+    if (_proveStato.length < 3) {
+      int missing = 3 - _proveStato.length;
+      for (int i = 0; i < missing; i++) {
+        _proveStato.add(false);
+        _proveCtrl.add(TextEditingController());
+      }
+    }
   }
 
   @override
@@ -220,10 +190,7 @@ class _EditSpecialitaSheetState extends State<_EditSpecialitaSheet> {
       initialDate: _data ?? DateTime.now(),
       firstDate: DateTime(2020),
       lastDate: DateTime.now(),
-      builder: (context, child) => Theme(
-        data: Theme.of(context).copyWith(colorScheme: const ColorScheme.light(primary: Color(0xFF1D2660))),
-        child: child!,
-      ),
+      builder: (context, child) => Theme(data: Theme.of(context).copyWith(colorScheme: const ColorScheme.light(primary: Color(0xFF1D2660))), child: child!),
     );
     if (picked != null) setState(() => _data = picked);
   }
@@ -231,10 +198,11 @@ class _EditSpecialitaSheetState extends State<_EditSpecialitaSheet> {
   void _salva() {
     final aggiornata = Specialita(
       nome: widget.specialita.nome,
-      prove: List.generate(3, (i) => Prova(descrizione: _proveCtrl[i].text.trim(), completata: _prove[i])),
-      dataRaggiunta: _tutteCompletate ? (_data ?? DateTime.now()) : null,
+      prove: List.generate(3, (i) => Impegno(titolo: _proveCtrl[i].text.trim(), isCompletato: _proveStato[i])),
+      dataConseguimento: _tutteCompletate ? (_data ?? DateTime.now()) : null,
     );
     widget.onSalva(aggiornata);
+    Navigator.of(context).pop();
   }
 
   @override
@@ -252,22 +220,16 @@ class _EditSpecialitaSheetState extends State<_EditSpecialitaSheet> {
             const SizedBox(height: 24),
             Row(
               children: [
-                Container(
-                  width: 56, height: 56,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(14),
-                    image: DecorationImage(image: AssetImage(widget.specialita.imagePath), fit: BoxFit.cover),
-                  ),
-                ),
+                Container(width: 56, height: 56, decoration: BoxDecoration(borderRadius: BorderRadius.circular(14), image: DecorationImage(image: AssetImage(_getImagePath(widget.specialita.nome)), fit: BoxFit.cover))),
                 const SizedBox(width: 16),
-                Expanded(child: Text(widget.specialita.nome, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: Color(0xFF1D2660), fontFamily: 'Lexend'))),
+                Expanded(child: Text(widget.specialita.nome.name, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: Color(0xFF1D2660), fontFamily: 'Lexend'))),
               ],
             ),
             const SizedBox(height: 32),
             _buildLabel("LE TRE PROVE"),
             const SizedBox(height: 12),
             ...List.generate(3, (i) {
-              final sbloccata = i == 0 || _prove[i - 1];
+              final sbloccata = i == 0 || _proveStato[i - 1];
               return Padding(
                 padding: const EdgeInsets.only(bottom: 12),
                 child: Opacity(
@@ -275,24 +237,24 @@ class _EditSpecialitaSheetState extends State<_EditSpecialitaSheet> {
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                     decoration: BoxDecoration(
-                      color: _prove[i] ? const Color(0xFFF0FDF4) : const Color(0xFFF8FAFC),
+                      color: _proveStato[i] ? const Color(0xFFF0FDF4) : const Color(0xFFF8FAFC),
                       borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: _prove[i] ? const Color(0xFFBBF7D0) : const Color(0xFFE2E8F0)),
+                      border: Border.all(color: _proveStato[i] ? const Color(0xFFBBF7D0) : const Color(0xFFE2E8F0)),
                     ),
                     child: Row(
                       children: [
                         GestureDetector(
-                          onTap: sbloccata ? () => setState(() => _prove[i] = !_prove[i]) : null,
-                          child: Icon(_prove[i] ? Icons.check_circle_rounded : Icons.circle_outlined, color: _prove[i] ? const Color(0xFF16A34A) : const Color(0xFFCBD5E1), size: 24),
+                          onTap: sbloccata ? () => setState(() => _proveStato[i] = !_proveStato[i]) : null,
+                          child: Icon(_proveStato[i] ? Icons.check_circle_rounded : Icons.circle_outlined, color: _proveStato[i] ? const Color(0xFF16A34A) : const Color(0xFFCBD5E1), size: 24),
                         ),
                         const SizedBox(width: 12),
-                        Text("${i + 1}ª", style: TextStyle(color: _prove[i] ? const Color(0xFF14532D) : const Color(0xFF94A3B8), fontSize: 13, fontWeight: FontWeight.w800, fontFamily: 'Lexend')),
+                        Text("${i + 1}ª", style: TextStyle(color: _proveStato[i] ? const Color(0xFF14532D) : const Color(0xFF94A3B8), fontSize: 13, fontWeight: FontWeight.w800, fontFamily: 'Lexend')),
                         const SizedBox(width: 8),
                         Expanded(
                           child: TextField(
                             controller: _proveCtrl[i],
                             enabled: sbloccata,
-                            style: TextStyle(color: _prove[i] ? const Color(0xFF14532D) : const Color(0xFF475569), fontSize: 14, fontFamily: 'Lexend'),
+                            style: TextStyle(color: _proveStato[i] ? const Color(0xFF14532D) : const Color(0xFF475569), fontSize: 14, fontFamily: 'Lexend'),
                             decoration: const InputDecoration(border: InputBorder.none, isDense: true, hintText: "Descrizione della prova...", hintStyle: TextStyle(color: Color(0xFFCBD5E1), fontSize: 14)),
                           ),
                         ),
@@ -312,17 +274,7 @@ class _EditSpecialitaSheetState extends State<_EditSpecialitaSheet> {
                   const SizedBox(height: 8),
                   GestureDetector(
                     onTap: _selezionaData,
-                    child: Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(color: const Color(0xFFF0FDF4), borderRadius: BorderRadius.circular(14), border: Border.all(color: const Color(0xFFBBF7D0))),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.calendar_today_rounded, color: Color(0xFF16A34A), size: 20),
-                          const SizedBox(width: 12),
-                          Text(_data != null ? "${_data!.day.toString().padLeft(2, '0')}/${_data!.month.toString().padLeft(2, '0')}/${_data!.year}" : "Seleziona data...", style: const TextStyle(color: Color(0xFF14532D), fontSize: 15, fontWeight: FontWeight.w700, fontFamily: 'Lexend')),
-                        ],
-                      ),
-                    ),
+                    child: Container(padding: const EdgeInsets.all(16), decoration: BoxDecoration(color: const Color(0xFFF0FDF4), borderRadius: BorderRadius.circular(14), border: Border.all(color: const Color(0xFFBBF7D0))), child: Row(children: [const Icon(Icons.calendar_today_rounded, color: Color(0xFF16A34A), size: 20), const SizedBox(width: 12), Text(_data != null ? "${_data!.day.toString().padLeft(2, '0')}/${_data!.month.toString().padLeft(2, '0')}/${_data!.year}" : "Seleziona data...", style: const TextStyle(color: Color(0xFF14532D), fontSize: 15, fontWeight: FontWeight.w700, fontFamily: 'Lexend'))])),
                   ),
                 ],
               ) : const SizedBox.shrink(),
@@ -342,11 +294,19 @@ class _EditSpecialitaSheetState extends State<_EditSpecialitaSheet> {
   }
 
   void _confermaElimina() async {
-    final bool? ok = await showDialog<bool>(context: context, builder: (ctx) => AlertDialog(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)), title: const Text("Elimina Specialità", style: TextStyle(fontFamily: 'Lexend', fontWeight: FontWeight.w900)), content: Text("Sei sicuro di voler eliminare \"${widget.specialita.nome}\"?", style: const TextStyle(fontFamily: 'Lexend')), actions: [TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text("ANNULLA", style: TextStyle(fontFamily: 'Lexend', color: Color(0xFF94A3B8)))), TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text("ELIMINA", style: TextStyle(fontFamily: 'Lexend', color: Color(0xFFE11D48), fontWeight: FontWeight.w800)))]));
-    if (ok == true) widget.onElimina();
+    final bool? ok = await showDialog<bool>(context: context, builder: (ctx) => AlertDialog(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)), title: const Text("Elimina Specialità", style: TextStyle(fontFamily: 'Lexend', fontWeight: FontWeight.w900)), content: Text("Sei sicuro di voler eliminare \"${widget.specialita.nome.name}\"?", style: const TextStyle(fontFamily: 'Lexend')), actions: [TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text("ANNULLA", style: TextStyle(fontFamily: 'Lexend', color: Color(0xFF94A3B8)))), TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text("ELIMINA", style: TextStyle(fontFamily: 'Lexend', color: Color(0xFFE11D48), fontWeight: FontWeight.w800)))]));
+    if (ok == true) {
+      widget.onElimina();
+      if (mounted) Navigator.of(context).pop();
+    }
   }
 
   Widget _buildLabel(String text) => Padding(padding: const EdgeInsets.only(bottom: 8), child: Text(text, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: Color(0xFF94A3B8), letterSpacing: 0.8, fontFamily: 'Lexend')));
+
+  String _getImagePath(SpecialitaNome nome) {
+    final snakeCase = nome.name.replaceAllMapped(RegExp(r'([A-Z])'), (match) => '_${match.group(1)!.toLowerCase()}').replaceFirst('_', '');
+    return 'assets/specialita/$snakeCase.jpg';
+  }
 }
 
 // --- SHEET AGGIUNGI SPECIALITÀ ---
@@ -354,18 +314,13 @@ class _EditSpecialitaSheetState extends State<_EditSpecialitaSheet> {
 class _AggiungiSpecialitaSheet extends StatefulWidget {
   final Function(Specialita) onAggiungi;
   const _AggiungiSpecialitaSheet({required this.onAggiungi});
-
   @override
   State<_AggiungiSpecialitaSheet> createState() => _AggiungiSpecialitaSheetState();
 }
 
 class _AggiungiSpecialitaSheetState extends State<_AggiungiSpecialitaSheet> {
-  String? _nomeSelezionato;
+  SpecialitaNome? _nomeSelezionato;
   final List<TextEditingController> _proveCtrl = List.generate(3, (_) => TextEditingController());
-
-  static const List<String> _tutteLeSpecialita = [
-    'Allevatore', 'Alpinista', 'Amico degli animali', 'Amico del quartiere', 'Archeologo', 'Artigiano', 'Artista di strada', 'Astronomo', 'Atleta', 'Attore', 'Battelliere', 'Boscaiolo', 'Botanico', 'Campeggiatore', 'Canoista', 'Cantante', 'Carpentiere navale', 'Ciclista', 'Collezionista', 'Coltivatore', 'Corrispondente', 'Corrispondente radio', 'Cuoco', 'Danzatore', 'Disegnatore', 'Elettricista', 'Elettronico', 'Esperto del computer', 'Europeista', 'Falegname', 'Fa tutto', 'Folclorista', 'Fotografo', 'Giardiniere', 'Giocattolaio', 'Grafico', 'Guida', 'Guida marina', 'Hebertista', 'Idraulico', 'Infermiere', 'Interprete', 'Lavoratore in cuoio', 'Maestro dei giochi', 'Maestro dei nodi', 'Meccanico', 'Modellista', 'Muratore', 'Musicista', 'Naturalista', 'Nuotatore', 'Osservatore', 'Osservatore meteo', 'Pescatore', 'Pompiere', 'Redattore', 'Regista', 'Sarto', 'Scenografo', 'Segnalatore', 'Servizio della Parola', 'Servizio liturgico', 'Servizio missionario', 'Topografo', 'Velista',
-  ];
 
   @override
   void dispose() {
@@ -377,11 +332,14 @@ class _AggiungiSpecialitaSheetState extends State<_AggiungiSpecialitaSheet> {
     JambSearchPicker.show(
       context,
       titolo: "Scegli Specialità",
-      voci: _tutteLeSpecialita,
-      selezionato: _nomeSelezionato,
-      itemAssetPathBuilder: (v) => 'assets/specialita/${v.toLowerCase().replaceAll(' ', '_')}.jpg',
+      voci: SpecialitaNome.values.map((e) => e.name).toList(),
+      selezionato: _nomeSelezionato?.name,
+      itemAssetPathBuilder: (v) {
+        final snakeCase = v.replaceAllMapped(RegExp(r'([A-Z])'), (match) => '_${match.group(1)!.toLowerCase()}').replaceFirst('_', '');
+        return 'assets/specialita/$snakeCase.jpg';
+      },
       onSeleziona: (v) {
-        setState(() => _nomeSelezionato = v);
+        setState(() => _nomeSelezionato = SpecialitaNome.values.byName(v));
         Navigator.of(context).pop();
       },
     );
@@ -389,7 +347,10 @@ class _AggiungiSpecialitaSheetState extends State<_AggiungiSpecialitaSheet> {
 
   void _conferma() {
     if (_nomeSelezionato == null) return;
-    widget.onAggiungi(Specialita(nome: _nomeSelezionato!, prove: List.generate(3, (i) => Prova(descrizione: _proveCtrl[i].text.trim(), completata: false))));
+    widget.onAggiungi(Specialita(
+      nome: _nomeSelezionato!, 
+      prove: List.generate(3, (i) => Impegno(titolo: _proveCtrl[i].text.trim(), isCompletato: false))
+    ));
   }
 
   @override
@@ -409,18 +370,11 @@ class _AggiungiSpecialitaSheetState extends State<_AggiungiSpecialitaSheet> {
             const SizedBox(height: 24),
             _buildLabel("QUALE SPECIALITÀ VUOI INIZIARE?"),
             const SizedBox(height: 8),
-            GestureDetector(
-              onTap: _apriSelettore,
-              child: Container(padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14), decoration: BoxDecoration(color: const Color(0xFFF8FAFC), borderRadius: BorderRadius.circular(14), border: Border.all(color: const Color(0xFFE2E8F0))), child: Row(children: [Expanded(child: Text(_nomeSelezionato ?? "Seleziona dal catalogo...", style: TextStyle(fontFamily: 'Lexend', fontSize: 15, color: _nomeSelezionato != null ? const Color(0xFF1E293B) : const Color(0xFFCBD5E1)))), const Icon(Icons.search_rounded, color: Color(0xFF94A3B8), size: 20)])),
-            ),
+            GestureDetector(onTap: _apriSelettore, child: Container(padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14), decoration: BoxDecoration(color: const Color(0xFFF8FAFC), borderRadius: BorderRadius.circular(14), border: Border.all(color: const Color(0xFFE2E8F0))), child: Row(children: [Expanded(child: Text(_nomeSelezionato?.name ?? "Seleziona dal catalogo...", style: TextStyle(fontFamily: 'Lexend', fontSize: 15, color: _nomeSelezionato != null ? const Color(0xFF1E293B) : const Color(0xFFCBD5E1)))), const Icon(Icons.search_rounded, color: Color(0xFF94A3B8), size: 20)]))),
             if (_nomeSelezionato != null) ...[
               const SizedBox(height: 32),
               _buildLabel("DEFINISCI LE 3 PROVE"),
-              const SizedBox(height: 12),
-              ...List.generate(3, (i) => Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: Container(padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6), decoration: BoxDecoration(color: const Color(0xFFF8FAFC), borderRadius: BorderRadius.circular(14), border: Border.all(color: const Color(0xFFE2E8F0))), child: Row(children: [Container(width: 24, height: 24, decoration: const BoxDecoration(shape: BoxShape.circle, color: Color(0xFF1D2660)), child: Center(child: Text("${i + 1}", style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w800)))), const SizedBox(width: 14), Expanded(child: TextField(controller: _proveCtrl[i], style: const TextStyle(color: Color(0xFF1E293B), fontSize: 14, fontFamily: 'Lexend'), decoration: const InputDecoration(border: InputBorder.none, isDense: true, hintText: "Descrizione prova...")))])),
-              )),
+              ...List.generate(3, (i) => Padding(padding: const EdgeInsets.only(bottom: 12), child: Container(padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6), decoration: BoxDecoration(color: const Color(0xFFF8FAFC), borderRadius: BorderRadius.circular(14), border: Border.all(color: const Color(0xFFE2E8F0))), child: Row(children: [Container(width: 24, height: 24, decoration: const BoxDecoration(shape: BoxShape.circle, color: Color(0xFF1D2660)), child: Center(child: Text("${i + 1}", style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w800)))), const SizedBox(width: 14), Expanded(child: TextField(controller: _proveCtrl[i], style: const TextStyle(color: Color(0xFF1E293B), fontSize: 14, fontFamily: 'Lexend'), decoration: const InputDecoration(border: InputBorder.none, isDense: true, hintText: "Descrizione prova...")))])))),
             ],
             const SizedBox(height: 32),
             SizedBox(width: double.infinity, child: ElevatedButton(onPressed: _nomeSelezionato == null ? null : _conferma, style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF1D2660), foregroundColor: Colors.white, disabledBackgroundColor: const Color(0xFFE2E8F0), padding: const EdgeInsets.symmetric(vertical: 16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)), elevation: 0), child: const Text("INIZIA SPECIALITÀ", style: TextStyle(fontWeight: FontWeight.w800, fontFamily: 'Lexend')))),

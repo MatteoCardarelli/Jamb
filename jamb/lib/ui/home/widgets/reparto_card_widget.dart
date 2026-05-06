@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:provider/provider.dart';
+import 'package:jamb/ui/home/view_model/home_view_model.dart';
 
 /// Card informativa che mostra il nome del reparto e le statistiche degli iscritti.
 /// Utilizza un design "Dark" con colori istituzionali e il logo AGESCI come sfondo decorativo.
@@ -8,6 +10,8 @@ class RepartoCardWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final viewModel = context.watch<HomeViewModel>();
+    
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.only(top: 24),
@@ -27,7 +31,6 @@ class RepartoCardWidget extends StatelessWidget {
       child: Stack(
         children: [
           // FILIGRANA DECORATIVA
-          // Logo AGESCI ingrandito, decentrato e semitrasparente
           Positioned(
             right: -60,
             top: -30,
@@ -62,7 +65,7 @@ class RepartoCardWidget extends StatelessWidget {
                         fontSize: 22,
                         fontWeight: FontWeight.w900,
                         fontFamily: 'Lexend',
-                        height: 1.0, // Interlinea stretta per effetto tipografico compatto
+                        height: 1.0,
                       ),
                     ),
                     Text(
@@ -78,7 +81,7 @@ class RepartoCardWidget extends StatelessWidget {
                   ],
                 ),
                 Text(
-                  "32 GUIDE ED ESPLORATORI ATTIVI",
+                  "${viewModel.numeroRagazzi} GUIDE ED ESPLORATORI ATTIVI",
                   style: TextStyle(
                     color: Colors.white.withOpacity(0.7),
                     fontSize: 9,

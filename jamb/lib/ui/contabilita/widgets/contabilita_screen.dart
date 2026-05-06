@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:jamb/domain/entities/transazione.dart';
 import 'package:jamb/ui/core/widgets/empty_background_screen.dart';
 import 'package:jamb/ui/contabilita/widgets/add_transaction_screen.dart';
 import 'package:jamb/ui/contabilita/view_model/add_transaction_view_model.dart';
@@ -21,14 +22,18 @@ class ContabilitaScreen extends StatelessWidget {
       body: EmptyBackgroundScreen(
         currentIndex: 2,
         floatingActionButton: FloatingActionButton(
-          onPressed: () {
-            Navigator.of(context).push(PageRouteBuilder(
+          onPressed: () async {
+            final transazione = await Navigator.of(context).push<Transazione>(PageRouteBuilder(
               pageBuilder: (context, animation, secondaryAnimation) => ChangeNotifierProvider(
                 create: (_) => AddTransactionViewModel(),
                 child: const AddTransactionScreen(),
               ),
               transitionDuration: Duration.zero,
             ));
+
+            if (transazione != null) {
+              financeViewModel.addTransaction(transazione);
+            }
           },
           backgroundColor: const Color(0xFF000066),
           shape: const CircleBorder(),

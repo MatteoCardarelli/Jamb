@@ -16,14 +16,19 @@
       "specialita": [
         {
           "nome": "Cuoco",
-          "isPosseduta": true,
-          "prove": ["Cucinare primo", "Cucinare secondo", "Cucinare dolce"],
+          "prove": [
+            { "titolo": "Cucinare primo", "isCompletato": true },
+            { "titolo": "Cucinare secondo", "isCompletato": true },
+            { "titolo": "Cucinare dolce", "isCompletato": true }
+          ],
           "dataConseguimento": "2023-10-15T00:00:00.000Z"
         },
         {
           "nome": "Alpinista",
-          "isPosseduta": false,
-          "prove": ["Nodo prusik", "Salita in cordata"],
+          "prove": [
+            { "titolo": "Nodo prusik", "isCompletato": false },
+            { "titolo": "Salita in cordata", "isCompletato": false }
+          ],
           "dataConseguimento": null
         }
       ],
@@ -31,7 +36,7 @@
         {
           "nome": "ManiAbili",
           "specialitaCollegate": ["CarpentiereNavale", "Falegname"],
-          "isPosseduto": false,
+          "provaFinaleSuperata": false,
           "dataConseguimento": null
         }
       ]

@@ -1,0 +1,24 @@
+[
+  {
+    "id": "1",
+    "titolo": "Quota S. Giorgio",
+    "importo": 150.0,
+    "data": "2024-05-01T10:00:00.000Z",
+    "categoria": "quote",
+    "isUscita": false,
+    "note": "Incasso quote per il San Giorgio di Branca",
+    "registratoDa": "Nicolas Urbano",
+    "percorsoRicevuta": null
+  },
+  {
+    "id": "2",
+    "titolo": "Materiale Pionerismo",
+    "importo": 36.10,
+    "data": "2024-04-23T18:15:00.000Z",
+    "categoria": "materiale",
+    "isUscita": true,
+    "note": "Acquisto nuove corde per pionierismo",
+    "registratoDa": "Nicolas Urbano",
+    "percorsoRicevuta": null
+  }
+]

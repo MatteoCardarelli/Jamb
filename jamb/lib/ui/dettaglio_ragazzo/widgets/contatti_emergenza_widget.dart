@@ -1,16 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
-
-/// Rappresenta un singolo contatto di emergenza (es. Genitore)
-class ContattoEmergenza {
-  String nome;
-  String telefono;
-
-  ContattoEmergenza({required this.nome, required this.telefono});
-}
+import 'package:jamb/domain/entities/scout.dart'; // Importa entità di dominio
 
 /// Widget che visualizza la lista dei contatti di emergenza dello scout.
-/// Include la funzionalità di chiamata diretta tramite il tasto telefono.
+/// Utilizza l'entità di dominio [ContattoEmergenza] (Shared Model).
 class ContattiEmergenzaWidget extends StatelessWidget {
   /// Lista dei contatti da visualizzare
   final List<ContattoEmergenza> contatti;
@@ -19,7 +12,6 @@ class ContattiEmergenzaWidget extends StatelessWidget {
 
   /// Avvia l'applicazione telefono del sistema operativo
   Future<void> _makeCall(String phoneNumber) async {
-    // Rimuoviamo gli spazi per assicurarci che il numero sia valido per l'URI
     final cleanNumber = phoneNumber.replaceAll(RegExp(r'\s+'), '');
     final Uri launchUri = Uri(scheme: 'tel', path: cleanNumber);
     try {
@@ -37,7 +29,7 @@ class ContattiEmergenzaWidget extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: const Color(0xFFF1F5F9)), // Slate 100
+        border: Border.all(color: const Color(0xFFF1F5F9)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.04),
@@ -49,7 +41,6 @@ class ContattiEmergenzaWidget extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // TITOLO SEZIONE
           const Text(
             "Contatti di emergenza",
             style: TextStyle(
@@ -88,7 +79,6 @@ class ContattiEmergenzaWidget extends StatelessWidget {
     );
   }
 
-  /// Costruisce una riga contenente nome, numero e tasto di chiamata
   Widget _buildContactRow(ContattoEmergenza contatto) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -100,7 +90,7 @@ class ContattiEmergenzaWidget extends StatelessWidget {
               Text(
                 contatto.nome.toUpperCase(),
                 style: const TextStyle(
-                  color: Color(0xFF94A3B8), // Slate 400
+                  color: Color(0xFF94A3B8),
                   fontSize: 10,
                   fontWeight: FontWeight.w800,
                   letterSpacing: 0.8,
@@ -111,7 +101,7 @@ class ContattiEmergenzaWidget extends StatelessWidget {
               Text(
                 contatto.telefono,
                 style: const TextStyle(
-                  color: Color(0xFF1D2660), // Navy Blue
+                  color: Color(0xFF1D2660),
                   fontSize: 18,
                   fontWeight: FontWeight.w900,
                   fontFamily: 'Lexend',
@@ -121,7 +111,6 @@ class ContattiEmergenzaWidget extends StatelessWidget {
           ),
         ),
         
-        // TASTO CHIAMA (Circular Action Button)
         GestureDetector(
           onTap: () => _makeCall(contatto.telefono),
           behavior: HitTestBehavior.opaque,
@@ -129,7 +118,7 @@ class ContattiEmergenzaWidget extends StatelessWidget {
             width: 48,
             height: 48,
             decoration: const BoxDecoration(
-              color: Color(0xFFF1F5F9), // Slate 100
+              color: Color(0xFFF1F5F9),
               shape: BoxShape.circle,
             ),
             child: const Icon(

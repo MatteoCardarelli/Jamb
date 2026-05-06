@@ -1,18 +1,68 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:jamb/ui/contabilita/view_model/contabilita_view_model.dart';
+import 'package:jamb/domain/entities/transazione.dart';
 import 'dart:math';
 
 class ExpensesDistributionCard extends StatelessWidget {
   const ExpensesDistributionCard({super.key});
 
+  Color _getColorForCategory(Categoria cat) {
+    switch (cat) {
+      case Categoria.attivita: return const Color(0xFF000066);
+      case Categoria.materiale: return const Color(0xFF1B5E20);
+      case Categoria.trasporto: return const Color(0xFFE96A25);
+      case Categoria.sede: return const Color(0xFFFFC107);
+      case Categoria.quote: return const Color(0xFF6366F1);
+      case Categoria.altro: return const Color(0xFF94A3B8);
+    }
+  }
+
+  String _getLabelForCategory(Categoria cat) {
+    switch (cat) {
+      case Categoria.attivita: return "Attività";
+      case Categoria.materiale: return "Materiale";
+      case Categoria.trasporto: return "Trasporto";
+      case Categoria.sede: return "Sede";
+      case Categoria.quote: return "Quote";
+      case Categoria.altro: return "Altro";
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    // Dati mock per ora
-    final List<Map<String, dynamic>> dati = [
-      {"label": "Attività", "valore": 0.45, "colore": const Color(0xFF000066)},
-      {"label": "Materiale", "valore": 0.30, "colore": const Color(0xFF1B5E20)},
-      {"label": "Sede", "valore": 0.15, "colore": const Color(0xFFFFC107)},
-      {"label": "Altro", "valore": 0.10, "colore": const Color(0xFFE2E8F0)},
-    ];
+    final viewModel = context.watch<ContabilitaViewModel>();
+    final ripartizione = viewModel.ripartizioneSpese;
+    final totaleUscite = viewModel.totaleUscite;
+
+    // Se non ci sono uscite, mostriamo un messaggio informativo
+    if (ripartizione.isEmpty) {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(32),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF8FAFC),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: Colors.black.withOpacity(0.05)),
+        ),
+        child: const Center(
+          child: Text(
+            "Nessuna uscita registrata per visualizzare la ripartizione.",
+            textAlign: TextAlign.center,
+            style: TextStyle(color: Color(0xFF64748B), fontSize: 14, fontFamily: 'Lexend'),
+          ),
+        ),
+      );
+    }
+
+    // Convertiamo la mappa in una lista di dati per il painter e la legenda
+    final List<Map<String, dynamic>> dati = ripartizione.entries.map((e) {
+      return {
+        "label": _getLabelForCategory(e.key),
+        "valore": e.value,
+        "colore": _getColorForCategory(e.key),
+      };
+    }).toList();
 
     return Container(
       width: double.infinity,
@@ -25,7 +75,6 @@ class ExpensesDistributionCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Titolo con Icona
           Row(
             children: [
               Container(
@@ -52,7 +101,7 @@ class ExpensesDistributionCard extends StatelessWidget {
           
           Row(
             children: [
-              // Grafico a Ciambella
+              // Grafico a Ciambella Dinamico
               SizedBox(
                 height: 120,
                 width: 120,
@@ -65,8 +114,8 @@ class ExpensesDistributionCard extends StatelessWidget {
                     ),
                     Column(
                       mainAxisSize: MainAxisSize.min,
-                      children: const [
-                        Text(
+                      children: [
+                        const Text(
                           "USCITE",
                           style: TextStyle(
                             fontSize: 10,
@@ -76,8 +125,8 @@ class ExpensesDistributionCard extends StatelessWidget {
                           ),
                         ),
                         Text(
-                          "€ 840",
-                          style: TextStyle(
+                          "€ ${totaleUscite.toInt()}",
+                          style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w900,
                             color: Color(0xFF000066),
@@ -91,7 +140,7 @@ class ExpensesDistributionCard extends StatelessWidget {
               ),
               const SizedBox(width: 24),
               
-              // Legenda
+              // Legenda Dinamica
               Expanded(
                 child: Column(
                   children: dati.map((item) => _buildLegendItem(item)).toList(),
@@ -152,7 +201,7 @@ class DonutChartPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     double startAngle = -pi / 2;
-    final double strokeWidth = 14;
+    const double strokeWidth = 14;
     final Rect rect = Rect.fromCircle(
       center: Offset(size.width / 2, size.height / 2),
       radius: (size.width - strokeWidth) / 2,

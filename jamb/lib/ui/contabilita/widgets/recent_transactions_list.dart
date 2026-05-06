@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:jamb/ui/contabilita/view_model/contabilita_view_model.dart';
+import 'package:jamb/ui/contabilita/widgets/dettaglio_transazione_screen.dart';
+import 'package:jamb/ui/contabilita/view_model/dettaglio_transazione_view_model.dart';
+import 'package:jamb/domain/repositories/transazione_repository.dart';
 import 'package:intl/intl.dart';
 
 class RecentTransactionsList extends StatelessWidget {
@@ -44,14 +47,27 @@ class RecentTransactionsList extends StatelessWidget {
         const SizedBox(height: 16),
 
         // Lista Transazioni dal Provider
-        ...financeProvider.transactions.map((t) => _buildTransactionItem(
-          icon: t.isPositive ? Icons.add_circle_outline_rounded : Icons.shopping_cart_outlined,
-          iconColor: t.isPositive ? const Color(0xFF1B5E20) : const Color(0xFFB91C1C),
-          bgColor: t.isPositive ? const Color(0xFFE8F5E9) : const Color(0xFFFEF2F2),
-          title: t.title,
-          subtitle: "${dateFormat.format(t.date)} • ${t.isPositive ? 'Entrata' : 'Uscita'}",
-          amount: "${t.isPositive ? '+' : '-'} € ${t.amount.toStringAsFixed(2).replaceAll('.', ',')}",
-          amountColor: t.isPositive ? const Color(0xFF1B5E20) : const Color(0xFFB91C1C),
+        ...financeProvider.transactions.map((t) => GestureDetector(
+          onTap: () {
+            Navigator.of(context).push(
+              PageRouteBuilder(
+                pageBuilder: (context, animation, secondaryAnimation) => ChangeNotifierProvider(
+                  create: (_) => DettaglioTransazioneViewModel(t, context.read<ITransazioneRepository>()),
+                  child: const DettaglioTransazioneScreen(),
+                ),
+                transitionDuration: Duration.zero,
+              ),
+            );
+          },
+          child: _buildTransactionItem(
+            icon: !t.isUscita ? Icons.add_circle_outline_rounded : Icons.shopping_cart_outlined,
+            iconColor: !t.isUscita ? const Color(0xFF1B5E20) : const Color(0xFFB91C1C),
+            bgColor: !t.isUscita ? const Color(0xFFE8F5E9) : const Color(0xFFFEF2F2),
+            title: t.titolo,
+            subtitle: "${dateFormat.format(t.data)} • ${!t.isUscita ? 'Entrata' : 'Uscita'}",
+            amount: "${!t.isUscita ? '+' : '-'} € ${t.importo.toStringAsFixed(2).replaceAll('.', ',')}",
+            amountColor: !t.isUscita ? const Color(0xFF1B5E20) : const Color(0xFFB91C1C),
+          ),
         )),
       ],
     );

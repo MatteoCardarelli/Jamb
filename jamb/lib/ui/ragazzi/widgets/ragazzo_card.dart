@@ -1,48 +1,46 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:jamb/domain/entities/scout.dart';
+import 'package:jamb/domain/entities/progresso.dart';
+import 'package:jamb/domain/repositories/scout_repository.dart';
+import 'package:jamb/ui/ragazzi/view_model/ragazzi_view_model.dart';
 import 'package:jamb/ui/dettaglio_ragazzo/widgets/dettaglio_ragazzo_screen.dart';
 import 'package:jamb/ui/dettaglio_ragazzo/view_model/dettaglio_ragazzo_view_model.dart';
-import 'package:jamb/ui/dettaglio_ragazzo/widgets/specialita_widget.dart';
 
 /// Card riassuntiva per un singolo scout nella lista ragazzi.
-/// Mostra informazioni anagrafiche, ruolo, tappa del sentiero e stato della specialità in corso.
+/// Riceve direttamente l'entità di dominio [Scout] (Shared Model).
 class RagazzoCard extends StatelessWidget {
-  final String nome;
-  final String squadriglia;
-  final String ruolo;
-  final String tappa;
-  final bool hasAlert;
-  final List<Specialita> specialita;
+  final Scout scout;
 
   const RagazzoCard({
     super.key,
-    required this.nome,
-    required this.squadriglia,
-    required this.ruolo,
-    required this.tappa,
-    required this.hasAlert,
-    required this.specialita,
+    required this.scout,
   });
 
   @override
   Widget build(BuildContext context) {
+    // Mostra l'alert solo se ci sono allergie
+    final bool hasAlert = scout.allergie != null && scout.allergie!.trim().isNotEmpty;
+
     return GestureDetector(
       onTap: () {
-        // Navigazione verso il dettaglio completo del ragazzo
         Navigator.of(context).push(
           PageRouteBuilder(
-            pageBuilder: (_, __, ___) => ChangeNotifierProvider(
+            pageBuilder: (context, __, ___) => ChangeNotifierProvider(
               create: (_) => DettaglioRagazzoViewModel(
-                squadriglia: squadriglia,
-                ruolo: ruolo,
-                hasAlert: hasAlert,
+                scout: scout,
+                repository: context.read<IScoutRepository>(),
               ),
-              child: DettaglioRagazzoScreen(nome: nome),
+              child: DettaglioRagazzoScreen(scout: scout),
             ),
             transitionDuration: Duration.zero,
             reverseTransitionDuration: Duration.zero,
           ),
-        );
+        ).then((_) {
+          // Quando torniamo indietro, rinfreschiamo la lista principale
+          // per mostrare i dati aggiornati
+          context.read<RagazziViewModel>().refresh();
+        });
       },
       child: Container(
         padding: const EdgeInsets.all(16),
@@ -72,7 +70,7 @@ class RagazzoCard extends StatelessWidget {
                           Row(
                             children: [
                               Text(
-                                nome,
+                                scout.nome,
                                 style: const TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
@@ -80,7 +78,6 @@ class RagazzoCard extends StatelessWidget {
                                   fontFamily: 'Lexend',
                                 ),
                               ),
-                              // Badge per segnalazioni mediche
                               if (hasAlert) ...[
                                 const SizedBox(width: 8),
                                 const Icon(Icons.medical_services_rounded, size: 16, color: Color(0xFFE11D48)),
@@ -93,15 +90,14 @@ class RagazzoCard extends StatelessWidget {
                       const SizedBox(height: 4),
                       Row(
                         children: [
-                          // Tag Squadriglia
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFFFEDD5), // Arancione pallido
+                              color: const Color(0xFFFFEDD5),
                               borderRadius: BorderRadius.circular(4),
                             ),
                             child: Text(
-                              squadriglia,
+                              scout.squadriglia.toUpperCase(),
                               style: const TextStyle(
                                 color: Color(0xFFEA580C),
                                 fontSize: 10,
@@ -111,9 +107,8 @@ class RagazzoCard extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(width: 8),
-                          // Etichetta Ruolo
                           Text(
-                            ruolo,
+                            scout.ruolo,
                             style: const TextStyle(
                               color: Color(0xFF94A3B8),
                               fontSize: 13,
@@ -150,7 +145,7 @@ class RagazzoCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        tappa,
+                        scout.progresso.tappaAttuale.tipo.name.toUpperCase(),
                         style: const TextStyle(
                           color: Color(0xFF475569), 
                           fontSize: 13, 
@@ -161,7 +156,6 @@ class RagazzoCard extends StatelessWidget {
                     ],
                   ),
                 ),
-                // Sezione dinamica per le specialità
                 Expanded(
                   child: _buildSpecialitaInfo(),
                 ),
@@ -173,31 +167,28 @@ class RagazzoCard extends StatelessWidget {
     );
   }
 
-  /// Calcola e visualizza le info della specialità in corso
   Widget _buildSpecialitaInfo() {
+    final specialita = scout.progresso.specialita;
     if (specialita.isEmpty) {
       return _buildInfoColumn("SPECIALITÀ", 0.0, "Nessuna specialità");
     }
 
-    // Verifica se tutte le specialità in lista sono già state raggiunte
-    final tutteCompletate = specialita.every((s) => s.raggiunta);
-    if (tutteCompletate) {
-      return _buildInfoColumn("SPECIALITÀ", 1.0, "Specialità ottenuta", color: const Color(0xFF16A34A));
+    final inCorso = specialita.firstWhere((s) => !s.isPosseduta, orElse: () => specialita.first);
+    
+    if (inCorso.isPosseduta) {
+       return _buildInfoColumn("SPECIALITÀ", 1.0, "Ottenuta", color: const Color(0xFF16A34A));
     }
 
-    // Prende la prima specialità non ancora completata come "in corso"
-    final inCorso = specialita.firstWhere((s) => !s.raggiunta);
-    final completate = inCorso.prove.where((p) => p.completata).length;
-    final totale = inCorso.prove.length;
+    final completate = inCorso.prove.where((p) => p.isCompletato).length;
+    final totale = 3; // Standard scout
     
     return _buildInfoColumn(
-      inCorso.nome.toUpperCase(),
-      totale > 0 ? completate / totale : 0.0,
+      inCorso.nome.name.toUpperCase(),
+      completate / totale,
       "$completate/$totale prove",
     );
   }
 
-  /// Helper per costruire una colonna informativa con barra di progresso
   Widget _buildInfoColumn(String label, double progress, String footerText, {Color color = const Color(0xFF1E293B)}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

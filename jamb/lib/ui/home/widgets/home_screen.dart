@@ -64,7 +64,7 @@ class HomeScreen extends StatelessWidget {
                   
                   // WIDGET ALLERTA AMMINISTRATIVA (Dati dal Provider)
                   AlertMediciWidget(
-                    messaggio: adminProvider.alertMessage,
+                    messaggio: homeViewModel.alertMessage,
                     onVediTap: () {
                       Navigator.of(context).push(
                         PageRouteBuilder(

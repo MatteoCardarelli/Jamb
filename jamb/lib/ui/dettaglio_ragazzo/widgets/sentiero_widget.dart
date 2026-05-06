@@ -1,29 +1,18 @@
 import 'package:flutter/material.dart';
-
-/// Rappresenta un singolo obiettivo all'interno di una tappa del sentiero
-class ObiettivoSentiero {
-  String titolo;
-  bool completato;
-
-  ObiettivoSentiero({required this.titolo, required this.completato});
-}
+import 'package:jamb/domain/entities/progresso.dart'; // Importa entità di dominio
 
 /// Widget per la visualizzazione e gestione del Sentiero scout (E/G).
-/// Mostra la tappa corrente, la descrizione dell'impegno e una lista di obiettivi
-/// che l'utente può spuntare direttamente. Include un pannello di modifica per la tappa.
+/// Utilizza le entità di dominio [Tappa] e [Impegno] (Shared Model).
 class SentieroWidget extends StatefulWidget {
-  /// Nome della tappa (es. "Tappa della Responsabilità")
-  final String tappa;
-  /// Descrizione dell'impegno preso dallo scout
+  final Tappa tappaScout;
   final String descrizione;
-  /// Lista degli obiettivi specifici della tappa
-  final List<ObiettivoSentiero> obiettivi;
+  final Function(Tappa)? onChanged;
 
   const SentieroWidget({
     super.key,
-    required this.tappa,
-    required this.descrizione,
-    required this.obiettivi,
+    required this.tappaScout,
+    this.descrizione = "Progresso nel sentiero scout",
+    this.onChanged,
   });
 
   @override
@@ -31,27 +20,38 @@ class SentieroWidget extends StatefulWidget {
 }
 
 class _SentieroWidgetState extends State<SentieroWidget> {
-  late String _tappa;
+  late Tappa _tappa;
   late String _descrizione;
-  late List<ObiettivoSentiero> _obiettivi;
 
   @override
   void initState() {
     super.initState();
-    _tappa = widget.tappa;
+    _tappa = widget.tappaScout;
     _descrizione = widget.descrizione;
-    // Copia mutabile della lista per la gestione dello stato locale
-    _obiettivi = widget.obiettivi.map((o) => ObiettivoSentiero(titolo: o.titolo, completato: o.completato)).toList();
   }
 
-  /// Inverte lo stato di completamento di un obiettivo
+  @override
+  void didUpdateWidget(SentieroWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.tappaScout != widget.tappaScout) {
+      _tappa = widget.tappaScout;
+    }
+    if (oldWidget.descrizione != widget.descrizione) {
+      _descrizione = widget.descrizione;
+    }
+  }
+
   void _toggleObiettivo(int index) {
     setState(() {
-      _obiettivi[index].completato = !_obiettivi[index].completato;
+      final nuoviImpegni = List<Impegno>.from(_tappa.impegni);
+      nuoviImpegni[index] = nuoviImpegni[index].copyWith(
+        isCompletato: !nuoviImpegni[index].isCompletato
+      );
+      _tappa = _tappa.copyWith(impegni: nuoviImpegni);
+      widget.onChanged?.call(_tappa);
     });
   }
 
-  /// Apre il pannello di modifica per aggiornare la tappa e gli obiettivi
   void _apriModifica() {
     showModalBottomSheet(
       context: context,
@@ -61,12 +61,11 @@ class _SentieroWidgetState extends State<SentieroWidget> {
       builder: (ctx) => _EditSentieroSheet(
         tappa: _tappa,
         descrizione: _descrizione,
-        obiettivi: _obiettivi,
-        onSalva: (nuovaTappa, nuovaDescrizione, nuoviObiettivi) {
+        onSalva: (nuovaTappa, nuovaDescrizione) {
           setState(() {
             _tappa = nuovaTappa;
             _descrizione = nuovaDescrizione;
-            _obiettivi = nuoviObiettivi;
+            widget.onChanged?.call(_tappa);
           });
           Navigator.of(ctx).pop();
         },
@@ -94,7 +93,6 @@ class _SentieroWidgetState extends State<SentieroWidget> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // --- HEADER: TITOLO E TASTO EDIT ---
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -106,7 +104,7 @@ class _SentieroWidgetState extends State<SentieroWidget> {
                     const Text(
                       "SENTIERO E/G",
                       style: TextStyle(
-                        color: Color(0xFF16A34A), // Scout Green
+                        color: Color(0xFF16A34A),
                         fontSize: 10,
                         fontWeight: FontWeight.w800,
                         letterSpacing: 0.8,
@@ -115,9 +113,9 @@ class _SentieroWidgetState extends State<SentieroWidget> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      _tappa,
+                      "Tappa della ${_tappa.tipo.name.toUpperCase()}",
                       style: const TextStyle(
-                        color: Color(0xFF1D2660), // Navy Blue
+                        color: Color(0xFF1D2660),
                         fontSize: 22,
                         fontWeight: FontWeight.w900,
                         fontFamily: 'Lexend',
@@ -138,7 +136,6 @@ class _SentieroWidgetState extends State<SentieroWidget> {
 
           const SizedBox(height: 16),
 
-          // DESCRIZIONE DELL'IMPEGNO
           Text(
             _descrizione,
             style: const TextStyle(
@@ -151,9 +148,8 @@ class _SentieroWidgetState extends State<SentieroWidget> {
 
           const SizedBox(height: 20),
 
-          // LISTA OBIETTIVI INTERATTIVA
-          ...List.generate(_obiettivi.length, (i) {
-            final obj = _obiettivi[i];
+          ...List.generate(_tappa.impegni.length, (i) {
+            final obj = _tappa.impegni[i];
             return Padding(
               padding: const EdgeInsets.only(bottom: 10),
               child: GestureDetector(
@@ -162,17 +158,17 @@ class _SentieroWidgetState extends State<SentieroWidget> {
                   duration: const Duration(milliseconds: 200),
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                   decoration: BoxDecoration(
-                    color: obj.completato ? const Color(0xFFF0FDF4) : Colors.white,
+                    color: obj.isCompletato ? const Color(0xFFF0FDF4) : Colors.white,
                     borderRadius: BorderRadius.circular(14),
                     border: Border.all(
-                      color: obj.completato ? const Color(0xFFBBF7D0) : const Color(0xFFE2E8F0),
+                      color: obj.isCompletato ? const Color(0xFFBBF7D0) : const Color(0xFFE2E8F0),
                     ),
                   ),
                   child: Row(
                     children: [
                       Icon(
-                        obj.completato ? Icons.check_circle_rounded : Icons.circle_outlined,
-                        color: obj.completato ? const Color(0xFF16A34A) : const Color(0xFFCBD5E1),
+                        obj.isCompletato ? Icons.check_circle_rounded : Icons.circle_outlined,
+                        color: obj.isCompletato ? const Color(0xFF16A34A) : const Color(0xFFCBD5E1),
                         size: 22,
                       ),
                       const SizedBox(width: 14),
@@ -180,11 +176,11 @@ class _SentieroWidgetState extends State<SentieroWidget> {
                         child: Text(
                           obj.titolo,
                           style: TextStyle(
-                            color: obj.completato ? const Color(0xFF14532D) : const Color(0xFF64748B),
+                            color: obj.isCompletato ? const Color(0xFF14532D) : const Color(0xFF64748B),
                             fontSize: 14,
-                            fontWeight: obj.completato ? FontWeight.w700 : FontWeight.w500,
+                            fontWeight: obj.isCompletato ? FontWeight.w700 : FontWeight.w500,
                             fontFamily: 'Lexend',
-                            decoration: obj.completato ? TextDecoration.lineThrough : null,
+                            decoration: obj.isCompletato ? TextDecoration.lineThrough : null,
                           ),
                         ),
                       ),
@@ -203,15 +199,13 @@ class _SentieroWidgetState extends State<SentieroWidget> {
 // --- COMPONENTE PRIVATO: BOTTOM SHEET DI MODIFICA ---
 
 class _EditSentieroSheet extends StatefulWidget {
-  final String tappa;
+  final Tappa tappa;
   final String descrizione;
-  final List<ObiettivoSentiero> obiettivi;
-  final Function(String, String, List<ObiettivoSentiero>) onSalva;
+  final Function(Tappa, String) onSalva;
 
   const _EditSentieroSheet({
     required this.tappa,
     required this.descrizione,
-    required this.obiettivi,
     required this.onSalva,
   });
 
@@ -220,25 +214,18 @@ class _EditSentieroSheet extends StatefulWidget {
 }
 
 class _EditSentieroSheetState extends State<_EditSentieroSheet> {
-  late String _tappaSelezionata;
+  late TappaSentiero _tappaTipo;
   late TextEditingController _descCtrl;
   late List<TextEditingController> _obiettiviCtrl;
   late List<bool> _obiettiviCompletati;
 
-  static const List<String> _opzioniTappa = [
-    'Nessuna',
-    'Scoperta',
-    'Competenza',
-    'Responsabilità',
-  ];
-
   @override
   void initState() {
     super.initState();
-    _tappaSelezionata = widget.tappa.isEmpty ? 'Nessuna' : widget.tappa;
+    _tappaTipo = widget.tappa.tipo;
     _descCtrl = TextEditingController(text: widget.descrizione);
-    _obiettiviCtrl = widget.obiettivi.map((o) => TextEditingController(text: o.titolo)).toList();
-    _obiettiviCompletati = widget.obiettivi.map((o) => o.completato).toList();
+    _obiettiviCtrl = widget.tappa.impegni.map((o) => TextEditingController(text: o.titolo)).toList();
+    _obiettiviCompletati = widget.tappa.impegni.map((o) => o.isCompletato).toList();
   }
 
   @override
@@ -263,10 +250,11 @@ class _EditSentieroSheetState extends State<_EditSentieroSheet> {
   }
 
   void _salva() {
-    final nuoviObiettivi = List.generate(_obiettiviCtrl.length, (i) =>
-      ObiettivoSentiero(titolo: _obiettiviCtrl[i].text, completato: _obiettiviCompletati[i]),
+    final nuoviImpegni = List.generate(_obiettiviCtrl.length, (i) =>
+      Impegno(titolo: _obiettiviCtrl[i].text, isCompletato: _obiettiviCompletati[i]),
     );
-    widget.onSalva(_tappaSelezionata == 'Nessuna' ? '' : _tappaSelezionata, _descCtrl.text, nuoviObiettivi);
+    final nuovaTappa = Tappa(tipo: _tappaTipo, impegni: nuoviImpegni);
+    widget.onSalva(nuovaTappa, _descCtrl.text);
   }
 
   @override
@@ -284,7 +272,6 @@ class _EditSentieroSheetState extends State<_EditSentieroSheet> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // MANIGLIA DI CHIUSURA
               Center(
                 child: Container(
                   width: 40, height: 4,
@@ -303,10 +290,10 @@ class _EditSentieroSheetState extends State<_EditSentieroSheet> {
               Wrap(
                 spacing: 8,
                 runSpacing: 8,
-                children: _opzioniTappa.map((opzione) {
-                  final bool isSelected = _tappaSelezionata == opzione;
+                children: TappaSentiero.values.map((tipo) {
+                  final bool isSelected = _tappaTipo == tipo;
                   return GestureDetector(
-                    onTap: () => setState(() => _tappaSelezionata = opzione),
+                    onTap: () => setState(() => _tappaTipo = tipo),
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 200),
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
@@ -318,7 +305,7 @@ class _EditSentieroSheetState extends State<_EditSentieroSheet> {
                         ),
                       ),
                       child: Text(
-                        opzione,
+                        tipo.name.toUpperCase(),
                         style: TextStyle(
                           color: isSelected ? Colors.white : const Color(0xFF64748B),
                           fontSize: 13,

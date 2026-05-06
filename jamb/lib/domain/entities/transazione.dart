@@ -1,8 +1,9 @@
-enum Categoria{ 
+enum Categoria { 
     materiale,
     attivita,
     trasporto,
     sede,
+    quote,
     altro;
 }
 
@@ -15,6 +16,7 @@ class Transazione{
     final DateTime data;
     final String note;
     final String? percorsoRicevuta;
+    final String registratoDa; // Aggiunto come da immagine
     
     const Transazione({
         required this.id,
@@ -25,6 +27,7 @@ class Transazione{
         required this.data,
         this.note = "",
         this.percorsoRicevuta,
+        this.registratoDa = "Utente", // Valore di default
     });
 
     Transazione copyWith({
@@ -36,6 +39,7 @@ class Transazione{
         DateTime? data,
         String? note,
         String? percorsoRicevuta,
+        String? registratoDa,
     }){
         return Transazione(
             id: id ?? this.id,
@@ -46,6 +50,7 @@ class Transazione{
             data: data ?? this.data,
             note: note ?? this.note,
             percorsoRicevuta: percorsoRicevuta ?? this.percorsoRicevuta,
+            registratoDa: registratoDa ?? this.registratoDa,
         );
     }
 
@@ -59,6 +64,7 @@ class Transazione{
             'data': data.toIso8601String(),
             'note': note,
             'percorsoRicevuta': percorsoRicevuta,
+            'registratoDa': registratoDa,
         };
     }
 
@@ -72,6 +78,7 @@ class Transazione{
             data: DateTime.parse(map['data']),
             note: map['note'] ?? "",
             percorsoRicevuta: map['percorsoRicevuta'],
+            registratoDa: map['registratoDa'] ?? "Utente",
         );
     }
-}   
+}

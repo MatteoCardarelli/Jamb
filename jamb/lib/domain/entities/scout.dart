@@ -6,7 +6,15 @@ enum DocumentoStatus {
   nessuno, 
   valido, 
   inScadenza, 
-  scaduto 
+  scaduto;
+
+  static DocumentoStatus safeByName(String name) {
+    try {
+      return DocumentoStatus.values.byName(name);
+    } catch (_) {
+      return DocumentoStatus.nessuno;
+    }
+  }
 }
 
 class ContattoEmergenza {
@@ -122,22 +130,29 @@ class Scout {
     };
   }
 
-  factory Scout.fromMap(Map<String, dynamic> map) {
-    return Scout(
-      id: map['id'],
-      nome: map['nome'],
-      squadriglia: map['squadriglia'],
-      ruolo: map['ruolo'],
-      allergie: map['allergie'],
-      progresso: ProgressoScout.fromMap(map['progresso']),
-      statoCensimento: DocumentoStatus.values.byName(map['statoCensimento']),
-      statoPrivacy: DocumentoStatus.values.byName(map['statoPrivacy']),
-      statoMedica: DocumentoStatus.values.byName(map['statoMedica']),
-      scadenzaPrivacy: map['scadenzaPrivacy'] != null ? DateTime.parse(map['scadenzaPrivacy']) : null,
-      scadenzaMedica: map['scadenzaMedica'] != null ? DateTime.parse(map['scadenzaMedica']) : null,
-      contattiEmergenza: List<ContattoEmergenza>.from(
-        (map['contattiEmergenza'] as List).map((x) => ContattoEmergenza.fromMap(x)),
-      ),
-    );
+  static Scout? fromMap(Map<String, dynamic> map) {
+    try {
+      return Scout(
+        id: map['id'],
+        nome: map['nome'],
+        squadriglia: map['squadriglia'],
+        ruolo: map['ruolo'],
+        allergie: map['allergie'],
+        progresso: ProgressoScout.fromMap(map['progresso']),
+        statoCensimento: DocumentoStatus.safeByName(map['statoCensimento'] ?? ''),
+        statoPrivacy: DocumentoStatus.safeByName(map['statoPrivacy'] ?? ''),
+        statoMedica: DocumentoStatus.safeByName(map['statoMedica'] ?? ''),
+        scadenzaPrivacy: map['scadenzaPrivacy'] != null ? DateTime.parse(map['scadenzaPrivacy']) : null,
+        scadenzaMedica: map['scadenzaMedica'] != null ? DateTime.parse(map['scadenzaMedica']) : null,
+        contattiEmergenza: map['contattiEmergenza'] != null 
+          ? List<ContattoEmergenza>.from(
+              (map['contattiEmergenza'] as List).map((x) => ContattoEmergenza.fromMap(x)),
+            )
+          : const [],
+      );
+    } catch (e) {
+      debugPrint("Errore nel parsing dello scout ${map['nome']}: $e");
+      return null;
+    }
   }
 }

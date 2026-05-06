@@ -1,4 +1,6 @@
 import 'dart:ui';
+import 'dart:io' as io; // Usiamo alias per dart:io
+import 'package:flutter/foundation.dart'; // Per kIsWeb
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
@@ -9,7 +11,6 @@ import 'package:jamb/ui/contabilita/view_model/add_transaction_view_model.dart';
 class ReceiptUploadCard extends StatelessWidget {
   const ReceiptUploadCard({super.key});
 
-  /// Mostra le opzioni di caricamento (Fotocamera o Galleria)
   void _showPickerOptions(BuildContext context, AddTransactionViewModel viewModel) {
     showModalBottomSheet(
       context: context,
@@ -52,7 +53,6 @@ class ReceiptUploadCard extends StatelessWidget {
     );
   }
 
-  /// Costruisce una riga interattiva per le opzioni del BottomSheet
   Widget _buildOption({required IconData icon, required String label, required VoidCallback onTap}) {
     return GestureDetector(
       onTap: onTap,
@@ -89,8 +89,7 @@ class ReceiptUploadCard extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              if (viewModel.receiptImage == null) ...[
-                // STATO VUOTO: Istruzioni per l'upload
+              if (viewModel.receiptFile == null) ...[
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: const BoxDecoration(color: Color(0xFFF1F5F9), shape: BoxShape.circle),
@@ -108,18 +107,19 @@ class ReceiptUploadCard extends StatelessWidget {
                   style: TextStyle(fontSize: 13, color: Color(0xFF94A3B8), fontFamily: 'Lexend', fontWeight: FontWeight.w500),
                 ),
               ] else ...[
-                // STATO CARICATO: Anteprima dell'immagine
                 ClipRRect(
                   borderRadius: BorderRadius.circular(16),
-                  child: Image.file(viewModel.receiptImage!, height: 200, width: double.infinity, fit: BoxFit.contain),
+                  child: kIsWeb 
+                    ? Image.network(viewModel.receiptFile!.path, height: 200, width: double.infinity, fit: BoxFit.contain)
+                    : Image.file(io.File(viewModel.receiptFile!.path), height: 200, width: double.infinity, fit: BoxFit.contain),
                 ),
                 const SizedBox(height: 16),
-                Row(
+                const Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(Icons.check_circle_rounded, color: Color(0xFF16A34A), size: 20),
-                    const SizedBox(width: 8),
-                    const Text(
+                    Icon(Icons.check_circle_rounded, color: Color(0xFF16A34A), size: 20),
+                    SizedBox(width: 8),
+                    Text(
                       "Scontrino caricato correttamente", 
                       style: TextStyle(color: Color(0xFF1D2660), fontWeight: FontWeight.w800, fontFamily: 'Lexend', fontSize: 13)
                     ),
@@ -139,7 +139,6 @@ class ReceiptUploadCard extends StatelessWidget {
   }
 }
 
-/// Painter per disegnare il bordo tratteggiato attorno alla card di upload
 class DashedBorderPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
