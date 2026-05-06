@@ -38,4 +38,28 @@ class Obiettivo {
       diarioDiBordo: diarioDiBordo ?? this.diarioDiBordo,
     );
   }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'dominio': dominio,
+      'descrizione': descrizione,
+      'grado': grado,
+      'colore': colore.value,
+      'icona': icona.codePoint,
+      'diarioDiBordo': diarioDiBordo,
+    };
+  }
+
+  factory Obiettivo.fromMap(Map<String, dynamic> map) {
+    return Obiettivo(
+      id: map['id'],
+      dominio: map['dominio'],
+      descrizione: map['descrizione'],
+      grado: map['grado'],
+      colore: Color(map['colore']),
+      icona: IconData(map['icona'], fontFamily: 'MaterialIcons'),
+      diarioDiBordo: map['diarioDiBordo'] ?? "",
+    );
+  }
 }

@@ -1,0 +1,74 @@
+[
+  {
+    "id": "1",
+    "nome": "Marco Rossi",
+    "squadriglia": "Aquile",
+    "ruolo": "Capo Squadriglia",
+    "allergie": "Arachidi",
+    "progresso": {
+      "tappaAttuale": {
+        "tipo": "competenza",
+        "impegni": [
+          { "titolo": "Saper cucinare alla trappeur", "isCompletato": true },
+          { "titolo": "Organizzare un'uscita di squadriglia", "isCompletato": false }
+        ]
+      },
+      "specialita": [
+        {
+          "nome": "Cuoco",
+          "isPosseduta": true,
+          "prove": ["Cucinare primo", "Cucinare secondo", "Cucinare dolce"],
+          "dataConseguimento": "2023-10-15T00:00:00.000Z"
+        },
+        {
+          "nome": "Alpinista",
+          "isPosseduta": false,
+          "prove": ["Nodo prusik", "Salita in cordata"],
+          "dataConseguimento": null
+        }
+      ],
+      "brevetti": [
+        {
+          "nome": "ManiAbili",
+          "specialitaCollegate": ["CarpentiereNavale", "Falegname"],
+          "isPosseduto": false,
+          "dataConseguimento": null
+        }
+      ]
+    },
+    "statoCensimento": "valido",
+    "statoPrivacy": "valido",
+    "statoMedica": "inScadenza",
+    "scadenzaPrivacy": "2024-12-31T00:00:00.000Z",
+    "scadenzaMedica": "2024-06-15T00:00:00.000Z",
+    "contattiEmergenza": [
+      { "nome": "Giuseppe Rossi (Padre)", "telefono": "3331234567" }
+    ]
+  },
+  {
+    "id": "2",
+    "nome": "Luca Bianchi",
+    "squadriglia": "Volpi",
+    "ruolo": "Vice Capo Squadriglia",
+    "allergie": null,
+    "progresso": {
+      "tappaAttuale": {
+        "tipo": "scoperta",
+        "impegni": [
+          { "titolo": "Conoscere la legge scout", "isCompletato": true },
+          { "titolo": "Fare il nodo piano", "isCompletato": true }
+        ]
+      },
+      "specialita": [],
+      "brevetti": []
+    },
+    "statoCensimento": "scaduto",
+    "statoPrivacy": "valido",
+    "statoMedica": "valido",
+    "scadenzaPrivacy": "2024-12-31T00:00:00.000Z",
+    "scadenzaMedica": "2024-10-20T00:00:00.000Z",
+    "contattiEmergenza": [
+      { "nome": "Maria Bianchi (Madre)", "telefono": "3337654321" }
+    ]
+  }
+]

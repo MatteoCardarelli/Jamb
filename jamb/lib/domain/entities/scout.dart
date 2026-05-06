@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'progresso.dart';
 
 /// Definiamo gli stati possibili per i documenti scout
 enum DocumentoStatus { 
@@ -16,6 +17,20 @@ class ContattoEmergenza {
     required this.nome, 
     required this.telefono
   });
+
+  Map<String, dynamic> toMap() {
+    return {
+      'nome': nome,
+      'telefono': telefono,
+    };
+  }
+
+  factory ContattoEmergenza.fromMap(Map<String, dynamic> map) {
+    return ContattoEmergenza(
+      nome: map['nome'] ?? '',
+      telefono: map['telefono'] ?? '',
+    );
+  }
 }
 
 class Scout {
@@ -24,6 +39,7 @@ class Scout {
   final String squadriglia;
   final String ruolo;
   final String? allergie;
+  final ProgressoScout progresso;
   
   // Stato Amministrativo
   final DocumentoStatus statoCensimento;
@@ -43,6 +59,7 @@ class Scout {
     required this.nome,
     required this.squadriglia,
     required this.ruolo,
+    required this.progresso,
     this.allergie,
     this.statoCensimento = DocumentoStatus.nessuno,
     this.statoPrivacy = DocumentoStatus.nessuno,
@@ -64,6 +81,7 @@ class Scout {
     String? squadriglia,
     String? ruolo,
     String? allergie,
+    ProgressoScout? progresso,
     DocumentoStatus? statoCensimento,
     DocumentoStatus? statoPrivacy,
     DocumentoStatus? statoMedica,
@@ -77,12 +95,49 @@ class Scout {
       squadriglia: squadriglia ?? this.squadriglia,
       ruolo: ruolo ?? this.ruolo,
       allergie: allergie ?? this.allergie,
+      progresso: progresso ?? this.progresso,
       statoCensimento: statoCensimento ?? this.statoCensimento,
       statoPrivacy: statoPrivacy ?? this.statoPrivacy,
       statoMedica: statoMedica ?? this.statoMedica,
       scadenzaPrivacy: scadenzaPrivacy ?? this.scadenzaPrivacy,
       scadenzaMedica: scadenzaMedica ?? this.scadenzaMedica,
       contattiEmergenza: contattiEmergenza ?? this.contattiEmergenza,
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'nome': nome,
+      'squadriglia': squadriglia,
+      'ruolo': ruolo,
+      'allergie': allergie,
+      'progresso': progresso.toMap(),
+      'statoCensimento': statoCensimento.name,
+      'statoPrivacy': statoPrivacy.name,
+      'statoMedica': statoMedica.name,
+      'scadenzaPrivacy': scadenzaPrivacy?.toIso8601String(),
+      'scadenzaMedica': scadenzaMedica?.toIso8601String(),
+      'contattiEmergenza': contattiEmergenza.map((x) => x.toMap()).toList(),
+    };
+  }
+
+  factory Scout.fromMap(Map<String, dynamic> map) {
+    return Scout(
+      id: map['id'],
+      nome: map['nome'],
+      squadriglia: map['squadriglia'],
+      ruolo: map['ruolo'],
+      allergie: map['allergie'],
+      progresso: ProgressoScout.fromMap(map['progresso']),
+      statoCensimento: DocumentoStatus.values.byName(map['statoCensimento']),
+      statoPrivacy: DocumentoStatus.values.byName(map['statoPrivacy']),
+      statoMedica: DocumentoStatus.values.byName(map['statoMedica']),
+      scadenzaPrivacy: map['scadenzaPrivacy'] != null ? DateTime.parse(map['scadenzaPrivacy']) : null,
+      scadenzaMedica: map['scadenzaMedica'] != null ? DateTime.parse(map['scadenzaMedica']) : null,
+      contattiEmergenza: List<ContattoEmergenza>.from(
+        (map['contattiEmergenza'] as List).map((x) => ContattoEmergenza.fromMap(x)),
+      ),
     );
   }
 }

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:jamb/ui/views/home/home_view.dart';
-import 'package:jamb/ui/views/ragazzi/ragazzi_view.dart';
-import 'package:jamb/ui/views/documenti/documenti_view.dart';
+import 'package:jamb/ui/home/widgets/home_screen.dart';
+import 'package:jamb/ui/ragazzi/widgets/ragazzi_screen.dart';
+import 'package:jamb/ui/documenti/widgets/documenti_screen.dart';
 
 /// Barra di navigazione inferiore globale dell'applicazione.
 /// Gestisce il passaggio tra le sezioni principali (Home, Ragazzi, Documenti, Calendario)
@@ -30,21 +30,21 @@ class BottomNavBar extends StatelessWidget {
               _NavBarItem(
                 iconPath: currentIndex == 0 ? 'assets/icons/home_2.svg' : 'assets/icons/home_1.svg',
                 label: 'Home',
-                onTap: () => _navigateTo(context, const HomeView()),
+                onTap: () => _navigateTo(context, const HomeScreen()),
               ),
               
               // ITEM: RAGAZZI
               _NavBarItem(
                 iconPath: currentIndex == 1 ? 'assets/icons/ragazzi_2.svg' : 'assets/icons/ragazzi_1.svg',
                 label: 'Ragazzi',
-                onTap: () => _navigateTo(context, const RagazziView()),
+                onTap: () => _navigateTo(context, const RagazziScreen()),
               ),
               
               // ITEM: DOCUMENTI
               _NavBarItem(
                 iconPath: currentIndex == 2 ? 'assets/icons/documenti_2.svg' : 'assets/icons/documenti_1.svg',
                 label: 'Documenti',
-                onTap: () => _navigateTo(context, const DocumentiView()),
+                onTap: () => _navigateTo(context, const DocumentiScreen()),
               ),
               
               // ITEM: CALENDARIO
