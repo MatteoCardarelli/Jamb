@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:jamb/ui/home/widgets/home_screen.dart';
 import 'package:jamb/ui/home/view_model/home_view_model.dart';
 import 'package:provider/provider.dart';
@@ -12,8 +14,13 @@ import 'package:jamb/domain/repositories/transazione_repository.dart';
 import 'package:jamb/data/repositories/json_scout_repository.dart';
 import 'package:jamb/data/repositories/json_obiettivo_repository.dart';
 import 'package:jamb/data/repositories/json_transazione_repository.dart';
+import 'package:jamb/domain/repositories/evento_repository.dart';
+import 'package:jamb/data/repositories/json_evento_repository.dart';
+import 'package:jamb/ui/calendario/view_model/calendario_view_model.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await initializeDateFormatting('it_IT', null);
   runApp(const JambApp());
 }
 
@@ -28,6 +35,7 @@ class JambApp extends StatelessWidget {
         ChangeNotifierProvider<IScoutRepository>(create: (_) => JsonScoutRepository()),
         Provider<IObiettivoRepository>(create: (_) => JsonObiettivoRepository()),
         ChangeNotifierProvider<ITransazioneRepository>(create: (_) => JsonTransazioneRepository()),
+        ChangeNotifierProvider<IEventoRepository>(create: (_) => JsonEventoRepository()),
 
         // ViewModels
         ChangeNotifierProvider(
@@ -46,10 +54,20 @@ class JambApp extends StatelessWidget {
           create: (context) => RagazziViewModel(context.read<IScoutRepository>()),
         ),
         ChangeNotifierProvider(create: (_) => DocumentiViewModel()),
+        ChangeNotifierProvider(create: (context) => CalendarioViewModel(context.read<IEventoRepository>())),
       ],
       child: MaterialApp(
         title: 'Jamb MVP',
         debugShowCheckedModeBanner: true,
+        localizationsDelegates: const [
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: const [
+          Locale('it', 'IT'),
+        ],
+        locale: const Locale('it', 'IT'),
         theme: ThemeData(
           useMaterial3: true,
           colorSchemeSeed: const Color(0xFF003366),

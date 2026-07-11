@@ -1,0 +1,32 @@
+[
+  {
+    "id": "1",
+    "titolo": "Riunione di Branca",
+    "orarioInizio": "16:00",
+    "orarioFine": "18:00",
+    "giorniOffset": 0,
+    "luogo": "Sede Scout, Via del Bosco 12",
+    "categorie": ["SPIRITUALITÀ", "COMPETENZA"],
+    "colorePrincipale": 4279636605
+  },
+  {
+    "id": "2",
+    "titolo": "Consiglio Capi",
+    "orarioInizio": "18:30",
+    "orarioFine": "20:00",
+    "giorniOffset": 0,
+    "luogo": "Sala Parrocchiale",
+    "categorie": ["SERVIZIO"],
+    "colorePrincipale": 4279761195
+  },
+  {
+    "id": "3",
+    "titolo": "Uscita di Squadriglia",
+    "orarioInizio": "09:00",
+    "orarioFine": "16:00",
+    "giorniOffset": 2,
+    "luogo": "Bosco di Capodimonte",
+    "categorie": ["COMPETENZA"],
+    "colorePrincipale": 4280545199
+  }
+]

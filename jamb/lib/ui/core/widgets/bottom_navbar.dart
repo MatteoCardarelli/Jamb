@@ -3,6 +3,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:jamb/ui/home/widgets/home_screen.dart';
 import 'package:jamb/ui/ragazzi/widgets/ragazzi_screen.dart';
 import 'package:jamb/ui/documenti/widgets/documenti_screen.dart';
+import 'package:jamb/ui/calendario/widgets/calendario_screen.dart';
 
 /// Barra di navigazione inferiore globale dell'applicazione.
 /// Gestisce il passaggio tra le sezioni principali (Home, Ragazzi, Documenti, Calendario)
@@ -49,11 +50,9 @@ class BottomNavBar extends StatelessWidget {
               
               // ITEM: CALENDARIO
               _NavBarItem(
-                iconPath: 'assets/icons/calendario_1.svg',
+                iconPath: currentIndex == 3 ? 'assets/icons/calendario_2.svg' : 'assets/icons/calendario_1.svg',
                 label: 'Calendario',
-                onTap: () {
-                  // TODO: Implementare modulo Calendario
-                },
+                onTap: () => _navigateTo(context, const CalendarioScreen()),
               ),
             ],
           ),
