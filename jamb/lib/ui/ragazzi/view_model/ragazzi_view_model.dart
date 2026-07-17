@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:jamb/domain/entities/scout.dart';
 import 'package:jamb/domain/repositories/scout_repository.dart';
 
-/// ViewModel per la gestione della lista dei ragazzi.
-/// Utilizza l'entità di dominio [Scout] come unica fonte di verità e carica i dati dal Repository.
+/// Stato della lista ragazzi: carica gli scout dal repository ed espone la
+/// lista filtrata per testo, squadriglia e presenza di alert (allergie).
 class RagazziViewModel extends ChangeNotifier {
   final IScoutRepository _repository;
   final TextEditingController searchController = TextEditingController();
@@ -36,7 +36,6 @@ class RagazziViewModel extends ChangeNotifier {
     super.dispose();
   }
 
-  // Getters
   bool get isLoading => _isLoading;
   String get searchQuery => searchController.text;
   String? get squadrigliaFiltro => _squadrigliaFiltro;
@@ -67,7 +66,7 @@ class RagazziViewModel extends ChangeNotifier {
     }).toList();
   }
 
-  // Azioni
+  /// Imposta il filtro per squadriglia (null = tutte).
   void setSquadrigliaFiltro(String? sq) {
     _squadrigliaFiltro = sq;
     notifyListeners();

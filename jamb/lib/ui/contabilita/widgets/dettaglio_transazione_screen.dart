@@ -4,6 +4,7 @@ import 'package:jamb/ui/contabilita/view_model/dettaglio_transazione_view_model.
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
+/// Schermata di dettaglio di una singola transazione, con opzione di eliminazione.
 class DettaglioTransazioneScreen extends StatelessWidget {
   const DettaglioTransazioneScreen({super.key});
 

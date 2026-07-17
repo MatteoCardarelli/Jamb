@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+/// Card che mostra il saldo attuale della cassa.
 class BalanceCard extends StatelessWidget {
   final double saldo;
 

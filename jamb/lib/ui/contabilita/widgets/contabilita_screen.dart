@@ -9,6 +9,7 @@ import 'package:jamb/ui/contabilita/widgets/recent_transactions_list.dart';
 import 'package:provider/provider.dart';
 import 'package:jamb/ui/contabilita/view_model/contabilita_view_model.dart';
 
+/// Schermata della contabilità: saldo, distribuzione delle spese ed elenco transazioni.
 class ContabilitaScreen extends StatelessWidget {
   const ContabilitaScreen({super.key});
 

@@ -11,7 +11,6 @@ import 'package:jamb/ui/amministrazione/widgets/amministrazione_screen.dart';
 import 'package:jamb/ui/verifica_obiettivi/widgets/verifica_obiettivi_screen.dart';
 import 'package:jamb/ui/verifica_obiettivi/view_model/verifica_obiettivi_view_model.dart';
 import 'package:provider/provider.dart';
-import 'package:jamb/ui/amministrazione/view_model/amministrazione_view_model.dart';
 import 'package:jamb/ui/contabilita/widgets/contabilita_screen.dart';
 import 'package:jamb/ui/home/view_model/home_view_model.dart';
 
@@ -41,8 +40,6 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Ascolta i provider per i dati necessari
-    final adminProvider = Provider.of<AmministrazioneViewModel>(context);
     final homeViewModel = Provider.of<HomeViewModel>(context);
 
     return EmptyBackgroundScreen(

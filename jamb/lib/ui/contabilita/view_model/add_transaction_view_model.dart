@@ -1,8 +1,9 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:jamb/domain/entities/transazione.dart';
 
+/// Stato del form di inserimento transazione: importo, categoria, data, note
+/// e ricevuta; costruisce l'entità [Transazione] da salvare.
 class AddTransactionViewModel extends ChangeNotifier {
   bool isUscita = true;
   final TextEditingController amountController = TextEditingController(text: "0,00");

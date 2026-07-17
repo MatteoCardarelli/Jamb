@@ -6,6 +6,7 @@ import 'package:jamb/ui/calendario/widgets/eventi_oggi_widget.dart';
 import 'package:jamb/ui/calendario/widgets/prossimi_eventi_widget.dart';
 import 'package:jamb/ui/calendario/widgets/crea_evento_screen.dart';
 
+/// Schermata del calendario: calendario mensile, eventi del giorno e prossimi eventi.
 class CalendarioScreen extends StatelessWidget {
   const CalendarioScreen({super.key});
 

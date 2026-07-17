@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../../../domain/entities/evento.dart';
 import '../../../domain/repositories/evento_repository.dart';
 
+/// Stato del calendario: eventi del giorno selezionato e prossimi eventi
+/// (2 settimane). Si ricarica quando il repository degli eventi cambia.
 class CalendarioViewModel extends ChangeNotifier {
   final IEventoRepository _eventoRepository;
 
@@ -19,6 +21,7 @@ class CalendarioViewModel extends ChangeNotifier {
   List<Evento> get eventiDelGiorno => _eventiDelGiorno;
   List<Evento> get prossimiEventi => _prossimiEventi;
 
+  /// Cambia il giorno selezionato e ricarica gli eventi correlati.
   void setSelectedDate(DateTime date) {
     _selectedDate = date;
     _loadEventi();
@@ -36,6 +39,7 @@ class CalendarioViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Eventi che ricadono nel giorno [day] (usato per i marker del calendario).
   List<Evento> getEventiForDay(DateTime day) {
     final target = DateTime(day.year, day.month, day.day);
     return _tuttiEventi.where((e) {

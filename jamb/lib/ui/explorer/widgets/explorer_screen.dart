@@ -6,6 +6,7 @@ import 'package:jamb/ui/core/widgets/jamb_category_card.dart';
 import 'package:jamb/ui/core/widgets/jamb_expandable_fab.dart';
 import 'package:jamb/ui/core/widgets/jamb_dialogs.dart';
 import 'package:jamb/ui/explorer/view_model/explorer_view_model.dart';
+import 'package:jamb/domain/repositories/documento_repository.dart';
 
 /// Schermata per l'esplorazione gerarchica dei documenti e delle cartelle.
 /// Supporta la navigazione ricorsiva, la ricerca e la gestione del percorso (Breadcrumbs).
@@ -76,8 +77,15 @@ class ExplorerScreen extends StatelessWidget {
               ),
               const SizedBox(height: 24),
 
-              // GRIGLIA CARTELLE
-              if (viewModel.filteredCartelle.isEmpty)
+              // GRIGLIA CONTENUTO (cartelle + file)
+              if (viewModel.isLoading)
+                const Center(
+                  child: Padding(
+                    padding: EdgeInsets.only(top: 40),
+                    child: CircularProgressIndicator(),
+                  ),
+                )
+              else if (viewModel.contenutoFiltrato.isEmpty)
                 _buildEmptyState()
               else
                 GridView.builder(
@@ -90,27 +98,34 @@ class ExplorerScreen extends StatelessWidget {
                     crossAxisSpacing: 10,
                     childAspectRatio: 1.5,
                   ),
-                  itemCount: viewModel.filteredCartelle.length,
+                  itemCount: viewModel.contenutoFiltrato.length,
                   itemBuilder: (context, index) {
-                    final folderName = viewModel.filteredCartelle[index];
+                    final doc = viewModel.contenutoFiltrato[index];
                     return JambCategoryCard(
-                      titolo: folderName,
-                      sottotitolo: "Cartella",
-                      icona: Icons.folder_rounded,
-                      onTap: () {
-                        // Navigazione ricorsiva verso una nuova ExplorerScreen
-                        Navigator.of(context).push(PageRouteBuilder(
-                          pageBuilder: (context, animation, secondaryAnimation) => ChangeNotifierProvider(
-                            create: (_) => ExplorerViewModel(
-                              titolo: folderName,
-                              cartelle: const [], // Mock di cartella vuota
-                              percorsoPrecedente: viewModel.fullPath,
-                            ),
-                            child: const ExplorerScreen(),
-                          ),
-                          transitionDuration: Duration.zero,
-                        ));
-                      },
+                      titolo: doc.nome,
+                      sottotitolo:
+                          doc.isCartella ? "Cartella" : doc.tipo.name.toUpperCase(),
+                      icona: doc.isCartella
+                          ? Icons.folder_rounded
+                          : Icons.insert_drive_file_rounded,
+                      onTap: doc.isCartella
+                          ? () {
+                              final repo = context.read<IDocumentoRepository>();
+                              Navigator.of(context).push(PageRouteBuilder(
+                                pageBuilder: (context, animation, secondaryAnimation) =>
+                                    ChangeNotifierProvider(
+                                  create: (_) => ExplorerViewModel(
+                                    repository: repo,
+                                    titolo: doc.nome,
+                                    parentId: doc.id,
+                                    percorsoPrecedente: viewModel.fullPath,
+                                  ),
+                                  child: const ExplorerScreen(),
+                                ),
+                                transitionDuration: Duration.zero,
+                              ));
+                            }
+                          : null,
                     );
                   },
                 ),

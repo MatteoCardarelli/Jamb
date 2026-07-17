@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 enum DocumentStatus { valido, inScadenza, mancante }
 
+/// Card che rappresenta un documento o una cartella nell'elenco documenti.
 class DocumentoCard extends StatelessWidget {
   final String titolo;
   final String ragazzo;

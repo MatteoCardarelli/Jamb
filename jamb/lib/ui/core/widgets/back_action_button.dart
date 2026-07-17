@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+/// Pulsante circolare per tornare alla schermata precedente.
 class BackActionButton extends StatelessWidget {
   final VoidCallback? onPressed;
 

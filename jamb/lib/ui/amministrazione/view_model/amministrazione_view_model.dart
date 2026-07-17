@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:jamb/domain/entities/scout.dart';
 import 'package:jamb/domain/repositories/scout_repository.dart';
 
-/// ViewModel per la gestione della logica amministrativa.
-/// Ora reattivo: ascolta i cambiamenti del repository per restare sempre aggiornato.
+/// Stato della sezione Amministrazione: statistiche sui documenti (censimento,
+/// privacy, medica) dei ragazzi e ciclo dei relativi stati. Si ricarica dal repository.
 class AmministrazioneViewModel extends ChangeNotifier {
   final IScoutRepository _repository;
   
@@ -29,11 +29,10 @@ class AmministrazioneViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  // --- GETTERS ---
   bool get isLoading => _isLoading;
   List<Scout> get ragazzi => _ragazzi;
 
-  // Calcolo statistiche globali
+  /// Numero totale di ragazzi.
   int get totali => _ragazzi.length;
   
   int get censValid => _ragazzi.where((r) => 
@@ -66,8 +65,7 @@ class AmministrazioneViewModel extends ChangeNotifier {
     return alerts.isNotEmpty ? "${alerts.join(", ")}." : "";
   }
 
-  // --- AZIONI ---
-
+  /// Fa avanzare lo stato del censimento del ragazzo [id] al valore successivo.
   Future<void> updateCensimento(String id) => _cycleStatus(id, 'censimento');
   Future<void> updatePrivacy(String id) => _cycleStatus(id, 'privacy');
   Future<void> updateMedica(String id) => _cycleStatus(id, 'medica');

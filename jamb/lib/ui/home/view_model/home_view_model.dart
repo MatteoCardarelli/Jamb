@@ -4,9 +4,8 @@ import 'package:jamb/domain/entities/scout.dart';
 import 'package:jamb/domain/repositories/scout_repository.dart';
 import 'package:jamb/domain/repositories/obiettivo_repository.dart';
 
-/// ViewModel per la Home Page.
-/// Gestisce le statistiche del reparto e gli avvisi critici seguendo MVVM.
-/// Ascolta il repository degli scout per aggiornamenti reattivi.
+/// Stato della Home: conta i ragazzi, calcola gli avvisi amministrativi e
+/// gestisce il salvataggio degli obiettivi. Si ricarica al variare degli scout.
 class HomeViewModel extends ChangeNotifier {
   final IScoutRepository _scoutRepository;
   final IObiettivoRepository _obiettivoRepository;
@@ -39,7 +38,6 @@ class HomeViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  // --- GETTERS ---
   bool get isLoading => _isLoading;
   List<Obiettivo> get obiettivi => _obiettivi;
   int get numeroRagazzi => _ragazzi.length;
@@ -67,14 +65,23 @@ class HomeViewModel extends ChangeNotifier {
     return "${parti.join(" e ")} richiedono attenzione.";
   }
 
-  // --- AZIONI ---
+  /// Salva la lista di obiettivi: elimina quelli rimossi, aggiorna/crea i
+  /// restanti e ricarica per allineare gli id generati dal DB.
   Future<void> updateObiettivi(List<Obiettivo> updatedList) async {
+    // Elimina dal DB gli obiettivi rimossi dalla lista (diff vecchi/nuovi id).
+    final vecchiIds = _obiettivi.map((o) => o.id).toSet();
+    final nuoviIds = updatedList.map((o) => o.id).toSet();
+    for (final id in vecchiIds.difference(nuoviIds)) {
+      await _obiettivoRepository.eliminaObiettivo(id);
+    }
+
     _obiettivi = List.from(updatedList);
     notifyListeners();
-    
+
     for (final o in _obiettivi) {
       await _obiettivoRepository.salvaObiettivo(o);
     }
+    await _caricaDati();
   }
 
   Future<void> refresh() async {

@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../view_model/calendario_view_model.dart';
 import '../../../domain/entities/evento.dart';
 
+/// Elenco degli eventi del giorno selezionato nel calendario.
 class EventiOggiWidget extends StatelessWidget {
   const EventiOggiWidget({super.key});
 

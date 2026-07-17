@@ -6,6 +6,7 @@ import 'package:jamb/ui/contabilita/view_model/dettaglio_transazione_view_model.
 import 'package:jamb/domain/repositories/transazione_repository.dart';
 import 'package:intl/intl.dart';
 
+/// Elenco delle transazioni recenti, ciascuna apribile in dettaglio.
 class RecentTransactionsList extends StatelessWidget {
   const RecentTransactionsList({super.key});
 

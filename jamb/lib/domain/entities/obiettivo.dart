@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 
+/// Obiettivo educativo dell'unità, definito per dominio (Spiritualità,
+/// Competenza, Servizio, ...) con un grado di raggiungimento e un diario.
 class Obiettivo {
   final String id;
   final String dominio;
   final String descrizione;
-  final int grado; // 1 to 5
+  final int grado; // da 1 a 5
   final Color colore;
   final IconData icona;
   final String diarioDiBordo;
@@ -19,6 +21,7 @@ class Obiettivo {
     this.diarioDiBordo = "",
   });
 
+  /// Restituisce una copia dell'obiettivo con i campi indicati sostituiti.
   Obiettivo copyWith({
     String? id,
     String? dominio,
@@ -39,6 +42,7 @@ class Obiettivo {
     );
   }
 
+  /// Serializza l'obiettivo in una mappa chiave-valore.
   Map<String, dynamic> toMap() {
     return {
       'id': id,
@@ -51,6 +55,7 @@ class Obiettivo {
     };
   }
 
+  /// Costruisce un obiettivo a partire da una mappa serializzata.
   factory Obiettivo.fromMap(Map<String, dynamic> map) {
     return Obiettivo(
       id: map['id'],

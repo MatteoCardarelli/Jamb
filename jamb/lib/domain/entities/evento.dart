@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+/// Categoria tematica di un evento, con i colori usati per rappresentarla.
 enum CategoriaEvento {
   spiritualita('SPIRITUALITÀ', Color(0xFFE8EAF6), Color(0xFF283593)),
   competenza('COMPETENZA', Color(0xFFE8F5E9), Color(0xFF2E7D32)),
@@ -12,6 +13,8 @@ enum CategoriaEvento {
 
   const CategoriaEvento(this.nome, this.backgroundColor, this.textColor);
 
+  /// Restituisce la categoria corrispondente al [nome] (case-insensitive),
+  /// oppure [CategoriaEvento.altro] se non riconosciuto.
   static CategoriaEvento fromString(String nome) {
     return CategoriaEvento.values.firstWhere(
       (e) => e.nome.toUpperCase() == nome.toUpperCase(),
@@ -20,6 +23,7 @@ enum CategoriaEvento {
   }
 }
 
+/// Evento del calendario di reparto (riunione, uscita, campo, ...).
 class Evento {
   final String id;
   final String titolo;
@@ -39,6 +43,7 @@ class Evento {
     required this.colorePrincipale,
   });
 
+  /// Restituisce una copia dell'evento con i campi indicati sostituiti.
   Evento copyWith({
     String? id,
     String? titolo,
@@ -59,6 +64,7 @@ class Evento {
     );
   }
 
+  /// Serializza l'evento in una mappa chiave-valore.
   Map<String, dynamic> toMap() {
     return {
       'id': id,
@@ -71,6 +77,7 @@ class Evento {
     };
   }
 
+  /// Costruisce un evento a partire da una mappa serializzata.
   factory Evento.fromMap(Map<String, dynamic> map) {
     return Evento(
       id: map['id'] ?? '',

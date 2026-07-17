@@ -1,3 +1,4 @@
+/// Tappe del Sentiero (la progressione personale dello scout).
 enum TappaSentiero {
     nulla,
     scoperta,
@@ -13,6 +14,7 @@ enum TappaSentiero {
     }
 }
 
+/// Nomi delle specialità conquistabili da uno scout (catalogo AGESCI).
 enum SpecialitaNome {
     Aereomodellista,
     Allevatore,
@@ -81,7 +83,7 @@ enum SpecialitaNome {
     Topografo,
     Velista;
 
-    /// Helper per caricare un'enum in sicurezza dal JSON
+    /// Converte un nome nell'enum in sicurezza (null se non riconosciuto).
     static SpecialitaNome? safeByName(String name) {
       try {
         return SpecialitaNome.values.byName(name);
@@ -91,6 +93,7 @@ enum SpecialitaNome {
     }
 }
 
+/// Nomi dei brevetti di competenza conquistabili da uno scout.
 enum BrevettoNome {
     Naturalista, 
     Artista, 
@@ -108,7 +111,7 @@ enum BrevettoNome {
     MaestroDelleTecnologie, 
     EsploratoreDelleAcque;
 
-    /// Helper per caricare un'enum in sicurezza dal JSON
+    /// Converte un nome nell'enum in sicurezza (null se non riconosciuto).
     static BrevettoNome? safeByName(String name) {
       try {
         return BrevettoNome.values.byName(name);
@@ -118,6 +121,7 @@ enum BrevettoNome {
     }
 }
 
+/// Associa a ogni brevetto le specialità che concorrono a ottenerlo.
 extension BrevettoNomeExtension on BrevettoNome {
   /// Ritorna la lista di specialità che concorrono all'ottenimento del brevetto
   List<SpecialitaNome> get specialitaCorrelate {
@@ -243,6 +247,7 @@ extension BrevettoNomeExtension on BrevettoNome {
   }
 }
 
+/// Singolo impegno/prova, con testo e stato di completamento.
 class Impegno {
     final String titolo;
     final bool isCompletato;
@@ -277,6 +282,7 @@ class Impegno {
     }
 }
 
+/// Tappa del Sentiero raggiunta, con i relativi impegni.
 class Tappa {
     final TappaSentiero tipo;
     final List<Impegno> impegni;
@@ -313,6 +319,7 @@ class Tappa {
     }
 }
 
+/// Specialità dello scout, con le sue prove ed eventuale data di conseguimento.
 class Specialita {
   final SpecialitaNome nome;
   final List<Impegno> prove;
@@ -362,6 +369,7 @@ class Specialita {
   }
 }
 
+/// Brevetto di competenza dello scout, con specialità collegate e prova finale.
 class Brevetto {
   final BrevettoNome nome;
   final List<SpecialitaNome> specialitaCollegate;
@@ -424,6 +432,7 @@ class Brevetto {
   }
 }
 
+/// Progressione complessiva di uno scout: tappa attuale, specialità e brevetti.
 class ProgressoScout{
     final Tappa tappaAttuale;
     final List<Specialita> specialita;

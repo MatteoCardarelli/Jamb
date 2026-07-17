@@ -4,6 +4,7 @@ import 'package:jamb/ui/contabilita/view_model/contabilita_view_model.dart';
 import 'package:jamb/domain/entities/transazione.dart';
 import 'dart:math';
 
+/// Card con la distribuzione delle uscite per categoria.
 class ExpensesDistributionCard extends StatelessWidget {
   const ExpensesDistributionCard({super.key});
 

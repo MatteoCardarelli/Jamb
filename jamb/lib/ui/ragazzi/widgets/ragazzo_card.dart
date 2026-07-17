@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:jamb/domain/entities/scout.dart';
-import 'package:jamb/domain/entities/progresso.dart';
+import 'package:jamb/core/ruolo_display.dart';
 import 'package:jamb/domain/repositories/scout_repository.dart';
 import 'package:jamb/ui/ragazzi/view_model/ragazzi_view_model.dart';
 import 'package:jamb/ui/dettaglio_ragazzo/widgets/dettaglio_ragazzo_screen.dart';
@@ -108,7 +108,7 @@ class RagazzoCard extends StatelessWidget {
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            scout.ruolo,
+                            ruoloLabel(scout.ruolo),
                             style: const TextStyle(
                               color: Color(0xFF94A3B8),
                               fontSize: 13,

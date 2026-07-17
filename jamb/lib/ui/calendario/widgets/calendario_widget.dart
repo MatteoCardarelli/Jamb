@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../../../domain/entities/evento.dart';
 import '../view_model/calendario_view_model.dart';
 
+/// Calendario mensile interattivo con i marker dei giorni che hanno eventi.
 class CalendarioWidget extends StatefulWidget {
   const CalendarioWidget({super.key});
 

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../../../domain/entities/evento.dart';
 import '../../../domain/repositories/evento_repository.dart';
 
+/// Stato del form di creazione evento: titolo, luogo, date e categorie;
+/// valida i dati e crea l'evento tramite il repository.
 class CreaEventoViewModel extends ChangeNotifier {
   final IEventoRepository _eventoRepository;
 

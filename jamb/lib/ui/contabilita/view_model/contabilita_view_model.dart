@@ -2,9 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:jamb/domain/entities/transazione.dart';
 import 'package:jamb/domain/repositories/transazione_repository.dart';
 
-/// Gestore dello stato per tutta la sezione Contabilità dell'app.
-/// Centralizza i dati, gestisce l'ordinamento e calcola le statistiche reali.
-/// Ascolta il repository per aggiornamenti reattivi.
+/// Stato della sezione Contabilità: carica le transazioni, le ordina per data
+/// e calcola saldo e statistiche. Si ricarica quando il repository cambia.
 class ContabilitaViewModel extends ChangeNotifier {
   final ITransazioneRepository _repository;
   
@@ -36,7 +35,6 @@ class ContabilitaViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  // --- GETTERS ---
   bool get isLoading => _isLoading;
   List<Transazione> get transactions => _transactions;
 
@@ -69,13 +67,12 @@ class ContabilitaViewModel extends ChangeNotifier {
     return map;
   }
 
-  // --- AZIONI ---
-
+  /// Salva una nuova transazione (la lista si ricarica via listener).
   Future<void> addTransaction(Transazione transazione) async {
     await _repository.salvaTransazione(transazione);
-    // Non serve ricaricare qui, l'addListener lo farà in automatico
   }
 
+  /// Elimina la transazione con l'[id] indicato.
   Future<void> removeTransaction(String id) async {
     await _repository.eliminaTransazione(id);
   }

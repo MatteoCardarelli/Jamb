@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+/// Stato della hub Documenti: elenco delle categorie (statico) con filtro
+/// di ricerca per titolo.
 class DocumentiViewModel extends ChangeNotifier {
   final TextEditingController searchController = TextEditingController();
 

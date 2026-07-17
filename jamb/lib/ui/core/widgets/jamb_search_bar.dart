@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+/// Barra di ricerca riutilizzabile con campo di testo e icona.
 class JambSearchBar extends StatelessWidget {
   final TextEditingController controller;
   final String hintText;

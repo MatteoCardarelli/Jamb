@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+/// Floating action button standard dell'app.
 class JambFab extends StatelessWidget {
   final VoidCallback onPressed;
   final IconData icona;

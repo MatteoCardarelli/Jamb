@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:jamb/domain/entities/scout.dart'; // Importa entità di dominio
+import 'package:jamb/core/ruolo_display.dart';
 import 'package:intl/intl.dart';
 
 /// Pannello (BottomSheet) per la modifica dei dati anagrafici e dei contatti di uno scout.
@@ -10,6 +11,7 @@ class EditRagazzoSheet extends StatefulWidget {
   final String allergie;
   final String privacyScadenza;
   final List<ContattoEmergenza> contatti;
+  final List<String> squadriglieDisponibili;
   
   /// Callback invocata al salvataggio con i nuovi dati validati
   final Function(
@@ -27,6 +29,7 @@ class EditRagazzoSheet extends StatefulWidget {
     required this.allergie,
     required this.privacyScadenza,
     required this.contatti,
+    required this.squadriglieDisponibili,
     required this.onSalva,
   });
 
@@ -43,8 +46,8 @@ class _EditRagazzoSheetState extends State<EditRagazzoSheet> {
   late List<TextEditingController> _nomiCtrl;
   late List<TextEditingController> _telCtrl;
 
-  static const List<String> _squadriglie = ['Volpi', 'Aquile', 'Lupi', 'Pantere', 'Tigri', 'Leoni'];
-  static const List<String> _ruoli = ['Capo Squadriglia', 'Vice Capo', 'Squadrigliere'];
+  // Ruoli selezionabili per un ragazzo, come valori dell'enum ruolo_enum.
+  static const List<String> _ruoliEnum = ['CAPO_SQ', 'VICE_CAPO_SQ', 'RAGAZZO'];
 
   @override
   void initState() {
@@ -139,7 +142,7 @@ class _EditRagazzoSheetState extends State<EditRagazzoSheet> {
             Wrap(
               spacing: 8,
               runSpacing: 8,
-              children: _squadriglie.map((sq) {
+              children: widget.squadriglieDisponibili.map((sq) {
                 final isSelected = _squadriglia.toLowerCase() == sq.toLowerCase();
                 return GestureDetector(
                   onTap: () => setState(() => _squadriglia = sq),
@@ -151,7 +154,7 @@ class _EditRagazzoSheetState extends State<EditRagazzoSheet> {
 
             _buildLabel("Ruolo in Squadriglia"),
             const SizedBox(height: 8),
-            ..._ruoli.map((r) {
+            ..._ruoliEnum.map((r) {
               final isSelected = _ruolo == r;
               return GestureDetector(
                 onTap: () => setState(() => _ruolo = r),
@@ -166,7 +169,7 @@ class _EditRagazzoSheetState extends State<EditRagazzoSheet> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(r, style: TextStyle(
+                      Text(ruoloLabel(r), style: TextStyle(
                         color: isSelected ? const Color(0xFF1D2660) : const Color(0xFF64748B),
                         fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
                         fontFamily: 'Lexend',

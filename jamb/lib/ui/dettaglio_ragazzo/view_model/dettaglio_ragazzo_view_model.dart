@@ -14,12 +14,12 @@ class DettaglioRagazzoViewModel extends ChangeNotifier {
     required IScoutRepository repository,
   }) : _scout = scout, _repository = repository;
 
+  Future<List<String>> getSquadriglie() => _repository.getSquadriglie();
+
   Scout get scout => _scout;
 
   /// Getter per calcolare dinamicamente se mostrare l'alert medico (allergie)
   bool get hasAlert => _scout.allergie != null && _scout.allergie!.trim().isNotEmpty;
-
-  // --- LOGICA SPECIALITÀ ---
 
   /// Aggiunge una nuova specialità controllando che non sia già presente.
   Future<bool> aggiungiSpecialita(Specialita nuova) async {
@@ -51,8 +51,6 @@ class DettaglioRagazzoViewModel extends ChangeNotifier {
       progresso: _scout.progresso.copyWith(specialita: nuoveSpecialita),
     ));
   }
-
-  // --- LOGICA BREVETTI ---
 
   /// Aggiunge un nuovo brevetto controllando che non sia già presente.
   Future<bool> aggiungiBrevetto(Brevetto nuovo) async {
@@ -95,8 +93,7 @@ class DettaglioRagazzoViewModel extends ChangeNotifier {
     return (possedute / 4).clamp(0.0, 1.0);
   }
 
-  // --- LOGICA SENTIERO ---
-
+  /// Aggiorna la tappa del Sentiero dello scout.
   Future<void> aggiornaSentiero(Tappa nuovaTappa) async {
     await aggiornaDati(_scout.copyWith(
       progresso: _scout.progresso.copyWith(tappaAttuale: nuovaTappa),
@@ -105,7 +102,7 @@ class DettaglioRagazzoViewModel extends ChangeNotifier {
 
   // --- AZIONI GENERALI ---
 
-  /// Salva i dati aggiornati dello scout nel repository (JSON)
+  /// Salva lo scout aggiornato tramite il repository.
   Future<void> aggiornaDati(Scout nuovoScout) async {
     _scout = nuovoScout;
     await _repository.salvaRagazzo(_scout);

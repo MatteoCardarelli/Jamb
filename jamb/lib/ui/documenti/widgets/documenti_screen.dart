@@ -12,6 +12,7 @@ import 'package:jamb/ui/explorer/widgets/explorer_screen.dart';
 import 'package:jamb/ui/explorer/view_model/explorer_view_model.dart';
 import 'package:jamb/ui/contabilita/widgets/contabilita_screen.dart';
 import 'package:jamb/ui/documenti/view_model/documenti_view_model.dart';
+import 'package:jamb/domain/repositories/documento_repository.dart';
 
 /// Hub centrale per la gestione dei documenti e delle sezioni amministrative.
 /// Fornisce accesso rapido ai Drive condivisi, alla Contabilità, all'Amministrazione
@@ -83,17 +84,10 @@ class DocumentiScreen extends StatelessWidget {
                   VoidCallback? onTap;
                   if (cat['titolo'] == "Drive di Branca") {
                     onTap = () => _navigateTo(context, ChangeNotifierProvider(
-                      create: (_) => ExplorerViewModel(
+                      create: (ctx) => ExplorerViewModel(
+                        repository: ctx.read<IDocumentoRepository>(),
                         titolo: "Drive di Branca",
-                        cartelle: ["2025-2026", "2024-2025", "2023-2024", "Archivio"],
-                      ),
-                      child: const ExplorerScreen(),
-                    ));
-                  } else if (cat['titolo'] == "Drive di Co.Ca.") {
-                    onTap = () => _navigateTo(context, ChangeNotifierProvider(
-                      create: (_) => ExplorerViewModel(
-                        titolo: "Drive di Co.Ca.",
-                        cartelle: ["Programmazione", "Verbali", "Progetto Educativo"],
+                        parentId: null,
                       ),
                       child: const ExplorerScreen(),
                     ));

@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../view_model/calendario_view_model.dart';
 import '../../../domain/entities/evento.dart';
 
+/// Elenco dei prossimi eventi in arrivo, mostrato nella schermata calendario.
 class ProssimiEventiWidget extends StatelessWidget {
   const ProssimiEventiWidget({super.key});
 

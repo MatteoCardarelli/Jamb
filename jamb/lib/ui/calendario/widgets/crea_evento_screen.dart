@@ -5,6 +5,7 @@ import '../../../domain/entities/evento.dart';
 import '../../../domain/repositories/evento_repository.dart';
 import '../view_model/crea_evento_view_model.dart';
 
+/// Schermata per la creazione di un nuovo evento del calendario.
 class CreaEventoScreen extends StatelessWidget {
   const CreaEventoScreen({super.key});
 

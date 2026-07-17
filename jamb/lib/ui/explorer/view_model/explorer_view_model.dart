@@ -1,39 +1,49 @@
 import 'package:flutter/material.dart';
+import 'package:jamb/domain/entities/documento.dart';
+import 'package:jamb/domain/repositories/documento_repository.dart';
 
-/// ViewModel per la gestione dello stato dell'Explorer.
-/// Gestisce la ricerca e la navigazione nel percorso dei documenti.
+/// ViewModel dell'Explorer: carica cartelle e file reali di un livello
+/// dell'albero documenti (per parent_id) e gestisce ricerca + breadcrumbs.
 class ExplorerViewModel extends ChangeNotifier {
+  final IDocumentoRepository _repository;
   final String titolo;
-  final List<String> cartelle;
+  final String? parentId;
   final List<String> percorsoPrecedente;
-  
+
   final TextEditingController searchController = TextEditingController();
-  List<String> _filteredCartelle = [];
+  List<Documento> _contenuto = [];
+  bool _isLoading = true;
   late List<String> _fullPath;
 
   ExplorerViewModel({
+    required IDocumentoRepository repository,
     required this.titolo,
-    required this.cartelle,
+    this.parentId,
     this.percorsoPrecedente = const [],
-  }) {
-    _filteredCartelle = cartelle;
+  }) : _repository = repository {
     _fullPath = [...percorsoPrecedente, titolo];
     searchController.addListener(_onSearchChanged);
+    _carica();
   }
 
-  /// Getter per la lista delle cartelle filtrate in base alla ricerca
-  List<String> get filteredCartelle => _filteredCartelle;
-
-  /// Getter per il percorso completo (Breadcrumbs)
+  bool get isLoading => _isLoading;
   List<String> get fullPath => _fullPath;
 
-  /// Filtra le cartelle quando cambia il testo nella barra di ricerca
-  void _onSearchChanged() {
-    _filteredCartelle = cartelle
-        .where((c) => c.toLowerCase().contains(searchController.text.toLowerCase()))
-        .toList();
+  List<Documento> get contenutoFiltrato {
+    final q = searchController.text.toLowerCase().trim();
+    if (q.isEmpty) return _contenuto;
+    return _contenuto.where((d) => d.nome.toLowerCase().contains(q)).toList();
+  }
+
+  Future<void> _carica() async {
+    _isLoading = true;
+    notifyListeners();
+    _contenuto = await _repository.getContenuto(parentId);
+    _isLoading = false;
     notifyListeners();
   }
+
+  void _onSearchChanged() => notifyListeners();
 
   @override
   void dispose() {

@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import 'progresso.dart';
 
-/// Definiamo gli stati possibili per i documenti scout
-enum DocumentoStatus { 
-  nessuno, 
-  valido, 
-  inScadenza, 
+/// Stato di un documento amministrativo di uno scout (censimento, privacy, medica).
+enum DocumentoStatus {
+  nessuno,
+  valido,
+  inScadenza,
   scaduto;
 
+  /// Converte un nome nel relativo stato; per un valore sconosciuto
+  /// restituisce [DocumentoStatus.nessuno].
   static DocumentoStatus safeByName(String name) {
     try {
       return DocumentoStatus.values.byName(name);
@@ -17,15 +19,17 @@ enum DocumentoStatus {
   }
 }
 
+/// Contatto di emergenza associato a uno scout (es. un genitore).
 class ContattoEmergenza {
   final String nome;
   final String telefono;
 
   const ContattoEmergenza({
-    required this.nome, 
-    required this.telefono
+    required this.nome,
+    required this.telefono,
   });
 
+  /// Serializza il contatto in una mappa chiave-valore.
   Map<String, dynamic> toMap() {
     return {
       'nome': nome,
@@ -33,6 +37,7 @@ class ContattoEmergenza {
     };
   }
 
+  /// Costruisce un contatto a partire da una mappa serializzata.
   factory ContattoEmergenza.fromMap(Map<String, dynamic> map) {
     return ContattoEmergenza(
       nome: map['nome'] ?? '',
@@ -41,6 +46,11 @@ class ContattoEmergenza {
   }
 }
 
+/// Profilo completo di uno scout: anagrafica, progressione, stato
+/// amministrativo dei documenti e contatti di emergenza.
+///
+/// È un modello "piatto" pensato per la UI: il repository lo ricompone
+/// leggendo da più tabelle normalizzate del database.
 class Scout {
   final String id;
   final String nome;
@@ -48,20 +58,18 @@ class Scout {
   final String ruolo;
   final String? allergie;
   final ProgressoScout progresso;
-  
-  // Stato Amministrativo
+
+  // Stato amministrativo dei documenti.
   final DocumentoStatus statoCensimento;
   final DocumentoStatus statoPrivacy;
   final DocumentoStatus statoMedica;
-  
-  // Date di scadenza
+
+  // Date di scadenza dei documenti.
   final DateTime? scadenzaPrivacy;
   final DateTime? scadenzaMedica;
 
-  // Lista di contatti
   final List<ContattoEmergenza> contattiEmergenza;
 
-  // Costruttore
   const Scout({
     required this.id,
     required this.nome,
@@ -77,6 +85,7 @@ class Scout {
     this.contattiEmergenza = const [],
   });
 
+  /// Iniziali dello scout (prima e ultima parola del nome), per gli avatar.
   String get iniziali {
     if (nome.isEmpty) return "??";
     List<String> parti = nome.trim().split(" ");
@@ -84,6 +93,7 @@ class Scout {
     return (parti[0][0] + parti[parti.length - 1][0]).toUpperCase();
   }
 
+  /// Restituisce una copia dello scout con i campi indicati sostituiti.
   Scout copyWith({
     String? nome,
     String? squadriglia,
@@ -113,6 +123,7 @@ class Scout {
     );
   }
 
+  /// Serializza lo scout in una mappa chiave-valore.
   Map<String, dynamic> toMap() {
     return {
       'id': id,
@@ -130,6 +141,8 @@ class Scout {
     };
   }
 
+  /// Costruisce uno scout da una mappa serializzata; restituisce `null`
+  /// se il parsing fallisce (record malformato).
   static Scout? fromMap(Map<String, dynamic> map) {
     try {
       return Scout(
@@ -144,11 +157,11 @@ class Scout {
         statoMedica: DocumentoStatus.safeByName(map['statoMedica'] ?? ''),
         scadenzaPrivacy: map['scadenzaPrivacy'] != null ? DateTime.parse(map['scadenzaPrivacy']) : null,
         scadenzaMedica: map['scadenzaMedica'] != null ? DateTime.parse(map['scadenzaMedica']) : null,
-        contattiEmergenza: map['contattiEmergenza'] != null 
-          ? List<ContattoEmergenza>.from(
-              (map['contattiEmergenza'] as List).map((x) => ContattoEmergenza.fromMap(x)),
-            )
-          : const [],
+        contattiEmergenza: map['contattiEmergenza'] != null
+            ? List<ContattoEmergenza>.from(
+                (map['contattiEmergenza'] as List).map((x) => ContattoEmergenza.fromMap(x)),
+              )
+            : const [],
       );
     } catch (e) {
       debugPrint("Errore nel parsing dello scout ${map['nome']}: $e");
