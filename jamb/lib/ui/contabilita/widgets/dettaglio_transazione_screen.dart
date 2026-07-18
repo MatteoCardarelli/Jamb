@@ -3,6 +3,7 @@ import 'package:jamb/domain/entities/transazione.dart';
 import 'package:jamb/ui/contabilita/view_model/dettaglio_transazione_view_model.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:jamb/ui/core/widgets/back_action_button.dart';
 
 /// Schermata di dettaglio di una singola transazione, con opzione di eliminazione.
 class DettaglioTransazioneScreen extends StatelessWidget {
@@ -22,9 +23,10 @@ class DettaglioTransazioneScreen extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: const Color(0xFFF3F4F6),
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Color(0xFF1E293B)),
-          onPressed: () => Navigator.of(context).pop(),
+        leadingWidth: 80,
+        leading: const Padding(
+          padding: EdgeInsets.only(left: 16),
+          child: BackActionButton(),
         ),
         title: const Text(
           "Dettaglio Operazione",

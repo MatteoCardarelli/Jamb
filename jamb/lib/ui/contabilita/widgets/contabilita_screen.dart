@@ -8,6 +8,8 @@ import 'package:jamb/ui/contabilita/widgets/expenses_distribution_card.dart';
 import 'package:jamb/ui/contabilita/widgets/recent_transactions_list.dart';
 import 'package:provider/provider.dart';
 import 'package:jamb/ui/contabilita/view_model/contabilita_view_model.dart';
+import 'package:jamb/ui/core/widgets/back_action_button.dart';
+import 'package:jamb/ui/core/widgets/jamb_fab.dart';
 
 /// Schermata della contabilità: saldo, distribuzione delle spese ed elenco transazioni.
 class ContabilitaScreen extends StatelessWidget {
@@ -22,7 +24,9 @@ class ContabilitaScreen extends StatelessWidget {
       backgroundColor: Colors.transparent,
       body: EmptyBackgroundScreen(
         currentIndex: 2,
-        floatingActionButton: FloatingActionButton(
+        floatingActionButton: JambFab(
+          icona: Icons.add_rounded,
+          backgroundColor: const Color(0xFF000066),
           onPressed: () async {
             final transazione = await Navigator.of(context).push<Transazione>(PageRouteBuilder(
               pageBuilder: (context, animation, secondaryAnimation) => ChangeNotifierProvider(
@@ -36,10 +40,6 @@ class ContabilitaScreen extends StatelessWidget {
               financeViewModel.addTransaction(transazione);
             }
           },
-          backgroundColor: const Color(0xFF000066),
-          shape: const CircleBorder(),
-          elevation: 4,
-          child: const Icon(Icons.add_rounded, color: Colors.white, size: 32),
         ),
         child: SingleChildScrollView(
           padding: const EdgeInsets.only(top: 170, left: 20, right: 20, bottom: 120),
@@ -49,10 +49,7 @@ class ContabilitaScreen extends StatelessWidget {
               // Header con tasto back
               Row(
                 children: [
-                  GestureDetector(
-                    onTap: () => Navigator.of(context).pop(),
-                    child: const Icon(Icons.arrow_back_ios_new_rounded, color: Color(0xFF25315B)),
-                  ),
+                  const BackActionButton(),
                   const SizedBox(width: 16),
                   const Text(
                     "Contabilità",
