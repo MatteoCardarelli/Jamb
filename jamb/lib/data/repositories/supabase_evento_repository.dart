@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:jamb/core/categoria_evento_colori.dart';
 import 'package:jamb/core/session_service.dart';
 import 'package:jamb/core/supabase_client.dart';
 import '../../domain/entities/evento.dart';
@@ -48,7 +49,7 @@ class SupabaseEventoRepository extends IEventoRepository {
       'unit_id': _session.activeUnitId,
       'titolo': evento.titolo,
       'tipo_evento': 'RIUNIONE', // l'entità non modella il tipo: valore di default
-      'categorie_tematiche': evento.categorie.map((c) => c.name).toList(),
+      'categorie_tematiche': evento.categorie,
       'data_inizio': evento.dataInizio.toIso8601String(),
       'data_fine': evento.dataFine.toIso8601String(),
       'luogo': evento.luogo,
@@ -59,7 +60,8 @@ class SupabaseEventoRepository extends IEventoRepository {
   /// Costruisce un [Evento] a partire da una riga del database.
   Evento _fromDb(Map<String, dynamic> row) {
     final categorie = _asList(row['categorie_tematiche'])
-        .map((e) => _categoriaFromDb(e as String))
+        .map((e) => e.toString())
+        .where((e) => e.trim().isNotEmpty)
         .toList();
     return Evento(
       id: row['id'] as String,
@@ -68,17 +70,10 @@ class SupabaseEventoRepository extends IEventoRepository {
       dataFine: DateTime.parse(row['data_fine'] as String),
       luogo: (row['luogo'] ?? '') as String,
       categorie: categorie,
-      colorePrincipale:
-          categorie.isNotEmpty ? categorie.first.textColor : const Color(0xFF25315B),
+      colorePrincipale: categorie.isNotEmpty
+          ? coloreCategoria(categorie.first)
+          : const Color(0xFF25315B),
     );
-  }
-
-  /// Converte il nome di una categoria dal DB nell'enum corrispondente.
-  CategoriaEvento _categoriaFromDb(String value) {
-    for (final c in CategoriaEvento.values) {
-      if (c.name == value) return c;
-    }
-    return CategoriaEvento.fromString(value); // fallback sul nome visualizzato
   }
 
   /// Normalizza un valore JSONB in lista (vuota se non è una lista).

@@ -24,5 +24,15 @@ void main() {
       expect(vm.ripartizioneSpese[Categoria.materiale], closeTo(0.6, 0.001));
       expect(vm.ripartizioneSpese[Categoria.trasporto], closeTo(0.4, 0.001));
     });
+
+    // Il calcolo divide per il totale delle uscite: senza guardia, in assenza
+    // di spese produrrebbe valori non numerici che il grafico non sa mostrare.
+    test('ripartizioneSpese è vuota se non ci sono uscite', () async {
+      final vm = ContabilitaViewModel(FakeTransazioneRepository([
+        transazioneDiTest('a', 100, false, Categoria.quote),
+      ]));
+      await Future.delayed(Duration.zero);
+      expect(vm.ripartizioneSpese, isEmpty);
+    });
   });
 }

@@ -1,0 +1,230 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{tikz-cd}
+\usepackage{multicol}
+\usepackage{xcolor}
+\usepackage{tabularx}
+\usepackage{enumitem}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{1\baselineskip}
+
+\begin{document}
+\begin{titlepage}
+  \newgeometry{margin=1in}
+  \thispagestyle{empty}
+  \centering
+  \includegraphics[width=4.2cm]{images/immagine_2026-03-10_163746246.png}
+
+  \vspace*{1.3cm}
+  {\fontsize{28}{30}\selectfont\textcolor[rgb]{0.0,0.28,0.43}{\textsc{Università degli Studi dell'Aquila}}\par}
+
+  \vspace*{1.2cm}
+  {\fontsize{21}{23}\selectfont\textsc{Facoltà di Informatica}\par}
+
+  \vspace*{1.1cm}
+  {\fontsize{20}{22}\selectfont\textsc{Applicazioni per dispositivi mobili}\par}
+
+  \vspace*{1.2cm}
+  {\fontsize{24}{26}\selectfont\bfseries\itshape JAMB\par}
+
+  \vfill
+  \noindent
+  \begin{tabularx}{\textwidth}{@{}l X r@{}}
+    \begin{minipage}[t]{0.42\textwidth}
+      \raggedright
+      Prof.\\[0.8em]
+      Bucchiarone Antonio
+    \end{minipage}
+    &
+    \begin{minipage}[t]{0.16\textwidth}
+    \end{minipage}
+    &
+    \begin{minipage}[t]{0.50\textwidth}
+      \raggedleft
+      Studente\\[0.8em]
+      Matteo Cardarelli 292215\\[0.6em]
+    \end{minipage}
+  \end{tabularx}
+\end{titlepage}
+\restoregeometry
+
+\tableofcontents
+
+\newpage
+
+\section{Introduzione}
+\subsection{Contesto del progetto e motivazioni}
+Lo scautismo è uno dei movimenti educativi più grandi al mondo, con centinaia di migliaia di iscritti solo in Italia. Il progetto nasce dal fatto che l'organizazzione quotidiana di un gruppo scout richiede una gestione della logistica veramente dispersiva e complessa, quasi sempre basata su metodi cartacei.
+
+Ho scelto di lavorare su questo progetto  per risolvere criticità organizzative, che compromettono lo scopo educativo perseguito dai Soci Adulti Educanti. "\textbf{\textit{Jamb}}" punta a ridurre il carico burocratico, per lasciare più spazio allo scopo educativo, ed aiutare nella gestione della sicurezza e della responsabilità legale. Tutto ciò senza dimenticare i ragazzi, fulcro del lavoro dei Soci Adulti, a cui saranno dedicate sezioni apposite per: tracciare il proprio sentiero/percorso; aiutare anche loro a gestire i propri progetti.
+
+
+\subsection{Scopo generale dell'applicazione}
+Lo scopo dell'applicazione è creare un ecosistema digitale "all-in-one" per lo scoutismo, unendo l'organizazzione logistica al percorso educativo. Per i capi, l'obiettivo è semplificare la burocrazia: l'app deve sostituire numerevoli registri cartacei in un solo posto. Per i ragazzi, invece, lo scopo è renderli protagonisti, fornendogli degli strumenti per avere sempre sottocchio il proprio percorso e il proprio sviluppo personale, inoltre l'app li aiuta nella gestione delle attività che saranno organizzate con altri ragazzi.
+
+\subsection{A chi è destinata, quale problema risolve}
+L'app è progettata per supportare l'organizzazione logistica e il percorso educativo all'interno dello scoutismo e si rivolge a due categorie principali di utenti:
+\begin{itemize}[topsep=0.5pt]
+  \item \textbf{Capi (educatori):} è destinata ai soci adulti che amministrano il gruppo e le singole unità. L'applicazione facilita la visualizazzione, l'organizazzione e la gestione delle presenza, degli eventi e delle scadenze legali/mediche.
+  \item \textbf{Ragazzi (giovani dai 11 ai 21 anni):} è destinata ai membri delle varie unità (E/G, R/S) che vivono in prima persona l'esperienza scout. Lo scopo dell'app per questa categoria di utenti è offrire loro un punto di accesso semplice per tracciare il proprio percorso di crescita e gestire i progetti delle pattuglie.
+\end{itemize}
+
+Il bisogno a cui l'app risponde è l'esigenza di uno strumento unico, integrato e funzionante anche offline per la gestione delle attività scout. Nello specifo \textit{\textbf{Jamb}} nasce per alleggerire il carico organizzativo e burocratico dei capi, eliminando la dispersione causata dai vari e sparsi fogli Excel, chat e moduli cartacei, ottimizzando i tempi di pianificazione.
+
+\newpage
+
+\section{Scelta e Analisi del Dominio}
+\subsection{Descrizione del dominio applicativo scelto}
+Il dominio applicativo scelto è la \textbf{Gestione Organizzativa ed Educativa dello Scautismo}. Si tratta di un ambito operativo complesso e fortemente stratificato, che unisce le necessità amministrative di un'organizzazione associativa con le dinamiche pedagogiche e logistiche. Attualmente questo settore è caratterizzato da una forte frammentazione degli strumenti e da una digitalizazzione, dove presente, non centralizzata, che rallenta fortemente i processi organizzativi ed amministrativi. L'introduzione di una soluzione digitale, progettata per operare anche in assenza di rete, consentirebbe di velocizzare notevolmente la burocrazia e automatizzare la raccolta di datu sul campo
+
+\subsection{Motivazione della scelta}
+La scelta di questo dominio applicativo è fortemente radicata in un'esperienza diretta e personale all'interno del contesto associativo. Il recente ingresso da parte mia nella Comunità capi (Co.Ca.) mi ha permesso di percepire il profondo divario  tra la missione pedagogica dello scautismo e la complessa realtà organizzativa. Ho avvertito l'esigenza di riunire in un unico posto la burocrazia frammentata. Pertanto, la progettazione di \textit{\textbf{Jamb}} nasce dala volonta di risolvere una criticità vissuta in prima persona.
+
+\subsection{Analisi dei problemi o delle opportunità del dominio}
+L'analisi del dominio evidenzia svariate criticità, a partire dalla gestione di una mole massiccia di dati e documenti estremamente sensibili, come schede sanitarie e liberatorie per la privacy dei minori, la cui archiviazione malgestita espone a gravi rischi legali. A questo si aggiunge la difficoltà strutturale nell'affiancarsi a sistemi gestionali associati già esistenti, spesso obsoleti, poco usabili via mobile e completamente privi di uno standard moderno. Il panorama attuale è caratterizzato da uno scarso stato dell'arte e da un mercato sostanzialmente privo di competitor diretti che offrano una soluzione integrata, questo rappresenta una sfida notevole ed ambiziosa data la mole di lavoro necessario per coprire tutte le esigenze del metodo scout. 
+
+Tuttavia, queste criticità generano opportunità uniche. La forte conoscenza del dominio derivata dall'esperienza diretta permette di progettare un'interfaccia creata su misura per le reali abitudini dei capi, garantendo un accesso diretto agli utenti finali durante lo sviluppo. Nonostante si tratti di un'app mai realizzata, l'assenza di uno standard moderno offre il vantaggio competitivo di poter definirne uno nuovo. L'opportunità si può trovare nel trasformare la complessa burocrazia in un sitema fluido e sicuro, capace di funzionare anche in contesti isolati e di fornire ai ragazzi e ai capi uno strumento all'altezza delle sfide educative.
+
+\newpage
+\section{Analisi del Progetto}
+\subsection{Analisi SWOT}
+L'analisi SWOT sintetizza i punti di forza e di debolezza intrinseci al progetto, insieme alle opportunità e alle minacce derivanti dal contesto esterno. Questa valutazione è fondamentale per definire una strategia di sviluppo che massimizzi i vantaggi competitivi e diminuisca i rischi operativi.
+
+\begin{itemize}[topsep=0.5 pt]
+  \item \textbf{Punti di Forza (Strenghts):} 
+  Il principale vantaggio si tratta della profonda conoscenza del dominio, che permette di progettare un'esperienza utente modellata sulle reali necessità degli utenti finali, evitando funzionalità superflue. Inoltre molti capi richiedono da tempo una digitalizzazione della burocrazia che occupa spesso buona parte del tempo, che invece vorrebbe essere dedicata alla progettazione di attività. Dal punto di vista tecnico, l'utilizzo di un'architettura \textbf{Offline-First} rappresenta una funzione fondamentale, garantendo l'affidabilità del sistema anche in condizioni ambientali isolate. Inoltre, la scelta di uno struttura tecnologica moderna e scalabile (Flutter e Supabase) consente di ottenere alte prestazioni con costi di infrastruttura ridotti, facilmente un eventuale rilascio su larga scala.
+
+  \item \textbf{Punti di Debolezza (Weaknesses):}
+  La criticità maggiore è rappresentata dalla mole massiccia di lavoro richiesto per coprire l'intero ambiente scout, essendo un progetto sviluppato da un singolo  sviluppatore in tempi accademici, lo \textit{scope} iniziale deve essere necessariamente limitato a un MVP (Minimum Viable Product). Inoltre essendo il progetto di un singolo non si coprono tutte le aree richieste per la progettazione totale del progetto, con il rischio di rilasciare un app con delle mancanze dovute alla scarsa conoscenza ed esperienza del singolo. Un altro punto di debolezza è lo scarso stato dell'arte: non esistendo standard moderni a cui ispirarsi, ogni modulo deve essere progettato da zero, aumentando il rischio di complessità logica nell'interfaccia. 
+
+  \item \textbf{Opportunità (Opportunities):}
+  Il mercato attuale presenta un assenza quasi totale di competitor diretti che offrano una soluzione integrata e mobile-native, creando un'opportunità di posizionamento come standard moderno per le associazioni scout. La possibilità di accesso diretto ai clienti (i gruppi scout del territorio) permette una validazione rapida dell'app e una raccolta di feedback immediata. L'app si potrebbe estendere anche ad associazioni diverse dall'A.G.E.S.C.I. con non troppo sforzo, aumentando così il bacino di utenza.
+
+  \item \textbf{Minacce (Threats):}
+  La minaccia principale è legata alla difficoltà di integrazione con i sistemi già esistenti a livello nazionale, che potrebbero complicare l'adozione ufficiale dell'app. Esiste inoltre il rischio legato alla gestione di dati estremamente sensibili (sanitari e privacy di minori): eventuali errori potrebbero cambiare drasticamente la fiducia degli utenti ed evolversi in rischi legali. Inoltre la resistenza al cambiamento di alcuni utenti legati ai metodi analogici potrebbe rallentare la diffusione dell'applicazione. Il progetto non è fornito di fondi economici a cui attingere, questo potrebbe creare problemi con una diffusione più ampia dell app, che porterebbe dei costi richiesti dai servizi utilizzati per l'immaganizzazione dei dati.
+\end{itemize}
+
+\newpage
+\section{Obiettivi del Progetto}
+\subsection{Obiettivi generali}
+\begin{enumerate}
+  \item \textbf{Riduzione del carico burocratico}
+  Automatizzare la gestione dei registri cartacei, dei censimenti e delle scadenze legali/mediche in un unico punto di accesso digitale.
+  \item \textbf{Gestione centralizzata della sicurezza}
+  Fornire ai Soci Adulti strumenti immediati per la consultazione dei dati critici (allergie, farmaci, autorizzazioni) anche in assenza di connettività, garantendo la responsabilità legale e assicurativa.
+  \item \textbf{Ottimizazzione della logistica di Zona}
+  Facilitare il coordinamento tra i Capi Gruppo e il Comitato di Zona per l'organizazzione di eventi complessi (es. San Giorgio, Moduli formativi) attraverso flussi di lavoro strutturati.
+  \item \textbf{Monitoraggio del Progetto Educativo di Gruppo (PEG)}
+  Offire dashboard analitiche per valutare l'andamento del PEG e la continuità educativa tra le branche.
+  \item \textbf{Tracciamento dell'Iter formativo}
+  Gestire lo storico della formazione dei capi (Campi di formazione, nomina a capo) per supportare la crescità della Comunità Capi.
+  \item \textbf{Archivio Metodologico Dinamico}
+  Centralizzare l'accesso a documenti ufficiali AGESCI, pillole metodologiche e kit per le attività, facilitando la progettazione delle attività.
+  \item \textbf{Digitalizzazione della progressione personale}
+  Fornire agli E/G e agli R/S strumenti per tracciare il proprio \textit{"sentiero"} o \textit{"strada"}, rendendoli protagonisti consapevoli della propria crescita.
+  \item \textbf{Supporto alla metodologia di branca}
+  Implementare moduli specifici che riflettano le strutture metodologiche come la gestione delle Imprese per le Squadriglie (E/G) e la pianificazione dei Capitoli per il Clan (R/S).
+  \item \textbf{Gamification Educativa}
+  Trasformare il monitoraggio della progressione personale in un'esperienza stimolante, incentivando la consapevolezza del proprio percorso senza aggiungere carichi gestionali eccessivi.
+  \item \textbf{Operatività in ambienti isolati(Offline-First)}
+  Garantire la piena funzionalità dell'app durante l'attività in ambienti isolati, grazie alla sincronizzazione asincrona.
+  \item \textbf{Sicurezza e privacy by design}
+  Implementare una gestione dei dati basata su Row-Level Security (RLS) e Role-Based Access (RBAC), assicurando che le informazioni sensibili (dati medici, Punto della Strada) siano accessibili solo a chi ne ha il diritto metodologico e legale.
+  \item \textbf{Multi-tenancy Associativa}
+  Gestire in modo isolato ma comunicante i diversi livelli dell'associazione (Gruppo e Zona), permettendo comunicazioni segmantate e gestione di eventi multi-unità.
+\end{enumerate}
+
+\subsection{Obiettivi Funzionali}
+Il sistema si modella sulle reali necessità degli utenti finali, evitando funzionalità superflue e garantendo la massima aderenza al metodo scout. Di seguito sono delineati gli obiettivi funzionali specifici per ciascun ruolo all'interno del Gruppo.
+
+
+\newpage
+
+\section{boh}
+\subsection{Gerarchia dei Requisiti: Themes ed Epics}
+Per gestire la complessità del dominio e garantire uno sviluppo coerente con gli obiettivi i requisiti sono stati organizzati secondo una struttura gerarchica che parte dai grandi temi strategici per arrivare al dettaglio delle singole interazioni utente.
+
+\subsubsection{Theme 1: Governance, Sicurezza e Amministrazione} L'obiettivo di questo tema è centralizzare la gestione burocratica e finanziaria, garantendo al contempo la massima sicurezza legale dei responsabili.
+\begin{itemize}
+  \item \textbf{Epic 1: Segreteria e Compilance:} Gestione delle anagrafiche e monitoraggio dei documenti sensibili (censimenti, privacy e schede mediche) per la verifica instantanea dei requisiti quando utile.
+  \item \textbf{Epic 2: Amministrazione Economica:} Gestione dei bilanci delle branche e del gruppo, tracciamento delle quote e gestione delle casse specifiche (di squadriglia, di branca, di gruppo).
+  \item \textbf{Epic 3: Comunicazione e Organizzazione:} Stesura del programma di unità, gestionedei calendari condivisi tra le branche e bacheche per le comunicazioni ufficiali (note e avvisi anche dalla zona). 
+\end{itemize}
+
+\subsubsection{Theme 2: Logistica e Operatività}
+Questo tema riguarda gli strumenti pratici necessari per l'organizzazione materiale delle attività, con un focus sull'efficienza pre-evento.
+\begin{itemize}
+  \item \textbf{Epic 4: Gestione Attrezzatura e Materiali:} Implementazione di checklist interattive per la manutenzione e il controllo di: cambusa, cassa attrezzi, cancelleria, pronto soccorso.
+  \item \textbf{Epic 5: Planning e Vita al Campo:} Strumenti per la gestione delle pattuglie durante i campi e accesso a manuali tecnici digitali per la consultazione rapida durante le attività.
+\end{itemize}
+
+\subsubsection{Theme 3: Progressione Educativa e Metodo}
+Il cuore pedagogico dell'app, progettato per rendere il ragazzo consapevole della propria crescita e facilitare la progettazione delle attività di branca.
+\begin{itemize}
+  \item \textbf{Epic 6: Il Sentiero e l'Albo d'Oro}
+  Visualizzazione interattiva della progressione personale (tappe, mete, impegni), delle specialità e dei brevetti, fungendo da registro storico dei traguardi raggiunti.
+  \item \textbf{Epic 7: Progettazione e Protagonismo:} Strumenti di project management per la realizazzione di imprese (E/G) con barre di progressione, Route Planner e mappe per la branca R/S, bacheche per il Capitolo e proposte di servizio.
+  \item \textbf{Epic 8: Diario e Riflessione:} Spazi dedicati alla scrittura personale, come il Punto della Strada, con possibilità di condivisione con i capi.p
+\end{itemize}
+
+\subsubsection{Theme 4: Comunità Capi e Formazione Adulti}
+Strumenti dedicati alla crescita degli educatori e alla continuità del Progetto Educativo di Gruppo (PEG).
+\begin{itemize}
+  \item \textbf{Epic 9: Gestione Co.Ca. e Formazione:} Tracciamento dell'iter formativo dei soci adulti (campi formazione, progetti del capo), analisi dell'andamento del PEG e gestione del drive con tutti i documenti.
+  \item \textbf{Epic 10: Risorse Metodologiche:} Pubblicazione di "pillole del metodo", kit per le veglie e accesso rapido ai documenti ufficiali AGESCI (Statuto, Patto Associativo).
+\end{itemize}
+
+\subsubsection{Theme 5: Efficienza in Ambienti Isolati}
+Rappresenta il pilastro tecnico che permette all'app di essere utile in un contesto outdoor.
+\begin{itemize}
+  \item \textbf{Epic 11: Appello Offline:} Registrazione delle presenze e consultazione immediata dei dati critici (allergie, medicine) in totale assenza di connettività.
+  \item \textbf{Epic 12: Sincronizzazione e Integrità:} Gestione del flusso dati tra database locale e cloud, garantendo che le informazioni siano sicure e coerenti su tutti i dispositivi.
+\end{itemize}
+
+\newpage
+
+\subsection{User Stories}
+\begin{enumerate}
+  \item Come Utente, voglio un interfaccia facilmente intuibile e navigabile, cosi da riuscire a gestire tutto al meglio.
+  \item Come Utente, voglio dei bedge virtuali che rappresentino il mio storico all'interno dell'associazione, cosi che io possa avere uno storico della mia attività.
+  \item Come Utente, voglio poter modificare le preferenze dell'app, cosi da rendere più personale l'esperienza sull'app.
+  \item Come Capo, voglio un agenda degli eventi riguardanti la Comunità Capi (Co.Ca.), cosi che non perdo nessun evento o riunione.
+  \item Come Capo, voglio poter visualizzare a che punto mi trovo del mio iter formativo, cosi che mi possa rendere conto del mio progresso nella formazione.
+  \item Come Capo, voglio avere a disposizione uno strumento per scrivere e tracciare il percorso del mio Progetto del Capo.
+  \item Come Capo, voglio delle nozioni riguardanti il metodo della mia branca, cosi che io possa imparare facilmente ed essere sempre stimolato.
+  \item Come Capo, voglio poter visualizzare il progresso del Progetto Educativo di Gruppo (PEG), cosi che io possa tenere d'occhio quanto il gruppo si stia impegnando nel seguirlo e vedere i punti critici del PEG.
+  \item Come Capo, voglio avere a disposizione in una sezione apposita tutti i documenti più importanti, come il patto associativo, lo statuto A.G.E.S.C.I., il metodo delle varie branche, cosi che posso avere in un unico posto tutti i documenti spesso utili durante la progettazione delle varie attività.
+  \item Come Capo, voglio un luogo dove tutta la Co.Ca. condivida i documenti che ogni Capo del gruppo deve vedere o avere sempre a disposizione.
+\vspace*{1cm}
+  \item Come Aiuto Capo Unità, voglio una lista di tutti i ragazzi appartenenti alla mia branca, con le informazioni più importanti come allergie e medicine vicino al nome del rispettivo ragazzo, cosi da tenere sotto controllo tutte le situazioni mediche dei ragazzi ed in caso di prontezza aggire con prontezza.
+  \item Come Aiuto Capo Unità, voglio una lista di numeri di emergenza da chiamare per ogni ragazzo, cosi da avere un contatto di riferimento per ogni bambino a cui rivolgermi in caso di necessità.
+  \item Come Aiuto Capo Unità, voglio avere sempre sottocontrollo quanta contabilità ha a disposizione la mia branca e voglio poter modificare il valore in base alle entrate ed uscite che affronto, cosi che ogni Capo della branca sappia la situazione economica costantemente aggiornata.
+  \item Come Aiuto Capo Unità, voglio un calendario della branca visualizzabile solo ai Capi di quella specifica branca (non è un ulteriore calendario rispetto a quello della Co.Ca. ma si va a "sommare"), cosi che ogni Capo della branca sappia tutti gli appuntamenti di quest'ultima.
+  \item Come Aiuto Capo Unità, voglio un modo per tenere tracca delle presenze durante un qualsiasi evento, che possa essere una semplice riunione o un uscita/campo, cosi da poter accoggermi dell'assenza ripetuta di qualche ragazzo ed agire tempestivamente.
+  \item Come Aiuto Capo Unità, voglio avere a disposizione il Programma di Unità, cosi da poterlo consultare per la progettazione delle attività.
+  \item Come Aiuto Capo Unità, voglio poter programmare un campo per la mia branca, avendo a disposizione la divisione per pattuglie e di poter vedere tutto ciò che le altre pattuglie hanno condiviso sull'applicazione, cosi da vedere a che punto lo Staff si trova con la progettazione del campo.
+  \item Come Aiuto Capo Unità, voglio un luogo dove poter caricare e gestire tutti i documenti che la branca ha bisogno di condividere, cosi che io possa condividere e ricevere documenti utili con tutti i capi della branca.
+  \item Come Aiuto Capo Unità, voglio avere una schermata per gestire i vari sotto gruppi di ogni branca (squadriglie, consiglio capi, consiglio della rupe, alta squadriglia), cosi da poter sfruttare al meglio questi strumenti del metodo.
+  \item Come Aiuto Capo Unità, voglio poter gestire tutta la parte più burocratica che riguarda i ragazzi come i censimenti, privacy, schede mediche, di tutta la branca, cosi dda poter monitorare la situazione in maniera costante e precisa.
+  \vspace{1cm}
+  \item Come Capo Unità, voglio poter scrivere il programma di unità, cosi da poter seguire al meglio gli obiettivi del PEG.
+  \item Come Capo Unità, voglio poter scrivere degli avvisi che tutti i capi della branca ricevano, cosi da gestire al meglio la comunicazione.
+  \item Come Capo Unità, voglio uno strumento che mi aiuti a redigere il bilancio consolidato della branca, cosi che mi sia facilitato il compito complesso del dover redigere il bilancio.
+  \vspace{1cm}
+  \item Come Capo Gruppo, voglio una lista di tutti i ragazzi del gruppo con la loro rispettiva situazione burocratica, cosi da poter sollecitare il Capo Unità rispettivo e tenere tutto sottocontrollo.
+  \item Come Capo Gruppo, voglio un calendario con tutti gli eventi di ogni branca, cosi da conoscere gli appuntamneti di tutte le branche.
+  \item Come Capo Gruppo, voglio poter tenere traccia dell'iter formativo di ogni Capo della Co.Ca., cosi da poter spronare i Capi nella loro formazione necessaria per offire un servizio migliore ai ragazzi.
+  \item Come Capo Gruppo, voglio poter scrivere e modificare il PEG, cosi da dare una direzione unica a tutto il gruppo.
+  \item Come Capo Gruppo, voglio uno strumento che mi aiuti a redigere il bilancio consolidato del gruppo prendendo le informazione dai vari bilanci delle branche,  cosi che mi sia facilitato il compito complesso del dover redigere il bilancio.
+  \vspace{1cm}
+  \item Come Assistente Eclesiastico, voglio uno strumento per la creazione delle veglie per le varie branche, cosi che mi sia più semplice la progettazione.
+  \item Come Assistente Eclesiastico, voglio poter scrivere delle pillole di spiritualità che la Co.Ca. possa leggere, 
+  \item Come Assistente Eclesiastico, voglio ricevere il punto della strada dei ragazzi R/S (solo se loro acconsentono),
+\end{enumerate}
+
+
+
+\end{document}

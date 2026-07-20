@@ -1,25 +1,55 @@
 import 'package:flutter/material.dart';
+import 'package:jamb/core/categoria_evento_colori.dart';
 import '../../../domain/entities/evento.dart';
 import '../../../domain/repositories/evento_repository.dart';
+import '../../../domain/repositories/obiettivo_repository.dart';
 
 /// Stato del form di creazione evento: titolo, luogo, date e categorie;
 /// valida i dati e crea l'evento tramite il repository.
 class CreaEventoViewModel extends ChangeNotifier {
   final IEventoRepository _eventoRepository;
+  final IObiettivoRepository _obiettivoRepository;
 
   String _titolo = '';
   String _luogo = '';
   DateTime _dataInizio = DateTime.now();
   DateTime _dataFine = DateTime.now().add(const Duration(hours: 1));
-  List<CategoriaEvento> _categorieSelezionate = [];
+  final List<String> _categorieSelezionate = [];
+  List<String> _categorieDisponibili = const [categoriaAltro];
+  bool _isLoading = true;
 
-  CreaEventoViewModel(this._eventoRepository);
+  CreaEventoViewModel(this._eventoRepository, this._obiettivoRepository) {
+    _caricaCategorie();
+  }
 
   String get titolo => _titolo;
   String get luogo => _luogo;
   DateTime get dataInizio => _dataInizio;
   DateTime get dataFine => _dataFine;
-  List<CategoriaEvento> get categorieSelezionate => _categorieSelezionate;
+  bool get isLoading => _isLoading;
+  List<String> get categorieSelezionate => _categorieSelezionate;
+
+  /// Categorie selezionabili: i domini degli obiettivi del Programma d'Unità,
+  /// più la voce "Altro" sempre disponibile.
+  List<String> get categorieDisponibili => _categorieDisponibili;
+
+  /// Carica i domini degli obiettivi dell'unità e li usa come categorie.
+  Future<void> _caricaCategorie() async {
+    _isLoading = true;
+    notifyListeners();
+
+    final obiettivi = await _obiettivoRepository.getObiettivi();
+    final domini = obiettivi
+        .map((o) => o.dominio.trim())
+        .where((d) => d.isNotEmpty)
+        .toSet()
+        .toList()
+      ..sort();
+
+    _categorieDisponibili = [...domini, categoriaAltro];
+    _isLoading = false;
+    notifyListeners();
+  }
 
   void setTitolo(String value) {
     _titolo = value;
@@ -45,7 +75,8 @@ class CreaEventoViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  void toggleCategoria(CategoriaEvento categoria) {
+  /// Aggiunge o rimuove una categoria dalla selezione.
+  void toggleCategoria(String categoria) {
     if (_categorieSelezionate.contains(categoria)) {
       _categorieSelezionate.remove(categoria);
     } else {
@@ -56,15 +87,13 @@ class CreaEventoViewModel extends ChangeNotifier {
 
   bool get isValid {
     return _titolo.trim().isNotEmpty &&
-           _luogo.trim().isNotEmpty &&
-           _categorieSelezionate.isNotEmpty &&
-           (_dataFine.isAfter(_dataInizio) || _dataFine.isAtSameMomentAs(_dataInizio));
+        _luogo.trim().isNotEmpty &&
+        _categorieSelezionate.isNotEmpty &&
+        (_dataFine.isAfter(_dataInizio) || _dataFine.isAtSameMomentAs(_dataInizio));
   }
 
   Future<void> salvaEvento() async {
     if (!isValid) return;
-
-    final colorePrincipale = _categorieSelezionate.first.backgroundColor;
 
     final nuovoEvento = Evento(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
@@ -73,9 +102,7 @@ class CreaEventoViewModel extends ChangeNotifier {
       dataFine: _dataFine,
       luogo: _luogo.trim(),
       categorie: List.from(_categorieSelezionate),
-      colorePrincipale: colorePrincipale == const Color(0xFFE8EAF6) 
-          ? const Color(0xFF283593) // Override for better visibility if bg is too light
-          : _categorieSelezionate.first.textColor, 
+      colorePrincipale: coloreCategoria(_categorieSelezionate.first),
     );
 
     await _eventoRepository.creaEvento(nuovoEvento);

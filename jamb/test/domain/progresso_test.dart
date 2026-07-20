@@ -21,4 +21,18 @@ void main() {
       expect(s.isPosseduta, false);
     });
   });
+
+  group('Specialita.fromMap', () {
+    // I 67 nomi delle specialità sono dichiarati due volte, come enum in
+    // PostgreSQL e come enum in Dart: se le due dichiarazioni divergono,
+    // la riga sconosciuta va scartata senza far fallire l'intera scheda.
+    test('scarta una specialità con nome non riconosciuto', () {
+      final s = Specialita.fromMap({
+        'nome': 'SpecialitaInesistente',
+        'prove': [],
+        'dataConseguimento': null,
+      });
+      expect(s, isNull);
+    });
+  });
 }

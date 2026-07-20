@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
-import '../../../domain/entities/evento.dart';
+import 'package:jamb/core/categoria_evento_colori.dart';
 import '../../../domain/repositories/evento_repository.dart';
+import '../../../domain/repositories/obiettivo_repository.dart';
 import '../view_model/crea_evento_view_model.dart';
 
 /// Schermata per la creazione di un nuovo evento del calendario.
@@ -12,7 +13,10 @@ class CreaEventoScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (context) => CreaEventoViewModel(context.read<IEventoRepository>()),
+      create: (context) => CreaEventoViewModel(
+        context.read<IEventoRepository>(),
+        context.read<IObiettivoRepository>(),
+      ),
       child: const _CreaEventoView(),
     );
   }
@@ -159,28 +163,39 @@ class _CreaEventoView extends StatelessWidget {
             ),
             const SizedBox(height: 24),
 
-            // CATEGORIE
+            // CATEGORIE (domini degli obiettivi del Programma d'Unità + "Altro")
             _buildLabel('Categorie'),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: CategoriaEvento.values.map((cat) {
-                final isSelected = viewModel.categorieSelezionate.contains(cat);
-                return ChoiceChip(
-                  label: Text(
-                    cat.nome,
-                    style: TextStyle(
-                      color: isSelected ? cat.textColor : Colors.grey[700],
-                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+            if (viewModel.isLoading)
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 8),
+                child: SizedBox(
+                  height: 20,
+                  width: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+              )
+            else
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: viewModel.categorieDisponibili.map((cat) {
+                  final isSelected = viewModel.categorieSelezionate.contains(cat);
+                  final colore = coloreCategoria(cat);
+                  return ChoiceChip(
+                    label: Text(
+                      cat,
+                      style: TextStyle(
+                        color: isSelected ? colore : Colors.grey[700],
+                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                      ),
                     ),
-                  ),
-                  selected: isSelected,
-                  selectedColor: cat.backgroundColor,
-                  backgroundColor: Colors.grey[200],
-                  onSelected: (_) => viewModel.toggleCategoria(cat),
-                );
-              }).toList(),
-            ),
+                    selected: isSelected,
+                    selectedColor: sfondoCategoria(cat),
+                    backgroundColor: Colors.grey[200],
+                    onSelected: (_) => viewModel.toggleCategoria(cat),
+                  );
+                }).toList(),
+              ),
             
             const SizedBox(height: 48),
 

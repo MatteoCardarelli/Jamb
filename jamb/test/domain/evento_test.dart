@@ -1,13 +1,15 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:jamb/domain/entities/evento.dart';
+import 'package:jamb/core/categoria_evento_colori.dart';
 
 void main() {
-  group('CategoriaEvento.fromString', () {
-    test('match case-insensitive', () {
-      expect(CategoriaEvento.fromString('spiritualità'), CategoriaEvento.spiritualita);
-    });
-    test('valore sconosciuto diventa altro', () {
-      expect(CategoriaEvento.fromString('boh'), CategoriaEvento.altro);
+  group('coloreCategoria', () {
+    // "Altro" è l'unica categoria con un colore riservato: le altre sono i
+    // titoli degli obiettivi dell'unità e ricevono un colore derivato dal nome.
+    // Il riconoscimento deve reggere le maiuscole, perché la stringa arriva sia
+    // dalla costante sia da righe salvate a DB.
+    test('"Altro" è riconosciuto a prescindere dalle maiuscole', () {
+      expect(coloreCategoria('altro'), coloreCategoria(categoriaAltro));
+      expect(coloreCategoria('ALTRO'), coloreCategoria(categoriaAltro));
     });
   });
 }

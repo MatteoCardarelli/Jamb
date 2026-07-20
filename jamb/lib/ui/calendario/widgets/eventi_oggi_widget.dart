@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../view_model/calendario_view_model.dart';
 import '../../../domain/entities/evento.dart';
+import 'package:jamb/core/categoria_evento_colori.dart'; 
 
 /// Elenco degli eventi del giorno selezionato nel calendario.
 class EventiOggiWidget extends StatelessWidget {
@@ -165,15 +166,15 @@ class _EventoCard extends StatelessWidget {
                         return Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                           decoration: BoxDecoration(
-                            color: cat.backgroundColor,
+                            color: sfondoCategoria(cat),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
-                            cat.nome,
+                            cat,
                             style: TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.bold,
-                              color: cat.textColor,
+                              color: coloreCategoria(cat),
                             ),
                           ),
                         );
