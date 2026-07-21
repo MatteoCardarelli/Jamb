@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:jamb/ui/contabilita/view_model/contabilita_view_model.dart';
 import 'package:intl/intl.dart';
-
 import 'package:jamb/ui/contabilita/widgets/dettaglio_transazione_screen.dart';
 import 'package:jamb/ui/contabilita/view_model/dettaglio_transazione_view_model.dart';
 import 'package:jamb/domain/repositories/transazione_repository.dart';
@@ -16,7 +15,10 @@ class CassaBrancaWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     // Ascolta i cambiamenti della contabilità dal ViewModel
     final financeProvider = context.watch<ContabilitaViewModel>();
-    final NumberFormat currencyFormat = NumberFormat.currency(locale: 'it_IT', symbol: '€');
+    final NumberFormat currencyFormat = NumberFormat.currency(
+      locale: 'it_IT',
+      symbol: '€',
+    );
 
     return Container(
       margin: const EdgeInsets.only(top: 24),
@@ -71,9 +73,9 @@ class CassaBrancaWidget extends StatelessWidget {
               ),
             ],
           ),
-          
+
           const SizedBox(height: 24),
-          
+
           // AREA SALDO ATTUALE
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -101,43 +103,59 @@ class CassaBrancaWidget extends StatelessWidget {
               ),
             ],
           ),
-          
+
           const SizedBox(height: 24),
           const Divider(color: Color(0xFFF1F5F9), height: 1, thickness: 1),
           const SizedBox(height: 20),
-          
+
           // LISTA TRANSAZIONI RECENTI (Ultime 2, già ordinate per data nel ViewModel)
           if (financeProvider.transactions.isEmpty)
             const Padding(
               padding: EdgeInsets.symmetric(vertical: 8),
               child: Text(
                 "Nessuna transazione recente.",
-                style: TextStyle(color: Color(0xFF94A3B8), fontSize: 13, fontFamily: 'Lexend'),
+                style: TextStyle(
+                  color: Color(0xFF94A3B8),
+                  fontSize: 13,
+                  fontFamily: 'Lexend',
+                ),
               ),
             )
           else
-            ...financeProvider.transactions.take(2).map((t) => Padding(
-              padding: const EdgeInsets.only(bottom: 16),
-              child: GestureDetector(
-                onTap: () {
-                  Navigator.of(context).push(
-                    PageRouteBuilder(
-                      pageBuilder: (context, animation, secondaryAnimation) => ChangeNotifierProvider(
-                        create: (_) => DettaglioTransazioneViewModel(t, context.read<ITransazioneRepository>()),
-                        child: const DettaglioTransazioneScreen(),
+            ...financeProvider.transactions
+                .take(2)
+                .map(
+                  (t) => Padding(
+                    padding: const EdgeInsets.only(bottom: 16),
+                    child: GestureDetector(
+                      onTap: () {
+                        Navigator.of(context).push(
+                          PageRouteBuilder(
+                            pageBuilder:
+                                (context, animation, secondaryAnimation) =>
+                                    ChangeNotifierProvider(
+                                      create: (_) =>
+                                          DettaglioTransazioneViewModel(
+                                            t,
+                                            context
+                                                .read<ITransazioneRepository>(),
+                                          ),
+                                      child: const DettaglioTransazioneScreen(),
+                                    ),
+                            transitionDuration: Duration.zero,
+                          ),
+                        );
+                      },
+                      child: _buildTransaction(
+                        isPositive: !t.isUscita,
+                        title: t.titolo,
+                        amount:
+                            "${!t.isUscita ? '+' : '-'}${currencyFormat.format(t.importo)}",
+                        date: DateFormat('dd MMM').format(t.data),
                       ),
-                      transitionDuration: Duration.zero,
                     ),
-                  );
-                },
-                child: _buildTransaction(
-                  isPositive: !t.isUscita,
-                  title: t.titolo,
-                  amount: "${!t.isUscita ? '+' : '-'}${currencyFormat.format(t.importo)}",
-                  date: DateFormat('dd MMM').format(t.data),
+                  ),
                 ),
-              ),
-            )),
         ],
       ),
     );
@@ -145,23 +163,24 @@ class CassaBrancaWidget extends StatelessWidget {
 
   /// Costruisce una riga di transazione con colori semantici (Verde/Rosso)
   Widget _buildTransaction({
-    required bool isPositive, 
-    required String title, 
+    required bool isPositive,
+    required String title,
     required String amount,
     required String date,
   }) {
-    final Color color = isPositive ? const Color(0xFF1B703C) : const Color(0xFFC8202F);
-    final Color bgColor = isPositive ? const Color(0xFFEAF5EB) : const Color(0xFFFCE9EA);
+    final Color color = isPositive
+        ? const Color(0xFF1B703C)
+        : const Color(0xFFC8202F);
+    final Color bgColor = isPositive
+        ? const Color(0xFFEAF5EB)
+        : const Color(0xFFFCE9EA);
 
     return Row(
       children: [
         Container(
           width: 36,
           height: 36,
-          decoration: BoxDecoration(
-            color: bgColor,
-            shape: BoxShape.circle,
-          ),
+          decoration: BoxDecoration(color: bgColor, shape: BoxShape.circle),
           child: Icon(
             isPositive ? Icons.add : Icons.remove,
             color: color,
