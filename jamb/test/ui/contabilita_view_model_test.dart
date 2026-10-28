@@ -1,6 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:jamb/domain/entities/transazione.dart';
+import 'package:jamb/domain/errori/jamb_exception.dart';
 import 'package:jamb/ui/contabilita/view_model/contabilita_view_model.dart';
+import 'package:jamb/ui/core/view_model/stato_caricamento.dart';
 import '../../testing/fakes/fake_transazione_repository.dart';
 import '../../testing/models/transazione_di_test.dart';
 
@@ -33,6 +35,36 @@ void main() {
       ]));
       await Future.delayed(Duration.zero);
       expect(vm.ripartizioneSpese, isEmpty);
+    });
+
+    // Prima un errore di lettura lasciava un saldo a zero indistinguibile
+    // da una cassa vuota: ora deve diventare uno stato di errore esplicito.
+    test('un errore di lettura porta allo stato errore con il messaggio', () async {
+      final repo = FakeTransazioneRepository(
+        [transazioneDiTest('a', 100, false, Categoria.quote)],
+        erroreLettura: const JambException(TipoErrore.rete, 'Connessione assente.'),
+      );
+      final vm = ContabilitaViewModel(repo);
+      await Future.delayed(Duration.zero);
+
+      expect(vm.stato, StatoCaricamento.errore);
+      expect(vm.errore, 'Connessione assente.');
+    });
+
+    test('refresh dopo un errore torna a pronto con i dati', () async {
+      final repo = FakeTransazioneRepository(
+        [transazioneDiTest('a', 100, false, Categoria.quote)],
+        erroreLettura: const JambException(TipoErrore.rete, 'Connessione assente.'),
+      );
+      final vm = ContabilitaViewModel(repo);
+      await Future.delayed(Duration.zero);
+
+      repo.erroreLettura = null;
+      await vm.refresh();
+
+      expect(vm.stato, StatoCaricamento.pronto);
+      expect(vm.errore, isNull);
+      expect(vm.saldoAttuale, 100);
     });
   });
 }

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:jamb/ui/core/widgets/empty_background_screen.dart';
 import 'package:jamb/ui/core/widgets/back_action_button.dart';
+import 'package:jamb/ui/core/widgets/jamb_feedback.dart';
+import 'package:jamb/ui/core/widgets/jamb_stato_errore.dart';
 import 'package:jamb/ui/amministrazione/widgets/status_documento_card.dart';
 import 'package:jamb/ui/amministrazione/widgets/status_row_card.dart';
 import 'package:jamb/ui/amministrazione/view_model/amministrazione_view_model.dart';
@@ -49,8 +51,16 @@ class _AmministrazioneScreenState extends State<AmministrazioneScreen> {
       backgroundColor: Colors.transparent,
       body: EmptyBackgroundScreen(
         currentIndex: 2,
-        child: adminViewModel.isLoading 
+        child: adminViewModel.isLoading
           ? const Center(child: CircularProgressIndicator()) // Mostra caricamento
+          : adminViewModel.haErrore
+          ? Padding(
+              padding: const EdgeInsets.only(top: 170),
+              child: JambStatoErrore(
+                messaggio: adminViewModel.errore!,
+                onRiprova: adminViewModel.refresh,
+              ),
+            )
           : SingleChildScrollView(
               padding: const EdgeInsets.only(top: 170, left: 20, right: 20, bottom: 120),
               child: Column(
@@ -168,9 +178,12 @@ class _AmministrazioneScreenState extends State<AmministrazioneScreen> {
                   else
                     ...filteredData.map((ragazzo) => StatusRowCard(
                       ragazzo: ragazzo,
-                      onCensimentoTap: () => adminViewModel.updateCensimento(ragazzo.id),
-                      onPrivacyTap: () => adminViewModel.updatePrivacy(ragazzo.id),
-                      onMedicaTap: () => adminViewModel.updateMedica(ragazzo.id),
+                      onCensimentoTap: () => eseguiConFeedback(
+                          context, () => adminViewModel.updateCensimento(ragazzo.id)),
+                      onPrivacyTap: () => eseguiConFeedback(
+                          context, () => adminViewModel.updatePrivacy(ragazzo.id)),
+                      onMedicaTap: () => eseguiConFeedback(
+                          context, () => adminViewModel.updateMedica(ragazzo.id)),
                     )),
                 ],
               ),

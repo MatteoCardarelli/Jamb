@@ -1,5 +1,6 @@
 import 'package:jamb/core/supabase_client.dart';
 import 'package:jamb/core/session_service.dart';
+import 'package:jamb/data/errori_supabase.dart';
 import '../../domain/entities/transazione.dart';
 import '../../domain/repositories/transazione_repository.dart';
 
@@ -21,58 +22,54 @@ class SupabaseTransazioneRepository extends ITransazioneRepository {
   );
 
   @override
-  Future<List<Transazione>> getTransazioni() async {
-    final List<dynamic> rows =
-        await supabase.from(_table).select().order('data', ascending: false);
-    return rows.map((row) => _fromDb(row as Map<String, dynamic>)).toList();
-  }
-
-  @override
-  Future<void> salvaTransazione(Transazione t) async {
-    final userId = supabase.auth.currentUser?.id;
-    if (userId == null) {
-      throw StateError('Nessun utente loggato: impossibile salvare.');
-    }
-
-    // id non-UUID → nuova (INSERT, id generato dal DB); id UUID → esistente (UPDATE).
-    final bool isNuova = !_uuidRegex.hasMatch(t.id);
-
-    if (isNuova) {
-      final unitId = _session.activeUnitId;
-      if (unitId == null) {
-        throw StateError('Nessuna unità attiva: impossibile salvare.');
-      }
-      await supabase.from(_table).insert({
-        'autore_id': userId,
-        'unit_id': unitId,
-        'tipo': t.isUscita ? 'USCITA' : 'ENTRATA',
-        'importo': t.importo,
-        'titolo': t.titolo,
-        'categoria': t.categoria.name,
-        'note': t.note,
-        'receipt_url': t.percorsoRicevuta,
-        'data': t.data.toIso8601String(),
+  Future<List<Transazione>> getTransazioni() => eseguiSupabase(() async {
+        final List<dynamic> rows =
+            await supabase.from(_table).select().order('data', ascending: false);
+        return rows.map((row) => _fromDb(row as Map<String, dynamic>)).toList();
       });
-    } else {
-      await supabase.from(_table).update({
-        'tipo': t.isUscita ? 'USCITA' : 'ENTRATA',
-        'importo': t.importo,
-        'titolo': t.titolo,
-        'categoria': t.categoria.name,
-        'note': t.note,
-        'receipt_url': t.percorsoRicevuta,
-        'data': t.data.toIso8601String(),
-      }).eq('id', t.id);
-    }
-
-    notifyListeners();
-  }
 
   @override
-  Future<void> eliminaTransazione(String id) async {
-    await supabase.from(_table).delete().eq('id', id);
-    notifyListeners();
-  }
+  Future<void> salvaTransazione(Transazione t) => eseguiSupabase(() async {
+        final userId = supabase.auth.currentUser?.id;
+        if (userId == null) throw sessioneSenzaUtente;
+
+        // id non-UUID → nuova (INSERT, id generato dal DB); id UUID → esistente (UPDATE).
+        final bool isNuova = !_uuidRegex.hasMatch(t.id);
+
+        if (isNuova) {
+          final unitId = _session.activeUnitId;
+          if (unitId == null) throw sessioneSenzaUnita;
+          await supabase.from(_table).insert({
+            'autore_id': userId,
+            'unit_id': unitId,
+            'tipo': t.isUscita ? 'USCITA' : 'ENTRATA',
+            'importo': t.importo,
+            'titolo': t.titolo,
+            'categoria': t.categoria.name,
+            'note': t.note,
+            'receipt_url': t.percorsoRicevuta,
+            'data': t.data.toIso8601String(),
+          });
+        } else {
+          await supabase.from(_table).update({
+            'tipo': t.isUscita ? 'USCITA' : 'ENTRATA',
+            'importo': t.importo,
+            'titolo': t.titolo,
+            'categoria': t.categoria.name,
+            'note': t.note,
+            'receipt_url': t.percorsoRicevuta,
+            'data': t.data.toIso8601String(),
+          }).eq('id', t.id);
+        }
+
+        notifyListeners();
+      });
+
+  @override
+  Future<void> eliminaTransazione(String id) => eseguiSupabase(() async {
+        await supabase.from(_table).delete().eq('id', id);
+        notifyListeners();
+      });
 
   /// Costruisce una [Transazione] a partire da una riga del database.
   Transazione _fromDb(Map<String, dynamic> row) {

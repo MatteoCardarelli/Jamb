@@ -1,5 +1,6 @@
 import 'package:jamb/core/session_service.dart';
 import 'package:jamb/core/supabase_client.dart';
+import 'package:jamb/data/errori_supabase.dart';
 import '../../domain/entities/documento.dart';
 import '../../domain/repositories/documento_repository.dart';
 
@@ -14,21 +15,21 @@ class SupabaseDocumentoRepository implements IDocumentoRepository {
   static const String _table = 'documents';
 
   @override
-  Future<List<Documento>> getContenuto(String? parentId) async {
-    final unitId = _session.activeUnitId;
-    if (unitId == null) return [];
+  Future<List<Documento>> getContenuto(String? parentId) => eseguiSupabase(() async {
+        final unitId = _session.activeUnitId;
+        if (unitId == null) return [];
 
-    // Radice → parent_id IS NULL; altrimenti figli della cartella indicata.
-    var filter = supabase.from(_table).select().eq('unit_id', unitId);
-    filter = parentId == null
-        ? filter.isFilter('parent_id', null)
-        : filter.eq('parent_id', parentId);
+        // Radice → parent_id IS NULL; altrimenti figli della cartella indicata.
+        var filter = supabase.from(_table).select().eq('unit_id', unitId);
+        filter = parentId == null
+            ? filter.isFilter('parent_id', null)
+            : filter.eq('parent_id', parentId);
 
-    // Cartelle prima dei file, poi in ordine alfabetico di titolo.
-    final List<dynamic> rows =
-        await filter.order('is_cartella', ascending: false).order('titolo');
-    return rows.map((r) => _fromDb(r as Map<String, dynamic>)).toList();
-  }
+        // Cartelle prima dei file, poi in ordine alfabetico di titolo.
+        final List<dynamic> rows =
+            await filter.order('is_cartella', ascending: false).order('titolo');
+        return rows.map((r) => _fromDb(r as Map<String, dynamic>)).toList();
+      });
 
   /// Costruisce un [Documento] a partire da una riga del database.
   Documento _fromDb(Map<String, dynamic> row) {

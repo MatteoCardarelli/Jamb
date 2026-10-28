@@ -10,6 +10,8 @@ import 'package:provider/provider.dart';
 import 'package:jamb/ui/contabilita/view_model/contabilita_view_model.dart';
 import 'package:jamb/ui/core/widgets/back_action_button.dart';
 import 'package:jamb/ui/core/widgets/jamb_fab.dart';
+import 'package:jamb/ui/core/widgets/jamb_feedback.dart';
+import 'package:jamb/ui/core/widgets/jamb_stato_errore.dart';
 
 /// Schermata della contabilità: saldo, distribuzione delle spese ed elenco transazioni.
 class ContabilitaScreen extends StatelessWidget {
@@ -36,8 +38,9 @@ class ContabilitaScreen extends StatelessWidget {
               transitionDuration: Duration.zero,
             ));
 
-            if (transazione != null) {
-              financeViewModel.addTransaction(transazione);
+            if (transazione != null && context.mounted) {
+              await eseguiConFeedback(
+                  context, () => financeViewModel.addTransaction(transazione));
             }
           },
         ),
@@ -64,18 +67,26 @@ class ContabilitaScreen extends StatelessWidget {
               ),
               const SizedBox(height: 32),
 
-              // IL WIDGET SALDO (Dati dal Provider)
-              BalanceCard(saldo: financeViewModel.saldoAttuale),
+              // In caso di errore non si mostra un saldo a zero, che sarebbe falso.
+              if (financeViewModel.haErrore)
+                JambStatoErrore(
+                  messaggio: financeViewModel.errore!,
+                  onRiprova: financeViewModel.refresh,
+                )
+              else ...[
+                // IL WIDGET SALDO (Dati dal Provider)
+                BalanceCard(saldo: financeViewModel.saldoAttuale),
 
-              const SizedBox(height: 16),
+                const SizedBox(height: 16),
 
-              // IL WIDGET RIPARTIZIONE SPESE
-              const ExpensesDistributionCard(),
+                // IL WIDGET RIPARTIZIONE SPESE
+                const ExpensesDistributionCard(),
 
-              const SizedBox(height: 32),
+                const SizedBox(height: 32),
 
-              // LA LISTA TRANSAZIONI RECENTI (Nuovo)
-              const RecentTransactionsList(),
+                // LA LISTA TRANSAZIONI RECENTI (Nuovo)
+                const RecentTransactionsList(),
+              ],
             ],
           ),
         ),

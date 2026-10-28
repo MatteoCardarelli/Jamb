@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:jamb/core/categoria_evento_colori.dart';
+import 'package:jamb/ui/core/widgets/jamb_feedback.dart';
 import '../../../domain/repositories/evento_repository.dart';
 import '../../../domain/repositories/obiettivo_repository.dart';
 import '../view_model/crea_evento_view_model.dart';
@@ -174,7 +175,26 @@ class _CreaEventoView extends StatelessWidget {
                   child: CircularProgressIndicator(strokeWidth: 2),
                 ),
               )
-            else
+            else ...[
+              // Senza obiettivi caricati il form resta utilizzabile con "Altro".
+              if (viewModel.haErrore)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          'Categorie del Programma d\'Unità non disponibili: ${viewModel.errore}',
+                          style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: viewModel.ricaricaCategorie,
+                        child: const Text('Riprova'),
+                      ),
+                    ],
+                  ),
+                ),
               Wrap(
                 spacing: 8,
                 runSpacing: 8,
@@ -196,7 +216,8 @@ class _CreaEventoView extends StatelessWidget {
                   );
                 }).toList(),
               ),
-            
+            ],
+
             const SizedBox(height: 48),
 
             // TASTO SALVA
@@ -205,8 +226,8 @@ class _CreaEventoView extends StatelessWidget {
               height: 56,
               child: ElevatedButton(
                 onPressed: viewModel.isValid ? () async {
-                  await viewModel.salvaEvento();
-                  if (context.mounted) {
+                  final salvato = await eseguiConFeedback(context, viewModel.salvaEvento);
+                  if (salvato && context.mounted) {
                     Navigator.pop(context);
                   }
                 } : null,

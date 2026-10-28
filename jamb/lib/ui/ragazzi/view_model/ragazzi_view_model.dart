@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:jamb/domain/entities/scout.dart';
 import 'package:jamb/domain/repositories/scout_repository.dart';
+import 'package:jamb/ui/core/view_model/stato_caricamento.dart';
 
 /// Stato della lista ragazzi: carica gli scout dal repository ed espone la
 /// lista filtrata per testo, squadriglia e presenza di alert (allergie).
-class RagazziViewModel extends ChangeNotifier {
+class RagazziViewModel extends ChangeNotifier with StatoCaricamentoMixin {
   final IScoutRepository _repository;
   final TextEditingController searchController = TextEditingController();
 
   List<Scout> _tuttiRagazzi = [];
-  bool _isLoading = true;
   String? _squadrigliaFiltro;
   bool _alertFiltro = false;
 
@@ -20,15 +20,9 @@ class RagazziViewModel extends ChangeNotifier {
     _caricaDati();
   }
 
-  Future<void> _caricaDati() async {
-    _isLoading = true;
-    notifyListeners();
-    
-    _tuttiRagazzi = await _repository.getRagazzi();
-    
-    _isLoading = false;
-    notifyListeners();
-  }
+  Future<void> _caricaDati() => eseguiCaricamento(() async {
+        _tuttiRagazzi = await _repository.getRagazzi();
+      });
 
   @override
   void dispose() {
@@ -36,7 +30,6 @@ class RagazziViewModel extends ChangeNotifier {
     super.dispose();
   }
 
-  bool get isLoading => _isLoading;
   String get searchQuery => searchController.text;
   String? get squadrigliaFiltro => _squadrigliaFiltro;
   bool get alertFiltro => _alertFiltro;

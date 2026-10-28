@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:jamb/ui/core/widgets/jamb_feedback.dart';
 import 'package:jamb/ui/core/widgets/jamb_search_picker.dart';
 import 'package:jamb/domain/entities/progresso.dart';
 import 'package:jamb/ui/dettaglio_ragazzo/view_model/dettaglio_ragazzo_view_model.dart';
@@ -43,8 +44,10 @@ class BrevettiWidget extends StatelessWidget {
       builder: (ctx) => _EditBrevettoSheet(
         brevetto: brevetti[index],
         viewModel: viewModel,
-        onSalva: (aggiornato) => viewModel.modificaBrevetto(index, aggiornato),
-        onElimina: () => viewModel.rimuoviBrevetto(index),
+        onSalva: (aggiornato) => eseguiConFeedback(
+            context, () => viewModel.modificaBrevetto(index, aggiornato)),
+        onElimina: () => eseguiConFeedback(
+            context, () => viewModel.rimuoviBrevetto(index)),
       ),
     );
   }
@@ -57,8 +60,11 @@ class BrevettiWidget extends StatelessWidget {
       backgroundColor: Colors.transparent,
       builder: (ctx) => _AggiungiBrevettoSheet(
         onAggiungi: (nuovo) async {
-          final success = await viewModel.aggiungiBrevetto(nuovo);
-          if (!success && context.mounted) {
+          var aggiunto = true;
+          final salvato = await eseguiConFeedback(context, () async {
+            aggiunto = await viewModel.aggiungiBrevetto(nuovo);
+          });
+          if (salvato && !aggiunto && context.mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text("Questo ragazzo ha già questo brevetto in corso!")),
             );

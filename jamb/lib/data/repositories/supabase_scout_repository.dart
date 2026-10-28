@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:jamb/core/supabase_client.dart';
 import 'package:jamb/core/session_service.dart';
+import 'package:jamb/data/errori_supabase.dart';
 import '../../domain/entities/scout.dart';
 import '../../domain/entities/progresso.dart';
 import '../../domain/repositories/scout_repository.dart';
@@ -16,7 +17,26 @@ class SupabaseScoutRepository extends IScoutRepository {
   SupabaseScoutRepository(this._session);
 
   @override
-  Future<List<Scout>> getRagazzi() async {
+  Future<List<Scout>> getRagazzi() => eseguiSupabase(_leggiRagazzi);
+
+  @override
+  Future<List<String>> getSquadriglie() => eseguiSupabase(() async {
+        final unitId = _session.activeUnitId;
+        if (unitId == null) return [];
+        final List<dynamic> rows = await supabase
+            .from('squads')
+            .select('nome')
+            .eq('unit_id', unitId)
+            .eq('is_active', true)
+            .order('nome');
+        return rows.map((r) => r['nome'] as String).toList();
+      });
+
+  @override
+  Future<void> salvaRagazzo(Scout ragazzo) =>
+      eseguiSupabase(() => _scriviRagazzo(ragazzo));
+
+  Future<List<Scout>> _leggiRagazzi() async {
     final unitId = _session.activeUnitId;
     if (unitId == null) return []; // nessuna unità attiva → nessun ragazzo
 
@@ -45,21 +65,11 @@ class SupabaseScoutRepository extends IScoutRepository {
     return scouts;
   }
 
-  @override
-  Future<List<String>> getSquadriglie() async {
-    final unitId = _session.activeUnitId;
-    if (unitId == null) return [];
-    final List<dynamic> rows = await supabase
-        .from('squads')
-        .select('nome')
-        .eq('unit_id', unitId)
-        .eq('is_active', true)
-        .order('nome');
-    return rows.map((r) => r['nome'] as String).toList();
-  }
-
-  @override
-  Future<void> salvaRagazzo(Scout ragazzo) async {
+  /// Scrive l'aggregato su tutte le tabelle coinvolte.
+  ///
+  /// Le scritture non sono in un'unica transazione: se una fallisce a metà,
+  /// le precedenti restano applicate (vedi `DECISIONI.md`).
+  Future<void> _scriviRagazzo(Scout ragazzo) async {
     final userId = ragazzo.id;
 
     // 0. Membership (SCD Type 2): se ruolo o squadriglia sono cambiati,

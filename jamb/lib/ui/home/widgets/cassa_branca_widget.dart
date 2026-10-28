@@ -91,7 +91,10 @@ class CassaBrancaWidget extends StatelessWidget {
                 ),
               ),
               Text(
-                currencyFormat.format(financeProvider.saldoAttuale),
+                // In caso di errore un saldo a zero sarebbe falso.
+                financeProvider.haErrore
+                    ? "—"
+                    : currencyFormat.format(financeProvider.saldoAttuale),
                 style: const TextStyle(
                   color: Color(0xFF00005C),
                   fontSize: 32,
@@ -109,12 +112,14 @@ class CassaBrancaWidget extends StatelessWidget {
           const SizedBox(height: 20),
 
           // LISTA TRANSAZIONI RECENTI (Ultime 2, già ordinate per data nel ViewModel)
-          if (financeProvider.transactions.isEmpty)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 8),
+          if (financeProvider.haErrore || financeProvider.transactions.isEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
               child: Text(
-                "Nessuna transazione recente.",
-                style: TextStyle(
+                financeProvider.haErrore
+                    ? "Dati della cassa non disponibili."
+                    : "Nessuna transazione recente.",
+                style: const TextStyle(
                   color: Color(0xFF94A3B8),
                   fontSize: 13,
                   fontFamily: 'Lexend',

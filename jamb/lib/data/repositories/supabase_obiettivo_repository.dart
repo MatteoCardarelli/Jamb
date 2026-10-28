@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:jamb/core/session_service.dart';
 import 'package:jamb/core/supabase_client.dart';
+import 'package:jamb/data/errori_supabase.dart';
 import '../../domain/entities/obiettivo.dart';
 import '../../domain/repositories/obiettivo_repository.dart';
 
@@ -19,44 +20,42 @@ class SupabaseObiettivoRepository implements IObiettivoRepository {
   );
 
   @override
-  Future<List<Obiettivo>> getObiettivi() async {
-    final List<dynamic> rows =
-        await supabase.from(_table).select().order('created_at', ascending: true);
-    return rows.map((r) => _fromDb(r as Map<String, dynamic>)).toList();
-  }
-
-  @override
-  Future<void> salvaObiettivo(Obiettivo o) async {
-    final payload = {
-      'dominio': o.dominio,
-      'descrizione': o.descrizione,
-      'grado': o.grado,
-      'diario_di_bordo': o.diarioDiBordo,
-      'colore': o.colore.value,
-      'icona': o.icona.codePoint,
-    };
-
-    // id non-UUID → nuovo (INSERT, id generato dal DB); id UUID → esistente (UPDATE).
-    final bool isNuovo = !_uuidRegex.hasMatch(o.id);
-    if (isNuovo) {
-      final unitId = _session.activeUnitId;
-      if (unitId == null) {
-        throw StateError('Nessuna unità attiva: impossibile salvare.');
-      }
-      await supabase.from(_table).insert({
-        ...payload,
-        'unit_id': unitId,
-        'anno_scout': _annoScoutCorrente(),
+  Future<List<Obiettivo>> getObiettivi() => eseguiSupabase(() async {
+        final List<dynamic> rows =
+            await supabase.from(_table).select().order('created_at', ascending: true);
+        return rows.map((r) => _fromDb(r as Map<String, dynamic>)).toList();
       });
-    } else {
-      await supabase.from(_table).update(payload).eq('id', o.id);
-    }
-  }
 
   @override
-  Future<void> eliminaObiettivo(String id) async {
-    await supabase.from(_table).delete().eq('id', id);
-  }
+  Future<void> salvaObiettivo(Obiettivo o) => eseguiSupabase(() async {
+        final payload = {
+          'dominio': o.dominio,
+          'descrizione': o.descrizione,
+          'grado': o.grado,
+          'diario_di_bordo': o.diarioDiBordo,
+          'colore': o.colore.value,
+          'icona': o.icona.codePoint,
+        };
+
+        // id non-UUID → nuovo (INSERT, id generato dal DB); id UUID → esistente (UPDATE).
+        final bool isNuovo = !_uuidRegex.hasMatch(o.id);
+        if (isNuovo) {
+          final unitId = _session.activeUnitId;
+          if (unitId == null) throw sessioneSenzaUnita;
+          await supabase.from(_table).insert({
+            ...payload,
+            'unit_id': unitId,
+            'anno_scout': _annoScoutCorrente(),
+          });
+        } else {
+          await supabase.from(_table).update(payload).eq('id', o.id);
+        }
+      });
+
+  @override
+  Future<void> eliminaObiettivo(String id) => eseguiSupabase(() async {
+        await supabase.from(_table).delete().eq('id', id);
+      });
 
   /// Costruisce un [Obiettivo] a partire da una riga del database.
   Obiettivo _fromDb(Map<String, dynamic> row) {

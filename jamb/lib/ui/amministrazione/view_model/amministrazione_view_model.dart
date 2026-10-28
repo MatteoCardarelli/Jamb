@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:jamb/domain/entities/scout.dart';
 import 'package:jamb/domain/repositories/scout_repository.dart';
+import 'package:jamb/ui/core/view_model/stato_caricamento.dart';
 
 /// Stato della sezione Amministrazione: statistiche sui documenti (censimento,
 /// privacy, medica) dei ragazzi e ciclo dei relativi stati. Si ricarica dal repository.
-class AmministrazioneViewModel extends ChangeNotifier {
+class AmministrazioneViewModel extends ChangeNotifier with StatoCaricamentoMixin {
   final IScoutRepository _repository;
-  
+
   List<Scout> _ragazzi = [];
-  bool _isLoading = true;
 
   AmministrazioneViewModel(this._repository) {
     _repository.addListener(_caricaDati);
@@ -21,15 +21,10 @@ class AmministrazioneViewModel extends ChangeNotifier {
     super.dispose();
   }
 
-  Future<void> _caricaDati() async {
-    _isLoading = true;
-    notifyListeners();
-    _ragazzi = await _repository.getRagazzi();
-    _isLoading = false;
-    notifyListeners();
-  }
+  Future<void> _caricaDati() => eseguiCaricamento(() async {
+        _ragazzi = await _repository.getRagazzi();
+      });
 
-  bool get isLoading => _isLoading;
   List<Scout> get ragazzi => _ragazzi;
 
   /// Numero totale di ragazzi.
@@ -66,6 +61,7 @@ class AmministrazioneViewModel extends ChangeNotifier {
   }
 
   /// Fa avanzare lo stato del censimento del ragazzo [id] al valore successivo.
+  /// Un errore di salvataggio viene propagato alla View.
   Future<void> updateCensimento(String id) => _cycleStatus(id, 'censimento');
   Future<void> updatePrivacy(String id) => _cycleStatus(id, 'privacy');
   Future<void> updateMedica(String id) => _cycleStatus(id, 'medica');

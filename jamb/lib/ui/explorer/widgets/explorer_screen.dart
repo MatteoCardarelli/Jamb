@@ -5,6 +5,7 @@ import 'package:jamb/ui/core/widgets/jamb_search_bar.dart';
 import 'package:jamb/ui/core/widgets/jamb_category_card.dart';
 import 'package:jamb/ui/core/widgets/jamb_expandable_fab.dart';
 import 'package:jamb/ui/core/widgets/jamb_dialogs.dart';
+import 'package:jamb/ui/core/widgets/jamb_stato_errore.dart';
 import 'package:jamb/ui/explorer/view_model/explorer_view_model.dart';
 import 'package:jamb/domain/repositories/documento_repository.dart';
 
@@ -84,6 +85,11 @@ class ExplorerScreen extends StatelessWidget {
                     padding: EdgeInsets.only(top: 40),
                     child: CircularProgressIndicator(),
                   ),
+                )
+              else if (viewModel.haErrore)
+                JambStatoErrore(
+                  messaggio: viewModel.errore!,
+                  onRiprova: viewModel.refresh,
                 )
               else if (viewModel.contenutoFiltrato.isEmpty)
                 _buildEmptyState()

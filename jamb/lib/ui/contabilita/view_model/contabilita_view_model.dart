@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:jamb/domain/entities/transazione.dart';
 import 'package:jamb/domain/repositories/transazione_repository.dart';
+import 'package:jamb/ui/core/view_model/stato_caricamento.dart';
 
 /// Stato della sezione Contabilità: carica le transazioni, le ordina per data
 /// e calcola saldo e statistiche. Si ricarica quando il repository cambia.
-class ContabilitaViewModel extends ChangeNotifier {
+class ContabilitaViewModel extends ChangeNotifier with StatoCaricamentoMixin {
   final ITransazioneRepository _repository;
-  
+
   List<Transazione> _transactions = [];
-  bool _isLoading = true;
 
   ContabilitaViewModel(this._repository) {
     _repository.addListener(_caricaDati);
@@ -21,21 +21,18 @@ class ContabilitaViewModel extends ChangeNotifier {
     super.dispose();
   }
 
-  Future<void> _caricaDati() async {
-    _isLoading = true;
-    notifyListeners();
-    
-    final lista = await _repository.getTransazioni();
-    
-    // Ordina per data decrescente (più recenti in cima)
-    lista.sort((a, b) => b.data.compareTo(a.data));
-    
-    _transactions = lista;
-    _isLoading = false;
-    notifyListeners();
-  }
+  Future<void> _caricaDati() => eseguiCaricamento(() async {
+        final lista = await _repository.getTransazioni();
 
-  bool get isLoading => _isLoading;
+        // Ordina per data decrescente (più recenti in cima)
+        lista.sort((a, b) => b.data.compareTo(a.data));
+
+        _transactions = lista;
+      });
+
+  /// Ricarica le transazioni (es. dopo un errore).
+  Future<void> refresh() => _caricaDati();
+
   List<Transazione> get transactions => _transactions;
 
   /// Calcola il saldo totale (Entrate - Uscite)
@@ -68,6 +65,7 @@ class ContabilitaViewModel extends ChangeNotifier {
   }
 
   /// Salva una nuova transazione (la lista si ricarica via listener).
+  /// Un errore viene propagato alla View, che lo mostra all'utente.
   Future<void> addTransaction(Transazione transazione) async {
     await _repository.salvaTransazione(transazione);
   }

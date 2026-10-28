@@ -4,6 +4,7 @@ import 'package:jamb/ui/contabilita/view_model/dettaglio_transazione_view_model.
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:jamb/ui/core/widgets/back_action_button.dart';
+import 'package:jamb/ui/core/widgets/jamb_feedback.dart';
 
 /// Schermata di dettaglio di una singola transazione, con opzione di eliminazione.
 class DettaglioTransazioneScreen extends StatelessWidget {
@@ -195,11 +196,10 @@ class DettaglioTransazioneScreen extends StatelessWidget {
           ),
           TextButton(
             onPressed: () async {
-              await viewModel.elimina();
-              if (context.mounted) {
-                Navigator.of(context).pop(); // Chiude il dialog
-                Navigator.of(context).pop(); // Torna alla lista
-              }
+              final eliminata = await eseguiConFeedback(context, viewModel.elimina);
+              if (!context.mounted) return;
+              Navigator.of(context).pop(); // Chiude il dialog
+              if (eliminata) Navigator.of(context).pop(); // Torna alla lista
             },
             child: const Text("ELIMINA", style: TextStyle(color: Color(0xFFB91C1C), fontWeight: FontWeight.bold)),
           ),
