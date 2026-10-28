@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:jamb/core/categoria_evento_colori.dart';
 import 'package:jamb/core/session_service.dart';
 import 'package:jamb/core/supabase_client.dart';
+import 'package:jamb/data/errori_supabase.dart';
 import '../../domain/entities/evento.dart';
 import '../../domain/repositories/evento_repository.dart';
 
@@ -16,11 +17,11 @@ class SupabaseEventoRepository extends IEventoRepository {
   static const String _table = 'events';
 
   @override
-  Future<List<Evento>> getEventi() async {
-    final List<dynamic> rows =
-        await supabase.from(_table).select().order('data_inizio', ascending: true);
-    return rows.map((r) => _fromDb(r as Map<String, dynamic>)).toList();
-  }
+  Future<List<Evento>> getEventi() => eseguiSupabase(() async {
+        final List<dynamic> rows =
+            await supabase.from(_table).select().order('data_inizio', ascending: true);
+        return rows.map((r) => _fromDb(r as Map<String, dynamic>)).toList();
+      });
 
   @override
   Future<List<Evento>> getEventiPerData(DateTime data) async {
@@ -43,19 +44,19 @@ class SupabaseEventoRepository extends IEventoRepository {
   }
 
   @override
-  Future<void> creaEvento(Evento evento) async {
-    await supabase.from(_table).insert({
-      'group_id': _session.groupId,
-      'unit_id': _session.activeUnitId,
-      'titolo': evento.titolo,
-      'tipo_evento': 'RIUNIONE', // l'entità non modella il tipo: valore di default
-      'categorie_tematiche': evento.categorie,
-      'data_inizio': evento.dataInizio.toIso8601String(),
-      'data_fine': evento.dataFine.toIso8601String(),
-      'luogo': evento.luogo,
-    });
-    notifyListeners();
-  }
+  Future<void> creaEvento(Evento evento) => eseguiSupabase(() async {
+        await supabase.from(_table).insert({
+          'group_id': _session.groupId,
+          'unit_id': _session.activeUnitId,
+          'titolo': evento.titolo,
+          'tipo_evento': 'RIUNIONE', // l'entità non modella il tipo: valore di default
+          'categorie_tematiche': evento.categorie,
+          'data_inizio': evento.dataInizio.toIso8601String(),
+          'data_fine': evento.dataFine.toIso8601String(),
+          'luogo': evento.luogo,
+        });
+        notifyListeners();
+      });
 
   /// Costruisce un [Evento] a partire da una riga del database.
   Evento _fromDb(Map<String, dynamic> row) {
