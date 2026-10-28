@@ -11,7 +11,8 @@ import '../../domain/repositories/scout_repository.dart';
 /// Uno [Scout] è un aggregato ricomposto da più tabelle (`users`,
 /// `memberships`, `squads`, `user_dati_sensibili`, `user_tappe`,
 /// `user_specialita`, `user_brevetti`). La lettura usa una singola query con
-/// join annidati; la scrittura aggiorna ogni tabella coinvolta.
+/// join annidati; la scrittura passa dalla funzione SQL transazionale
+/// `salva_ragazzo`.
 class SupabaseScoutRepository extends IScoutRepository {
   final SessionService _session;
   SupabaseScoutRepository(this._session);
@@ -65,151 +66,63 @@ class SupabaseScoutRepository extends IScoutRepository {
     return scouts;
   }
 
-  /// Scrive l'aggregato su tutte le tabelle coinvolte.
-  ///
-  /// Le scritture non sono in un'unica transazione: se una fallisce a metà,
-  /// le precedenti restano applicate (vedi `DECISIONI.md`).
+  /// Salva l'aggregato con la funzione SQL `salva_ragazzo`, che aggiorna
+  /// membership, progressione, dati sensibili e stati amministrativi in
+  /// un'unica transazione: o riescono tutte le scritture o nessuna.
   Future<void> _scriviRagazzo(Scout ragazzo) async {
-    final userId = ragazzo.id;
+    await supabase.rpc('salva_ragazzo', params: {
+      'p_unit_id': _session.activeUnitId,
+      'p_ragazzo': payloadRagazzo(ragazzo),
+    });
+    notifyListeners();
+  }
 
-    // 0. Membership (SCD Type 2): se ruolo o squadriglia sono cambiati,
-    //    chiude la membership attiva e ne apre una nuova.
-    const ruoliValidi = {
-      'RAGAZZO', 'VICE_CAPO_SQ', 'CAPO_SQ',
-      'AIUTO_CAPO', 'CAPO_UNITA', 'CAPO_GRUPPO'
-    };
-    final unitIdMembership = _session.activeUnitId;
-    if (unitIdMembership != null) {
-      final current = await supabase
-          .from('memberships')
-          .select('id, ruolo, squad_id, anno_scout')
-          .eq('user_id', userId)
-          .eq('unit_id', unitIdMembership)
-          .eq('is_active', true)
-          .maybeSingle();
+  /// Rappresentazione JSON dello [Scout] letta dalla funzione `salva_ragazzo`
+  /// (la forma è documentata nella migrazione che la definisce).
+  @visibleForTesting
+  static Map<String, dynamic> payloadRagazzo(Scout ragazzo) {
+    List<Map<String, dynamic>> impegni(List<Impegno> lista) => lista
+        .map((i) => {'titolo': i.titolo, 'isCompletato': i.isCompletato})
+        .toList();
 
-      if (current != null) {
-        final nuovoSquadId =
-            await _squadIdDaNome(ragazzo.squadriglia, unitIdMembership);
-        final ruoloCambiato = ruoliValidi.contains(ragazzo.ruolo) &&
-            current['ruolo'] != ragazzo.ruolo;
-        final squadCambiata =
-            nuovoSquadId != null && current['squad_id'] != nuovoSquadId;
-
-        if (ruoloCambiato || squadCambiata) {
-          final oggi = DateTime.now().toIso8601String().split('T').first;
-          await supabase.from('memberships').update({
-            'is_active': false,
-            'data_fine': oggi,
-          }).eq('id', current['id']);
-          await supabase.from('memberships').insert({
-            'user_id': userId,
-            'unit_id': unitIdMembership,
-            'squad_id': nuovoSquadId ?? current['squad_id'],
-            'ruolo': ruoloCambiato ? ragazzo.ruolo : current['ruolo'],
-            'is_active': true,
-            'anno_scout': current['anno_scout'] ?? _annoScoutCorrente(),
-            'data_inizio': oggi,
-          });
-        }
-      }
-    }
-
-    // 1. Tappa (strategia replace: cancella e reinserisce quella attuale).
-    await supabase.from('user_tappe').delete().eq('user_id', userId);
     final tappa = ragazzo.progresso.tappaAttuale;
-    if (tappa.tipo != TappaSentiero.nulla || tappa.impegni.isNotEmpty) {
-      await supabase.from('user_tappe').insert({
-        'user_id': userId,
-        'tipo': tappa.tipo.name,
-        'impegni': tappa.impegni
-            .map((i) => {'titolo': i.titolo, 'isCompletato': i.isCompletato})
-            .toList(),
-        'anno_scout': _annoScoutCorrente(),
-      });
-    }
-
-    // 2. Specialità (replace).
-    await supabase.from('user_specialita').delete().eq('user_id', userId);
-    if (ragazzo.progresso.specialita.isNotEmpty) {
-      await supabase.from('user_specialita').insert(
-        ragazzo.progresso.specialita
-            .map((s) => {
-                  'user_id': userId,
-                  'nome': s.nome.name,
-                  'prove': s.prove
-                      .map((i) =>
-                          {'titolo': i.titolo, 'isCompletato': i.isCompletato})
-                      .toList(),
-                  'data_conseguimento': _dateOnly(s.dataConseguimento),
-                })
-            .toList(),
-      );
-    }
-
-    // 3. Brevetti (replace).
-    await supabase.from('user_brevetti').delete().eq('user_id', userId);
-    if (ragazzo.progresso.brevetti.isNotEmpty) {
-      await supabase.from('user_brevetti').insert(
-        ragazzo.progresso.brevetti
-            .map((b) => {
-                  'user_id': userId,
-                  'nome': b.nome.name,
-                  'specialita_collegate':
-                      b.specialitaCollegate.map((e) => e.name).toList(),
-                  'prova_finale_superata': b.provaFinaleSuperata,
-                  'prova_finale_descrizione': b.provaFinaleDescrizione,
-                  'data_conseguimento': _dateOnly(b.dataConseguimento),
-                })
-            .toList(),
-      );
-    }
-
-    // 4. Dati sensibili (upsert, non delete: preserva `note_mediche` che
-    //    l'entità Scout non modella e non deve sovrascrivere).
-    await supabase.from('user_dati_sensibili').upsert({
-      'user_id': userId,
+    return {
+      'id': ragazzo.id,
+      'ruolo': ragazzo.ruolo,
+      'squadriglia': ragazzo.squadriglia,
+      'tappa': {'tipo': tappa.tipo.name, 'impegni': impegni(tappa.impegni)},
+      'specialita': ragazzo.progresso.specialita
+          .map((s) => {
+                'nome': s.nome.name,
+                'prove': impegni(s.prove),
+                'data_conseguimento': _dateOnly(s.dataConseguimento),
+              })
+          .toList(),
+      'brevetti': ragazzo.progresso.brevetti
+          .map((b) => {
+                'nome': b.nome.name,
+                'specialita_collegate':
+                    b.specialitaCollegate.map((e) => e.name).toList(),
+                'prova_finale_superata': b.provaFinaleSuperata,
+                'prova_finale_descrizione': b.provaFinaleDescrizione,
+                'data_conseguimento': _dateOnly(b.dataConseguimento),
+              })
+          .toList(),
       'allergie': ragazzo.allergie,
       'contatti_emergenza': ragazzo.contattiEmergenza
           .map((c) => {'nome': c.nome, 'telefono': c.telefono})
           .toList(),
-    }, onConflict: 'user_id');
-
-    // 5. Stati amministrativi su `users`: censimento / privacy / medica + scadenze.
-    await supabase.from('users').update({
       'stato_censimento': ragazzo.statoCensimento.name,
       'stato_privacy': ragazzo.statoPrivacy.name,
       'stato_medica': ragazzo.statoMedica.name,
       'scadenza_privacy': _dateOnly(ragazzo.scadenzaPrivacy),
       'scadenza_medica': _dateOnly(ragazzo.scadenzaMedica),
-    }).eq('id', userId);
-
-    notifyListeners();
-  }
-
-  /// Anno scout corrente in formato "AAAA-AAAA" (l'annata va da settembre ad agosto).
-  String _annoScoutCorrente() {
-    final now = DateTime.now();
-    final inizio = now.month >= 9 ? now.year : now.year - 1;
-    return '$inizio-${inizio + 1}';
-  }
-
-  /// Risolve il nome di una squadriglia nel relativo `squad_id` dell'unità
-  /// (null se il nome è vuoto o non trovato).
-  Future<String?> _squadIdDaNome(String nome, String unitId) async {
-    if (nome.trim().isEmpty) return null;
-    final row = await supabase
-        .from('squads')
-        .select('id')
-        .eq('unit_id', unitId)
-        .eq('nome', nome)
-        .maybeSingle();
-    return row?['id'] as String?;
+    };
   }
 
   /// Formatta una data come 'AAAA-MM-GG' per le colonne di tipo `date`.
-  String? _dateOnly(DateTime? d) =>
-      d == null ? null : d.toIso8601String().split('T').first;
+  static String? _dateOnly(DateTime? d) =>
+      d?.toIso8601String().split('T').first;
 
   // ---- mapping DB -> entità ----
 
