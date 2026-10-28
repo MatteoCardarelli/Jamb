@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:jamb/domain/entities/obiettivo.dart';
 import 'package:jamb/ui/core/widgets/empty_background_screen.dart';
+import 'package:jamb/ui/core/widgets/jamb_feedback.dart';
+import 'package:jamb/ui/core/widgets/jamb_stato_errore.dart';
 import 'package:jamb/ui/home/widgets/programma_unita_card.dart';
 import 'package:jamb/ui/home/widgets/alert_medici_widget.dart';
 import 'package:jamb/ui/home/widgets/azioni_rapide_widget.dart';
@@ -33,8 +35,8 @@ class HomeScreen extends StatelessWidget {
       ),
     );
 
-    if (updatedList != null) {
-      viewModel.updateObiettivi(updatedList);
+    if (updatedList != null && context.mounted) {
+      await eseguiConFeedback(context, () => viewModel.updateObiettivi(updatedList));
     }
   }
 
@@ -53,25 +55,34 @@ class HomeScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // CARD PROGRAMMA D'UNITÀ (Obiettivi)
-                  GestureDetector(
-                    onTap: () => _navigateToVerifica(context),
-                    child: ProgrammaUnitaCard(obiettivi: homeViewModel.obiettivi),
-                  ),
-                  
-                  // WIDGET ALLERTA AMMINISTRATIVA (Dati dal Provider)
-                  AlertMediciWidget(
-                    messaggio: homeViewModel.alertMessage,
-                    onVediTap: () {
-                      Navigator.of(context).push(
-                        PageRouteBuilder(
-                          pageBuilder: (context, animation, secondaryAnimation) => const AmministrazioneScreen(),
-                          transitionDuration: Duration.zero,
-                          reverseTransitionDuration: Duration.zero,
-                        ),
-                      );
-                    },
-                  ),
+                  // Senza dati, programma e avvisi sarebbero vuoti in modo
+                  // ingannevole: al loro posto si mostra l'errore.
+                  if (homeViewModel.haErrore)
+                    JambStatoErrore(
+                      messaggio: homeViewModel.errore!,
+                      onRiprova: homeViewModel.refresh,
+                    )
+                  else ...[
+                    // CARD PROGRAMMA D'UNITÀ (Obiettivi)
+                    GestureDetector(
+                      onTap: () => _navigateToVerifica(context),
+                      child: ProgrammaUnitaCard(obiettivi: homeViewModel.obiettivi),
+                    ),
+
+                    // WIDGET ALLERTA AMMINISTRATIVA (Dati dal Provider)
+                    AlertMediciWidget(
+                      messaggio: homeViewModel.alertMessage,
+                      onVediTap: () {
+                        Navigator.of(context).push(
+                          PageRouteBuilder(
+                            pageBuilder: (context, animation, secondaryAnimation) => const AmministrazioneScreen(),
+                            transitionDuration: Duration.zero,
+                            reverseTransitionDuration: Duration.zero,
+                          ),
+                        );
+                      },
+                    ),
+                  ],
                   
                   // SEZIONE AZIONI RAPIDE (Griglia pulsanti)
                   const AzioniRapideWidget(),

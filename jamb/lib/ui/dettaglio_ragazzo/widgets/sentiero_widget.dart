@@ -6,7 +6,10 @@ import 'package:jamb/domain/entities/progresso.dart'; // Importa entità di domi
 class SentieroWidget extends StatefulWidget {
   final Tappa tappaScout;
   final String descrizione;
-  final Function(Tappa)? onChanged;
+
+  /// Salva la nuova tappa; restituisce `false` se il salvataggio fallisce,
+  /// e in quel caso il widget torna allo stato precedente.
+  final Future<bool> Function(Tappa)? onChanged;
 
   const SentieroWidget({
     super.key,
@@ -42,14 +45,30 @@ class _SentieroWidgetState extends State<SentieroWidget> {
   }
 
   void _toggleObiettivo(int index) {
+    final nuoviImpegni = List<Impegno>.from(_tappa.impegni);
+    nuoviImpegni[index] = nuoviImpegni[index].copyWith(
+      isCompletato: !nuoviImpegni[index].isCompletato
+    );
+    _aggiorna(_tappa.copyWith(impegni: nuoviImpegni), _descrizione);
+  }
+
+  /// Mostra subito la modifica e la salva; se il salvataggio fallisce
+  /// ripristina la tappa e la descrizione precedenti.
+  Future<void> _aggiorna(Tappa nuovaTappa, String nuovaDescrizione) async {
+    final tappaPrecedente = _tappa;
+    final descrizionePrecedente = _descrizione;
     setState(() {
-      final nuoviImpegni = List<Impegno>.from(_tappa.impegni);
-      nuoviImpegni[index] = nuoviImpegni[index].copyWith(
-        isCompletato: !nuoviImpegni[index].isCompletato
-      );
-      _tappa = _tappa.copyWith(impegni: nuoviImpegni);
-      widget.onChanged?.call(_tappa);
+      _tappa = nuovaTappa;
+      _descrizione = nuovaDescrizione;
     });
+
+    final salvato = await widget.onChanged?.call(nuovaTappa) ?? true;
+    if (!salvato && mounted) {
+      setState(() {
+        _tappa = tappaPrecedente;
+        _descrizione = descrizionePrecedente;
+      });
+    }
   }
 
   void _apriModifica() {
@@ -62,12 +81,8 @@ class _SentieroWidgetState extends State<SentieroWidget> {
         tappa: _tappa,
         descrizione: _descrizione,
         onSalva: (nuovaTappa, nuovaDescrizione) {
-          setState(() {
-            _tappa = nuovaTappa;
-            _descrizione = nuovaDescrizione;
-            widget.onChanged?.call(_tappa);
-          });
           Navigator.of(ctx).pop();
+          _aggiorna(nuovaTappa, nuovaDescrizione);
         },
       ),
     );

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:jamb/ui/core/widgets/jamb_feedback.dart';
 import 'package:jamb/ui/core/widgets/jamb_search_picker.dart';
 import 'package:jamb/domain/entities/progresso.dart';
 import 'package:jamb/ui/dettaglio_ragazzo/view_model/dettaglio_ragazzo_view_model.dart';
@@ -36,8 +37,10 @@ class SpecialitaWidget extends StatelessWidget {
       backgroundColor: Colors.transparent,
       builder: (ctx) => _EditSpecialitaSheet(
         specialita: specialita[index],
-        onSalva: (aggiornata) => viewModel.modificaSpecialita(index, aggiornata),
-        onElimina: () => viewModel.rimuoviSpecialita(index),
+        onSalva: (aggiornata) => eseguiConFeedback(
+            context, () => viewModel.modificaSpecialita(index, aggiornata)),
+        onElimina: () => eseguiConFeedback(
+            context, () => viewModel.rimuoviSpecialita(index)),
       ),
     );
   }
@@ -50,8 +53,11 @@ class SpecialitaWidget extends StatelessWidget {
       backgroundColor: Colors.transparent,
       builder: (ctx) => _AggiungiSpecialitaSheet(
         onAggiungi: (nuova) async {
-          final success = await viewModel.aggiungiSpecialita(nuova);
-          if (!success && context.mounted) {
+          var aggiunta = true;
+          final salvato = await eseguiConFeedback(context, () async {
+            aggiunta = await viewModel.aggiungiSpecialita(nuova);
+          });
+          if (salvato && !aggiunta && context.mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text("Questo ragazzo ha già questa specialità!")),
             );

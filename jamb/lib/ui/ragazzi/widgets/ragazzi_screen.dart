@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:jamb/ui/core/widgets/empty_background_screen.dart';
 import 'package:jamb/ui/core/widgets/jamb_search_bar.dart';
+import 'package:jamb/ui/core/widgets/jamb_stato_errore.dart';
 import 'package:jamb/ui/ragazzi/widgets/ragazzo_card.dart';
 import 'package:jamb/ui/ragazzi/widgets/ragazzi_filters.dart';
 import 'package:jamb/ui/ragazzi/view_model/ragazzi_view_model.dart';
@@ -52,6 +53,11 @@ class RagazziScreen extends StatelessWidget {
                         padding: EdgeInsets.only(top: 60),
                         child: CircularProgressIndicator(color: Color(0xFF1D2660)),
                       ),
+                    )
+                  else if (viewModel.haErrore)
+                    JambStatoErrore(
+                      messaggio: viewModel.errore!,
+                      onRiprova: viewModel.refresh,
                     )
                   else if (risultati.isEmpty)
                     _buildEmpty()

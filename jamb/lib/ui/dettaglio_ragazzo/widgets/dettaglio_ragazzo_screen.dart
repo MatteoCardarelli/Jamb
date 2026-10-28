@@ -4,6 +4,7 @@ import 'package:jamb/domain/entities/scout.dart';
 import 'package:jamb/core/ruolo_display.dart';
 import 'package:jamb/ui/core/widgets/empty_background_screen.dart';
 import 'package:jamb/ui/core/widgets/back_action_button.dart';
+import 'package:jamb/ui/core/widgets/jamb_feedback.dart';
 import 'package:jamb/ui/dettaglio_ragazzo/widgets/allergie_widget.dart';
 import 'package:jamb/ui/dettaglio_ragazzo/widgets/contatti_emergenza_widget.dart';
 import 'package:jamb/ui/dettaglio_ragazzo/widgets/dettaglio_ragazzo_header.dart';
@@ -38,8 +39,11 @@ class DettaglioRagazzoScreen extends StatelessWidget {
   Future<void> _apriModifica(BuildContext context) async {
     final viewModel = context.read<DettaglioRagazzoViewModel>();
     final s = viewModel.scout;
-    final squadriglie = await viewModel.getSquadriglie();
-    if (!context.mounted) return;
+    var squadriglie = <String>[];
+    final caricate = await eseguiConFeedback(context, () async {
+      squadriglie = await viewModel.getSquadriglie();
+    });
+    if (!caricate || !context.mounted) return;
 
     showModalBottomSheet(
       context: context,
@@ -54,14 +58,16 @@ class DettaglioRagazzoScreen extends StatelessWidget {
         privacyScadenza: s.scadenzaPrivacy != null ? "${s.scadenzaPrivacy!.month}/${s.scadenzaPrivacy!.year}" : "",
         contatti: s.contattiEmergenza,
         onSalva: (squadriglia, ruolo, allergie, privacyScadenza, contatti) {
-          viewModel.aggiornaDati(s.copyWith(
+          Navigator.of(ctx).pop();
+          // Il feedback usa il context della schermata: lo SnackBar resta
+          // visibile anche dopo la chiusura del pannello.
+          eseguiConFeedback(context, () => viewModel.aggiornaDati(s.copyWith(
             squadriglia: squadriglia,
             ruolo: ruolo,
             allergie: allergie,
             contattiEmergenza: contatti,
             scadenzaPrivacy: _parsePrivacy(privacyScadenza),
-          ));
-          Navigator.of(ctx).pop();
+          )));
         },
       ),
     );
@@ -121,11 +127,12 @@ class DettaglioRagazzoScreen extends StatelessWidget {
 
                     SentieroWidget(
                       tappaScout: s.progresso.tappaAttuale,
-                      onChanged: (nuovaTappa) {
-                        viewModel.aggiornaDati(s.copyWith(
+                      onChanged: (nuovaTappa) => eseguiConFeedback(
+                        context,
+                        () => viewModel.aggiornaDati(s.copyWith(
                           progresso: s.progresso.copyWith(tappaAttuale: nuovaTappa),
-                        ));
-                      },
+                        )),
+                      ),
                     ),
 
                     const SizedBox(height: 24),
