@@ -53,8 +53,17 @@ Senza questo file il progetto non compila.
 
 Il progetto Supabase deve contenere lo schema dell'applicazione: le quindici
 tabelle, i tipi enumerati, le funzioni di supporto e le policy RLS. Lo schema
-completo è descritto nella documentazione di progetto, nel capitolo dedicato
-alla progettazione del database.
+è versionato nella cartella `supabase/migrations/` della root del repository
+e si applica a un nuovo progetto con la Supabase CLI (serve Node.js):
+
+```bash
+npx supabase login
+npx supabase link --project-ref <id-progetto>
+npx supabase db push
+```
+
+Ogni modifica successiva allo schema va fatta con una nuova migrazione
+(`npx supabase migration new <nome>`), mai a mano dalla console.
 
 ### 4. Creazione degli utenti
 
