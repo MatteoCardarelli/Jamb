@@ -3,16 +3,16 @@ import 'package:jamb/domain/entities/obiettivo.dart';
 import 'package:jamb/domain/entities/scout.dart';
 import 'package:jamb/domain/repositories/scout_repository.dart';
 import 'package:jamb/domain/repositories/obiettivo_repository.dart';
+import 'package:jamb/ui/core/view_model/stato_caricamento.dart';
 
 /// Stato della Home: conta i ragazzi, calcola gli avvisi amministrativi e
 /// gestisce il salvataggio degli obiettivi. Si ricarica al variare degli scout.
-class HomeViewModel extends ChangeNotifier {
+class HomeViewModel extends ChangeNotifier with StatoCaricamentoMixin {
   final IScoutRepository _scoutRepository;
   final IObiettivoRepository _obiettivoRepository;
 
   List<Scout> _ragazzi = [];
   List<Obiettivo> _obiettivi = [];
-  bool _isLoading = true;
 
   HomeViewModel(this._scoutRepository, this._obiettivoRepository) {
     // Si mette in ascolto del repository: se i dati cambiano (es. in Amministrazione),
@@ -27,18 +27,11 @@ class HomeViewModel extends ChangeNotifier {
     super.dispose();
   }
 
-  Future<void> _caricaDati() async {
-    _isLoading = true;
-    notifyListeners();
+  Future<void> _caricaDati() => eseguiCaricamento(() async {
+        _ragazzi = await _scoutRepository.getRagazzi();
+        _obiettivi = await _obiettivoRepository.getObiettivi();
+      });
 
-    _ragazzi = await _scoutRepository.getRagazzi();
-    _obiettivi = await _obiettivoRepository.getObiettivi();
-
-    _isLoading = false;
-    notifyListeners();
-  }
-
-  bool get isLoading => _isLoading;
   List<Obiettivo> get obiettivi => _obiettivi;
   int get numeroRagazzi => _ragazzi.length;
 
@@ -67,21 +60,27 @@ class HomeViewModel extends ChangeNotifier {
 
   /// Salva la lista di obiettivi: elimina quelli rimossi, aggiorna/crea i
   /// restanti e ricarica per allineare gli id generati dal DB.
+  ///
+  /// Se un salvataggio fallisce a metà, la ricarica finale riallinea comunque
+  /// la Home con ciò che è davvero nel DB; l'errore viene poi propagato alla View.
   Future<void> updateObiettivi(List<Obiettivo> updatedList) async {
-    // Elimina dal DB gli obiettivi rimossi dalla lista (diff vecchi/nuovi id).
-    final vecchiIds = _obiettivi.map((o) => o.id).toSet();
-    final nuoviIds = updatedList.map((o) => o.id).toSet();
-    for (final id in vecchiIds.difference(nuoviIds)) {
-      await _obiettivoRepository.eliminaObiettivo(id);
-    }
+    try {
+      // Elimina dal DB gli obiettivi rimossi dalla lista (diff vecchi/nuovi id).
+      final vecchiIds = _obiettivi.map((o) => o.id).toSet();
+      final nuoviIds = updatedList.map((o) => o.id).toSet();
+      for (final id in vecchiIds.difference(nuoviIds)) {
+        await _obiettivoRepository.eliminaObiettivo(id);
+      }
 
-    _obiettivi = List.from(updatedList);
-    notifyListeners();
+      _obiettivi = List.from(updatedList);
+      notifyListeners();
 
-    for (final o in _obiettivi) {
-      await _obiettivoRepository.salvaObiettivo(o);
+      for (final o in _obiettivi) {
+        await _obiettivoRepository.salvaObiettivo(o);
+      }
+    } finally {
+      await _caricaDati();
     }
-    await _caricaDati();
   }
 
   Future<void> refresh() async {

@@ -3,10 +3,11 @@ import 'package:jamb/core/categoria_evento_colori.dart';
 import '../../../domain/entities/evento.dart';
 import '../../../domain/repositories/evento_repository.dart';
 import '../../../domain/repositories/obiettivo_repository.dart';
+import 'package:jamb/ui/core/view_model/stato_caricamento.dart';
 
 /// Stato del form di creazione evento: titolo, luogo, date e categorie;
 /// valida i dati e crea l'evento tramite il repository.
-class CreaEventoViewModel extends ChangeNotifier {
+class CreaEventoViewModel extends ChangeNotifier with StatoCaricamentoMixin {
   final IEventoRepository _eventoRepository;
   final IObiettivoRepository _obiettivoRepository;
 
@@ -16,7 +17,6 @@ class CreaEventoViewModel extends ChangeNotifier {
   DateTime _dataFine = DateTime.now().add(const Duration(hours: 1));
   final List<String> _categorieSelezionate = [];
   List<String> _categorieDisponibili = const [categoriaAltro];
-  bool _isLoading = true;
 
   CreaEventoViewModel(this._eventoRepository, this._obiettivoRepository) {
     _caricaCategorie();
@@ -26,7 +26,6 @@ class CreaEventoViewModel extends ChangeNotifier {
   String get luogo => _luogo;
   DateTime get dataInizio => _dataInizio;
   DateTime get dataFine => _dataFine;
-  bool get isLoading => _isLoading;
   List<String> get categorieSelezionate => _categorieSelezionate;
 
   /// Categorie selezionabili: i domini degli obiettivi del Programma d'Unità,
@@ -34,22 +33,21 @@ class CreaEventoViewModel extends ChangeNotifier {
   List<String> get categorieDisponibili => _categorieDisponibili;
 
   /// Carica i domini degli obiettivi dell'unità e li usa come categorie.
-  Future<void> _caricaCategorie() async {
-    _isLoading = true;
-    notifyListeners();
+  /// Se il caricamento fallisce resta disponibile solo "Altro".
+  Future<void> _caricaCategorie() => eseguiCaricamento(() async {
+        final obiettivi = await _obiettivoRepository.getObiettivi();
+        final domini = obiettivi
+            .map((o) => o.dominio.trim())
+            .where((d) => d.isNotEmpty)
+            .toSet()
+            .toList()
+          ..sort();
 
-    final obiettivi = await _obiettivoRepository.getObiettivi();
-    final domini = obiettivi
-        .map((o) => o.dominio.trim())
-        .where((d) => d.isNotEmpty)
-        .toSet()
-        .toList()
-      ..sort();
+        _categorieDisponibili = [...domini, categoriaAltro];
+      });
 
-    _categorieDisponibili = [...domini, categoriaAltro];
-    _isLoading = false;
-    notifyListeners();
-  }
+  /// Riprova a caricare le categorie (es. dopo un errore).
+  Future<void> ricaricaCategorie() => _caricaCategorie();
 
   void setTitolo(String value) {
     _titolo = value;

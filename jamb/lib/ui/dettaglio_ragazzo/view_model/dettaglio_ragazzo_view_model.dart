@@ -103,9 +103,13 @@ class DettaglioRagazzoViewModel extends ChangeNotifier {
   // --- AZIONI GENERALI ---
 
   /// Salva lo scout aggiornato tramite il repository.
+  ///
+  /// Lo stato locale cambia solo dopo un salvataggio riuscito: se fallisce,
+  /// la schermata continua a mostrare i dati presenti nel DB e l'errore
+  /// viene propagato alla View.
   Future<void> aggiornaDati(Scout nuovoScout) async {
+    await _repository.salvaRagazzo(nuovoScout);
     _scout = nuovoScout;
-    await _repository.salvaRagazzo(_scout);
     notifyListeners();
   }
 }
