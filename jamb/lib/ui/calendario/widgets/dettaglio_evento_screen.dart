@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:jamb/core/categoria_evento_colori.dart';
+import 'etichette_categorie.dart';
 import 'package:jamb/ui/core/widgets/jamb_app_bar.dart';
 import 'package:jamb/ui/core/widgets/jamb_dialogs.dart';
 import 'package:jamb/ui/core/widgets/jamb_feedback.dart';
@@ -118,30 +118,7 @@ class _DettaglioEventoView extends StatelessWidget {
             if (evento.luogo.isNotEmpty)
               _Riga(icona: Icons.location_on_outlined, testo: evento.luogo),
             const SizedBox(height: 16),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: evento.categorie.map((cat) {
-                return Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: sfondoCategoria(cat),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    cat,
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      color: coloreCategoria(cat),
-                    ),
-                  ),
-                );
-              }).toList(),
-            ),
+            EtichetteCategorie(categorie: evento.categorie),
           ],
         ),
       ),

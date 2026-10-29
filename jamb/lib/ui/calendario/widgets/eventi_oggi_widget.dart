@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../view_model/calendario_view_model.dart';
 import '../../../domain/entities/evento.dart';
-import 'package:jamb/core/categoria_evento_colori.dart';
+import 'etichette_categorie.dart';
 import 'dettaglio_evento_screen.dart';
 
 /// Elenco degli eventi del giorno selezionato nel calendario.
@@ -174,31 +174,7 @@ class _EventoCard extends StatelessWidget {
                         ],
                       ),
                       const SizedBox(height: 12),
-                      // Categories
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 4,
-                        children: evento.categorie.map((cat) {
-                          return Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: sfondoCategoria(cat),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Text(
-                              cat,
-                              style: TextStyle(
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
-                                color: coloreCategoria(cat),
-                              ),
-                            ),
-                          );
-                        }).toList(),
-                      ),
+                      EtichetteCategorie(categorie: evento.categorie),
                     ],
                   ),
                 ),
