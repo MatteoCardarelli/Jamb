@@ -1,0 +1,222 @@
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:jamb/core/categoria_evento_colori.dart';
+import 'package:jamb/ui/core/widgets/back_action_button.dart';
+import 'package:jamb/ui/core/widgets/jamb_feedback.dart';
+import '../../../domain/entities/evento.dart';
+import '../../../domain/repositories/evento_repository.dart';
+import '../view_model/dettaglio_evento_view_model.dart';
+import 'form_evento_screen.dart';
+
+/// Dettaglio di un evento del calendario, con modifica ed eliminazione.
+class DettaglioEventoScreen extends StatelessWidget {
+  final Evento evento;
+
+  const DettaglioEventoScreen({super.key, required this.evento});
+
+  /// Apre il dettaglio di [evento] (dagli elenchi del calendario).
+  static Future<void> apri(BuildContext context, Evento evento) {
+    return Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => DettaglioEventoScreen(evento: evento)),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ChangeNotifierProvider(
+      create: (context) =>
+          DettaglioEventoViewModel(evento, context.read<IEventoRepository>()),
+      child: const _DettaglioEventoView(),
+    );
+  }
+}
+
+class _DettaglioEventoView extends StatelessWidget {
+  const _DettaglioEventoView();
+
+  Future<void> _modifica(
+    BuildContext context,
+    DettaglioEventoViewModel viewModel,
+  ) async {
+    final aggiornato = await Navigator.of(context).push<Evento>(
+      MaterialPageRoute(
+        builder: (_) => FormEventoScreen(eventoEsistente: viewModel.evento),
+      ),
+    );
+    if (aggiornato != null) viewModel.aggiornato(aggiornato);
+  }
+
+  void _confermaEliminazione(
+    BuildContext context,
+    DettaglioEventoViewModel viewModel,
+  ) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text("Elimina evento"),
+        content: Text(
+          "Vuoi eliminare \"${viewModel.evento.titolo}\"? L'azione non è reversibile.",
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text(
+              "ANNULLA",
+              style: TextStyle(color: Color(0xFF64748B)),
+            ),
+          ),
+          TextButton(
+            onPressed: () async {
+              final eliminato = await eseguiConFeedback(
+                dialogContext,
+                viewModel.elimina,
+              );
+              if (!dialogContext.mounted) return;
+              Navigator.of(dialogContext).pop(); // Chiude il dialog
+              if (eliminato && context.mounted) {
+                Navigator.of(context).pop(); // Torna al calendario
+              }
+            },
+            child: const Text(
+              "ELIMINA",
+              style: TextStyle(
+                color: Color(0xFFB91C1C),
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final viewModel = context.watch<DettaglioEventoViewModel>();
+    final evento = viewModel.evento;
+
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leadingWidth: 80,
+        leading: const Padding(
+          padding: EdgeInsets.only(left: 16),
+          child: BackActionButton(),
+        ),
+        title: const Text(
+          "Dettaglio Evento",
+          style: TextStyle(
+            color: Color(0xFF1E293B),
+            fontWeight: FontWeight.bold,
+            fontFamily: 'Lexend',
+          ),
+        ),
+        centerTitle: true,
+        actions: [
+          IconButton(
+            tooltip: 'Modifica',
+            icon: const Icon(Icons.edit_outlined, color: Color(0xFF1D2660)),
+            onPressed: () => _modifica(context, viewModel),
+          ),
+          IconButton(
+            tooltip: 'Elimina',
+            icon: const Icon(
+              Icons.delete_outline_rounded,
+              color: Color(0xFFB91C1C),
+            ),
+            onPressed: () => _confermaEliminazione(context, viewModel),
+          ),
+        ],
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: 48,
+              height: 6,
+              decoration: BoxDecoration(
+                color: evento.colorePrincipale,
+                borderRadius: BorderRadius.circular(3),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              evento.titolo,
+              style: const TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.w900,
+                color: Color(0xFF1E293B),
+                fontFamily: 'Lexend',
+              ),
+            ),
+            const SizedBox(height: 24),
+            _Riga(icona: Icons.schedule_rounded, testo: viewModel.quando),
+            if (evento.luogo.isNotEmpty)
+              _Riga(icona: Icons.location_on_outlined, testo: evento.luogo),
+            const SizedBox(height: 16),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: evento.categorie.map((cat) {
+                return Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: sfondoCategoria(cat),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    cat,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: coloreCategoria(cat),
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Riga con icona e testo (orario, luogo).
+class _Riga extends StatelessWidget {
+  final IconData icona;
+  final String testo;
+
+  const _Riga({required this.icona, required this.testo});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icona, size: 20, color: const Color(0xFF64748B)),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              testo,
+              style: const TextStyle(
+                fontSize: 15,
+                color: Color(0xFF334155),
+                fontFamily: 'Lexend',
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
