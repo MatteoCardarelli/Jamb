@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:jamb/ui/core/stile.dart';
 import 'package:jamb/domain/entities/obiettivo.dart';
 
 /// Card riassuntiva del Programma d'Unità visualizzata nella Home.
@@ -22,7 +23,7 @@ class ProgrammaUnitaCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade200, width: 1),
+        border: bordoRiquadro,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.08),

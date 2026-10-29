@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:jamb/ui/core/stile.dart';
 import 'package:provider/provider.dart';
 import 'package:jamb/ui/contabilita/view_model/contabilita_view_model.dart';
 import 'package:intl/intl.dart';
@@ -26,7 +27,7 @@ class CassaBrancaWidget extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFF3F4F6)),
+        border: bordoRiquadro,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.02),
