@@ -6,11 +6,31 @@ import 'package:jamb/ui/contabilita/widgets/add_transaction/transaction_header.d
 import 'package:jamb/ui/contabilita/widgets/add_transaction/transaction_details_cards.dart';
 import 'package:jamb/ui/contabilita/widgets/add_transaction/receipt_upload_card.dart';
 import 'package:jamb/ui/contabilita/view_model/add_transaction_view_model.dart';
+import 'package:jamb/ui/contabilita/view_model/contabilita_view_model.dart';
+import 'package:jamb/domain/entities/transazione.dart';
+import 'package:jamb/ui/core/widgets/jamb_feedback.dart';
 
 /// Schermata per l'inserimento di una nuova transazione (Entrata o Uscita).
 /// Organizzata in sezioni: Header (Importo), Dettagli (Data/Categoria/Note) e Allegati (Scontrino).
 class AddTransactionScreen extends StatelessWidget {
   const AddTransactionScreen({super.key});
+
+  /// Apre il form e, se l'utente conferma, salva la transazione mostrando
+  /// l'eventuale errore. Usato dalla Contabilità e dalle azioni rapide della Home.
+  static Future<void> apri(BuildContext context) async {
+    final contabilita = context.read<ContabilitaViewModel>();
+    final transazione = await Navigator.of(context).push<Transazione>(PageRouteBuilder(
+      pageBuilder: (context, animation, secondaryAnimation) => ChangeNotifierProvider(
+        create: (_) => AddTransactionViewModel(),
+        child: const AddTransactionScreen(),
+      ),
+      transitionDuration: Duration.zero,
+    ));
+
+    if (transazione != null && context.mounted) {
+      await eseguiConFeedback(context, () => contabilita.addTransaction(transazione));
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

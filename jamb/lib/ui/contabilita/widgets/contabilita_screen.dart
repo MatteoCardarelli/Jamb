@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:jamb/domain/entities/transazione.dart';
 import 'package:jamb/ui/core/widgets/empty_background_screen.dart';
 import 'package:jamb/ui/contabilita/widgets/add_transaction_screen.dart';
-import 'package:jamb/ui/contabilita/view_model/add_transaction_view_model.dart';
 import 'package:jamb/ui/contabilita/widgets/balance_card.dart';
 import 'package:jamb/ui/contabilita/widgets/expenses_distribution_card.dart';
 import 'package:jamb/ui/contabilita/widgets/recent_transactions_list.dart';
@@ -10,7 +8,6 @@ import 'package:provider/provider.dart';
 import 'package:jamb/ui/contabilita/view_model/contabilita_view_model.dart';
 import 'package:jamb/ui/core/widgets/back_action_button.dart';
 import 'package:jamb/ui/core/widgets/jamb_fab.dart';
-import 'package:jamb/ui/core/widgets/jamb_feedback.dart';
 import 'package:jamb/ui/core/widgets/jamb_stato_errore.dart';
 
 /// Schermata della contabilità: saldo, distribuzione delle spese ed elenco transazioni.
@@ -29,20 +26,7 @@ class ContabilitaScreen extends StatelessWidget {
         floatingActionButton: JambFab(
           icona: Icons.add_rounded,
           backgroundColor: const Color(0xFF000066),
-          onPressed: () async {
-            final transazione = await Navigator.of(context).push<Transazione>(PageRouteBuilder(
-              pageBuilder: (context, animation, secondaryAnimation) => ChangeNotifierProvider(
-                create: (_) => AddTransactionViewModel(),
-                child: const AddTransactionScreen(),
-              ),
-              transitionDuration: Duration.zero,
-            ));
-
-            if (transazione != null && context.mounted) {
-              await eseguiConFeedback(
-                  context, () => financeViewModel.addTransaction(transazione));
-            }
-          },
+          onPressed: () => AddTransactionScreen.apri(context),
         ),
         child: SingleChildScrollView(
           padding: const EdgeInsets.only(top: 170, left: 20, right: 20, bottom: 120),
