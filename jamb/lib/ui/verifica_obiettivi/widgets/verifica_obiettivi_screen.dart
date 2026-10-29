@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:jamb/domain/entities/obiettivo.dart';
 import 'package:jamb/ui/core/widgets/back_action_button.dart';
 import 'package:jamb/ui/core/widgets/empty_background_screen.dart';
+import 'package:jamb/ui/core/widgets/jamb_dialogs.dart';
 import 'package:jamb/ui/verifica_obiettivi/view_model/verifica_obiettivi_view_model.dart';
 import 'package:jamb/ui/verifica_obiettivi/widgets/edit_obiettivo_dialog.dart';
 import 'package:jamb/ui/verifica_obiettivi/widgets/obiettivo_card.dart';
@@ -66,48 +67,13 @@ class VerificaObiettiviScreen extends StatelessWidget {
   Future<void> _deleteObiettivo(BuildContext context, int index) async {
     final viewModel = context.read<VerificaObiettiviViewModel>();
     
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text(
-          "Elimina Obiettivo",
-          style: TextStyle(
-            fontFamily: 'Lexend',
-            fontWeight: FontWeight.w900,
-            color: Color(0xFF1D2660),
-          ),
-        ),
-        content: const Text(
-          "Sei sicuro di voler eliminare questo punto su cui lavorare? Questa azione non può essere annullata.",
-          style: TextStyle(fontFamily: 'Lexend', color: Color(0xFF475569)),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text(
-              "ANNULLA",
-              style: TextStyle(fontFamily: 'Lexend', color: Color(0xFF64748B), fontWeight: FontWeight.bold),
-            ),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFEF4444),
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              elevation: 0,
-            ),
-            child: const Text(
-              "ELIMINA",
-              style: TextStyle(fontFamily: 'Lexend', fontWeight: FontWeight.bold),
-            ),
-          ),
-        ],
-      ),
+    final conferma = await JambDialogs.confermaEliminazione(
+      context,
+      titolo: "Elimina Obiettivo",
+      messaggio: "Sei sicuro di voler eliminare questo punto su cui lavorare? Questa azione non può essere annullata.",
     );
 
-    if (confirm == true) {
+    if (conferma) {
       viewModel.removeObiettivo(index);
     }
   }

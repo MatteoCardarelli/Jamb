@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:jamb/ui/core/widgets/jamb_dialogs.dart';
 import 'package:jamb/ui/core/widgets/jamb_feedback.dart';
 import 'package:jamb/ui/core/widgets/jamb_search_picker.dart';
 import 'package:jamb/domain/entities/progresso.dart';
@@ -300,8 +301,12 @@ class _EditSpecialitaSheetState extends State<_EditSpecialitaSheet> {
   }
 
   void _confermaElimina() async {
-    final bool? ok = await showDialog<bool>(context: context, builder: (ctx) => AlertDialog(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)), title: const Text("Elimina Specialità", style: TextStyle(fontFamily: 'Lexend', fontWeight: FontWeight.w900)), content: Text("Sei sicuro di voler eliminare \"${widget.specialita.nome.name}\"?", style: const TextStyle(fontFamily: 'Lexend')), actions: [TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text("ANNULLA", style: TextStyle(fontFamily: 'Lexend', color: Color(0xFF94A3B8)))), TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text("ELIMINA", style: TextStyle(fontFamily: 'Lexend', color: Color(0xFFE11D48), fontWeight: FontWeight.w800)))]));
-    if (ok == true) {
+    final conferma = await JambDialogs.confermaEliminazione(
+      context,
+      titolo: "Elimina Specialità",
+      messaggio: "Sei sicuro di voler eliminare \"${widget.specialita.nome.name}\"?",
+    );
+    if (conferma) {
       widget.onElimina();
       if (mounted) Navigator.of(context).pop();
     }

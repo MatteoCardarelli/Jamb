@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:jamb/core/categoria_evento_colori.dart';
+import 'etichette_categorie.dart';
 import 'package:jamb/ui/core/widgets/jamb_app_bar.dart';
+import 'package:jamb/ui/core/widgets/jamb_dialogs.dart';
 import 'package:jamb/ui/core/widgets/jamb_feedback.dart';
 import '../../../domain/entities/evento.dart';
 import '../../../domain/repositories/evento_repository.dart';
@@ -46,48 +47,22 @@ class _DettaglioEventoView extends StatelessWidget {
     if (aggiornato != null) viewModel.aggiornato(aggiornato);
   }
 
-  void _confermaEliminazione(
+  Future<void> _confermaEliminazione(
     BuildContext context,
     DettaglioEventoViewModel viewModel,
-  ) {
-    showDialog(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text("Elimina evento"),
-        content: Text(
+  ) async {
+    final conferma = await JambDialogs.confermaEliminazione(
+      context,
+      titolo: "Elimina evento",
+      messaggio:
           "Vuoi eliminare \"${viewModel.evento.titolo}\"? L'azione non è reversibile.",
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(),
-            child: const Text(
-              "ANNULLA",
-              style: TextStyle(color: Color(0xFF64748B)),
-            ),
-          ),
-          TextButton(
-            onPressed: () async {
-              final eliminato = await eseguiConFeedback(
-                dialogContext,
-                viewModel.elimina,
-              );
-              if (!dialogContext.mounted) return;
-              Navigator.of(dialogContext).pop(); // Chiude il dialog
-              if (eliminato && context.mounted) {
-                Navigator.of(context).pop(); // Torna al calendario
-              }
-            },
-            child: const Text(
-              "ELIMINA",
-              style: TextStyle(
-                color: Color(0xFFB91C1C),
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-        ],
-      ),
     );
+    if (!conferma || !context.mounted) return;
+
+    final eliminato = await eseguiConFeedback(context, viewModel.elimina);
+    if (eliminato && context.mounted) {
+      Navigator.of(context).pop(); // Torna al calendario
+    }
   }
 
   @override
@@ -143,30 +118,7 @@ class _DettaglioEventoView extends StatelessWidget {
             if (evento.luogo.isNotEmpty)
               _Riga(icona: Icons.location_on_outlined, testo: evento.luogo),
             const SizedBox(height: 16),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: evento.categorie.map((cat) {
-                return Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: sfondoCategoria(cat),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    cat,
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      color: coloreCategoria(cat),
-                    ),
-                  ),
-                );
-              }).toList(),
-            ),
+            EtichetteCategorie(categorie: evento.categorie),
           ],
         ),
       ),
