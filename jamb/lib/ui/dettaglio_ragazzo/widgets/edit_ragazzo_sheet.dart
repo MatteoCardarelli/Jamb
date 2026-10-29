@@ -12,7 +12,11 @@ class EditRagazzoSheet extends StatefulWidget {
   final String privacyScadenza;
   final List<ContattoEmergenza> contatti;
   final List<String> squadriglieDisponibili;
-  
+
+  /// Se `false` squadriglia e ruolo sono in sola lettura: solo il Capo Unità
+  /// può cambiarli (le policy RLS rifiuterebbero il salvataggio).
+  final bool puoCambiareRuoloESquadriglia;
+
   /// Callback invocata al salvataggio con i nuovi dati validati
   final Function(
     String squadriglia, 
@@ -30,6 +34,7 @@ class EditRagazzoSheet extends StatefulWidget {
     required this.privacyScadenza,
     required this.contatti,
     required this.squadriglieDisponibili,
+    required this.puoCambiareRuoloESquadriglia,
     required this.onSalva,
   });
 
@@ -137,6 +142,9 @@ class _EditRagazzoSheetState extends State<EditRagazzoSheet> {
             ),
             const SizedBox(height: 24),
 
+            if (!widget.puoCambiareRuoloESquadriglia)
+              _buildSolaLettura()
+            else ...[
             _buildLabel("Squadriglia"),
             const SizedBox(height: 8),
             Wrap(
@@ -180,6 +188,7 @@ class _EditRagazzoSheetState extends State<EditRagazzoSheet> {
                 ),
               );
             }),
+            ],
             const SizedBox(height: 24),
 
             Row(
@@ -287,6 +296,26 @@ class _EditRagazzoSheetState extends State<EditRagazzoSheet> {
       ),
     );
   }
+
+  /// Squadriglia e ruolo attuali, non modificabili, con il motivo.
+  Widget _buildSolaLettura() => Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      _buildLabel("Squadriglia e ruolo"),
+      Row(
+        children: [
+          _buildChip(_squadriglia.isEmpty ? "—" : _squadriglia.toUpperCase(), true),
+          const SizedBox(width: 8),
+          _buildChip(ruoloLabel(_ruolo), true),
+        ],
+      ),
+      const SizedBox(height: 8),
+      const Text(
+        "Solo il Capo Unità può cambiare squadriglia e ruolo.",
+        style: TextStyle(fontSize: 12, color: Color(0xFF94A3B8), fontFamily: 'Lexend'),
+      ),
+    ],
+  );
 
   Widget _buildLabel(String text) => Padding(
     padding: const EdgeInsets.only(bottom: 8),
