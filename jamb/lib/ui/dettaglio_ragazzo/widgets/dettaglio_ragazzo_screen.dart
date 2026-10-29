@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:jamb/domain/entities/scout.dart';
 import 'package:jamb/core/ruolo_display.dart';
+import 'package:jamb/core/session_service.dart';
 import 'package:jamb/ui/core/widgets/empty_background_screen.dart';
 import 'package:jamb/ui/core/widgets/back_action_button.dart';
 import 'package:jamb/ui/core/widgets/jamb_feedback.dart';
@@ -52,6 +53,8 @@ class DettaglioRagazzoScreen extends StatelessWidget {
       backgroundColor: Colors.transparent,
       builder: (ctx) => EditRagazzoSheet(
         squadriglieDisponibili: squadriglie,
+        puoCambiareRuoloESquadriglia:
+            context.read<SessionService>().permessi.puoCambiareRuoloESquadriglia,
         squadriglia: s.squadriglia,
         ruolo: s.ruolo,
         allergie: s.allergie ?? "",

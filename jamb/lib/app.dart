@@ -18,6 +18,7 @@ import 'package:jamb/data/repositories/supabase_evento_repository.dart';
 import 'package:jamb/ui/calendario/view_model/calendario_view_model.dart';
 import 'package:jamb/ui/auth/widgets/login_screen.dart';
 import 'package:jamb/core/session_service.dart';
+import 'package:jamb/ui/core/widgets/jamb_feedback.dart';
 import 'package:jamb/domain/repositories/documento_repository.dart';
 import 'package:jamb/data/repositories/supabase_documento_repository.dart';
 
@@ -89,16 +90,8 @@ class AuthGate extends StatelessWidget {
         );
 
       case SessionStatus.noMembership:
-        return const Scaffold(
-          body: Center(
-            child: Padding(
-              padding: EdgeInsets.all(24),
-              child: Text(
-                'Nessun ruolo assegnato.\nContatta un responsabile del gruppo.',
-                textAlign: TextAlign.center,
-              ),
-            ),
-          ),
+        return const _AvvisoAccesso(
+          'Nessun ruolo assegnato.\nContatta un responsabile del gruppo.',
         );
 
       case SessionStatus.error:
@@ -118,7 +111,45 @@ class AuthGate extends StatelessWidget {
         );
 
       case SessionStatus.ready:
+        // Le policy RLS non mostrano dati ai ruoli da ragazzo: invece di
+        // schermate vuote, un avviso esplicito.
+        if (!session.permessi.puoUsareAreaCapi) {
+          return const _AvvisoAccesso(
+            "L'area dedicata ai ragazzi non è ancora disponibile.\n"
+            "Per ora Jamb è riservata ai capi.",
+          );
+        }
         return const HomeScreen();
     }
+  }
+}
+
+/// Messaggio a schermo intero per chi è autenticato ma non può usare l'app,
+/// con il pulsante per uscire e accedere con un altro account.
+class _AvvisoAccesso extends StatelessWidget {
+  final String messaggio;
+  const _AvvisoAccesso(this.messaggio);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(messaggio, textAlign: TextAlign.center),
+              const SizedBox(height: 16),
+              TextButton(
+                onPressed: () => eseguiConFeedback(
+                    context, context.read<SessionService>().logout),
+                child: const Text('Esci'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
