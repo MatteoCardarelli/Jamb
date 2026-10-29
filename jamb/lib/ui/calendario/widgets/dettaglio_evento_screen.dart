@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:jamb/core/categoria_evento_colori.dart';
-import 'package:jamb/ui/core/widgets/back_action_button.dart';
+import 'package:jamb/ui/core/widgets/jamb_app_bar.dart';
 import 'package:jamb/ui/core/widgets/jamb_feedback.dart';
 import '../../../domain/entities/evento.dart';
 import '../../../domain/repositories/evento_repository.dart';
@@ -97,24 +97,9 @@ class _DettaglioEventoView extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leadingWidth: 80,
-        leading: const Padding(
-          padding: EdgeInsets.only(left: 16),
-          child: BackActionButton(),
-        ),
-        title: const Text(
-          "Dettaglio Evento",
-          style: TextStyle(
-            color: Color(0xFF1E293B),
-            fontWeight: FontWeight.bold,
-            fontFamily: 'Lexend',
-          ),
-        ),
-        centerTitle: true,
-        actions: [
+      appBar: JambAppBar(
+        titolo: "Dettaglio Evento",
+        azioni: [
           IconButton(
             tooltip: 'Modifica',
             icon: const Icon(Icons.edit_outlined, color: Color(0xFF1D2660)),

@@ -90,6 +90,67 @@ class _CalendarioWidgetState extends State<CalendarioWidget> {
     );
   }
 
+  /// Riporta il calendario al mese corrente e seleziona oggi
+  /// (ricaricando anche gli eventi del giorno).
+  void _tornaAOggi(CalendarioViewModel viewModel) {
+    final oggi = DateTime.now();
+    viewModel.setSelectedDate(oggi);
+    setState(() {
+      _focusedDay = oggi;
+    });
+  }
+
+  /// Titolo del mese con, se non si sta già guardando oggi, il tasto «Oggi».
+  Widget _buildTitolo(BuildContext context, DateTime mese, CalendarioViewModel viewModel) {
+    final oggi = DateTime.now();
+    final suOggi = isSameDay(viewModel.selectedDate, oggi) &&
+        mese.year == oggi.year &&
+        mese.month == oggi.month;
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        // Il titolo personalizzato non riceve onHeaderTapped: il tocco va ricollegato.
+        Flexible(
+          child: GestureDetector(
+            onTap: () => _showMonthYearPicker(context, mese),
+            child: Text(
+              DateFormat.yMMMM('it_IT').format(mese),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF1E293B),
+              ),
+            ),
+          ),
+        ),
+        if (!suOggi) ...[
+          const SizedBox(width: 8),
+          GestureDetector(
+            onTap: () => _tornaAOggi(viewModel),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: const Color(0xFFCBD5E1)),
+              ),
+              child: const Text(
+                'Oggi',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF25315B),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final viewModel = context.watch<CalendarioViewModel>();
@@ -113,11 +174,9 @@ class _CalendarioWidgetState extends State<CalendarioWidget> {
         firstDay: DateTime.utc(1940, 1, 1),
         lastDay: DateTime.utc(2100, 12, 31),
         focusedDay: _focusedDay,
-        onHeaderTapped: (focusedDay) {
-          _showMonthYearPicker(context, focusedDay);
-        },
         eventLoader: (day) => viewModel.getEventiForDay(day),
         calendarBuilders: CalendarBuilders(
+          headerTitleBuilder: (context, mese) => _buildTitolo(context, mese, viewModel),
           markerBuilder: (context, date, events) {
             if (events.isEmpty) return const SizedBox();
 
@@ -237,11 +296,6 @@ class _CalendarioWidgetState extends State<CalendarioWidget> {
           titleCentered: true,
           leftChevronIcon: Icon(Icons.chevron_left, color: Color(0xFF25315B)),
           rightChevronIcon: Icon(Icons.chevron_right, color: Color(0xFF25315B)),
-          titleTextStyle: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: Color(0xFF1E293B),
-          ),
         ),
         daysOfWeekStyle: const DaysOfWeekStyle(
           weekdayStyle: TextStyle(
