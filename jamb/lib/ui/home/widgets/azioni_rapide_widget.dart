@@ -1,7 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:jamb/ui/calendario/widgets/form_evento_screen.dart';
+import 'package:jamb/ui/contabilita/widgets/add_transaction_screen.dart';
+import 'package:jamb/ui/core/stile.dart';
 
 /// Griglia di pulsanti rapidi per le azioni comuni (Crea Avviso, Nuovo Evento, ecc.).
 /// Visualizzata sotto gli avvisi amministrativi nella HomeView.
+///
+/// Le azioni non ancora realizzate sono attenuate e lo dicono quando vengono
+/// toccate: un pulsante visibile non deve sembrare funzionante se non lo è.
 class AzioniRapideWidget extends StatelessWidget {
   const AzioniRapideWidget({super.key});
 
@@ -24,7 +30,7 @@ class AzioniRapideWidget extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
-          
+
           // Griglia fissa di pulsanti d'azione
           GridView.count(
             padding: EdgeInsets.zero,
@@ -36,24 +42,28 @@ class AzioniRapideWidget extends StatelessWidget {
             childAspectRatio: 1.7, // Rende i bottoni rettangolari per un look più moderno
             children: [
               _buildAzioneCard(
+                context,
                 icon: Icons.campaign_outlined,
                 label: "Crea Avviso",
-                onTap: () {},
               ),
               _buildAzioneCard(
+                context,
                 icon: Icons.calendar_month_outlined,
                 label: "Nuovo Evento",
-                onTap: () {},
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const FormEventoScreen()),
+                ),
               ),
               _buildAzioneCard(
-                icon: Icons.military_tech_outlined,
-                label: "Assegna Punti SQ",
-                onTap: () {},
+                context,
+                icon: Icons.receipt_long_outlined,
+                label: "Nuova Transazione",
+                onTap: () => AddTransactionScreen.apri(context),
               ),
               _buildAzioneCard(
+                context,
                 icon: Icons.upload_file_outlined,
                 label: "Carica Doc",
-                onTap: () {},
               ),
             ],
           ),
@@ -62,36 +72,41 @@ class AzioniRapideWidget extends StatelessWidget {
     );
   }
 
-  /// Costruisce una singola card d'azione cliccabile
-  Widget _buildAzioneCard({
+  /// Costruisce una singola card d'azione; senza [onTap] l'azione non è
+  /// ancora disponibile e viene mostrata attenuata.
+  Widget _buildAzioneCard(
+    BuildContext context, {
     required IconData icon,
     required String label,
-    required VoidCallback onTap,
+    VoidCallback? onTap,
   }) {
+    final disponibile = onTap != null;
+    final colore = disponibile ? const Color(0xFF1D2660) : const Color(0xFF94A3B8);
+
     return GestureDetector(
-      onTap: onTap,
+      onTap: onTap ??
+          () => ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text("$label sarà disponibile in una prossima versione.")),
+              ),
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: disponibile ? Colors.white : const Color(0xFFF8FAFC),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: const Color(0xFFCBD5E1),
-            width: 1,
-          ),
+          border: bordoRiquadro,
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
               icon,
-              color: const Color(0xFF1D2660),
+              color: colore,
               size: 26,
             ),
             const SizedBox(height: 8),
             Text(
               label,
-              style: const TextStyle(
-                color: Color(0xFF1D2660),
+              style: TextStyle(
+                color: colore,
                 fontSize: 12,
                 fontWeight: FontWeight.w700,
                 fontFamily: 'Lexend',
