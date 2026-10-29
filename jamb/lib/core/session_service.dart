@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:jamb/core/permessi.dart';
 import 'package:jamb/core/supabase_client.dart';
 
 /// Stati possibili della sessione applicativa.
@@ -88,6 +89,12 @@ class SessionService extends ChangeNotifier {
     }
     return null;
   }
+
+  /// Cosa l'utente può fare nell'unità attiva.
+  Permessi get permessi => Permessi(
+        ruolo: activeRole,
+        capoGruppo: _memberships.any((m) => m.ruolo == 'CAPO_GRUPPO'),
+      );
 
   /// Carica profilo (`users`) e membership attive dell'utente loggato,
   /// impostando lo `status` di conseguenza (ready / noMembership / error).
