@@ -3,11 +3,14 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import 'package:jamb/core/ruolo_display.dart';
 import 'package:jamb/core/session_service.dart';
+import 'package:jamb/ui/bacheca/view_model/bacheca_view_model.dart';
+import 'package:jamb/ui/bacheca/widgets/bacheca_screen.dart';
 import 'package:jamb/ui/core/widgets/jamb_feedback.dart';
 
 /// Barra superiore personalizzata con design distintivo Jamb.
 /// Presenta una forma a "tuffo" (dip) al centro che ospita il logo AGESCI,
 /// icone profilo e notifiche, e nome e ruolo dell'utente collegato.
+/// La campanella apre la bacheca avvisi e mostra quanti non sono letti.
 class TopBar extends StatelessWidget implements PreferredSizeWidget {
   const TopBar({super.key});
 
@@ -25,6 +28,7 @@ class TopBar extends StatelessWidget implements PreferredSizeWidget {
     final session = context.watch<SessionService>();
     final nome = session.nomeCompleto;
     final ruolo = session.activeRole == null ? '' : ruoloLabel(session.activeRole!);
+    final nonLetti = context.select<BachecaViewModel, int>((vm) => vm.nonLetti);
 
     return SizedBox(
       height: totalHeight,
@@ -116,10 +120,26 @@ class TopBar extends StatelessWidget implements PreferredSizeWidget {
                     height: 28,
                   ),
                   const SizedBox(width: 24),
-                  SvgPicture.asset(
-                    'assets/icons/notifiche.svg',
-                    width: 28,
-                    height: 28,
+                  // Campanella: apre la bacheca e conta gli avvisi non letti.
+                  GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () => BachecaScreen.apri(context),
+                    child: Semantics(
+                      button: true,
+                      label: nonLetti > 0
+                          ? 'Bacheca avvisi, $nonLetti non letti'
+                          : 'Bacheca avvisi',
+                      child: Badge(
+                        isLabelVisible: nonLetti > 0,
+                        label: Text(nonLetti > 9 ? '9+' : '$nonLetti'),
+                        backgroundColor: const Color(0xFFB91C1C),
+                        child: SvgPicture.asset(
+                          'assets/icons/notifiche.svg',
+                          width: 28,
+                          height: 28,
+                        ),
+                      ),
+                    ),
                   ),
                 ],
               ),

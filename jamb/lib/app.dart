@@ -21,6 +21,9 @@ import 'package:jamb/core/session_service.dart';
 import 'package:jamb/ui/core/widgets/jamb_feedback.dart';
 import 'package:jamb/domain/repositories/documento_repository.dart';
 import 'package:jamb/data/repositories/supabase_documento_repository.dart';
+import 'package:jamb/domain/repositories/avviso_repository.dart';
+import 'package:jamb/data/repositories/supabase_avviso_repository.dart';
+import 'package:jamb/ui/bacheca/view_model/bacheca_view_model.dart';
 
 /// Widget radice dell'app: registra la sessione, che vive per tutta la durata
 /// dell'app, e sotto di essa l'app legata all'utente corrente.
@@ -60,6 +63,7 @@ class _AppPerUtente extends StatelessWidget {
         ChangeNotifierProvider<ITransazioneRepository>(create: (ctx) => SupabaseTransazioneRepository(ctx.read<SessionService>())),
         ChangeNotifierProvider<IEventoRepository>(create: (ctx) => SupabaseEventoRepository(ctx.read<SessionService>())),
         Provider<IDocumentoRepository>(create: (ctx) => SupabaseDocumentoRepository(ctx.read<SessionService>())),
+        ChangeNotifierProvider<IAvvisoRepository>(create: (ctx) => SupabaseAvvisoRepository(ctx.read<SessionService>())),
 
         // ViewModels
         ChangeNotifierProvider(create: (context) => AmministrazioneViewModel(context.read<IScoutRepository>())),
@@ -68,6 +72,8 @@ class _AppPerUtente extends StatelessWidget {
         ChangeNotifierProvider(create: (context) => RagazziViewModel(context.read<IScoutRepository>())),
         ChangeNotifierProvider(create: (_) => DocumentiViewModel()),
         ChangeNotifierProvider(create: (context) => CalendarioViewModel(context.read<IEventoRepository>())),
+        // Unico per l'app: la campanella della TopBar ne legge i non letti.
+        ChangeNotifierProvider(create: (context) => BachecaViewModel(context.read<IAvvisoRepository>())),
       ],
       child: MaterialApp(
         title: 'Jamb MVP',

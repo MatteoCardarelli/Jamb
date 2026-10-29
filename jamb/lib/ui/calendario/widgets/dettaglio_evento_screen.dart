@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'etichette_categorie.dart';
 import 'package:jamb/ui/core/widgets/jamb_app_bar.dart';
+import 'package:jamb/ui/core/widgets/jamb_dettaglio.dart';
 import 'package:jamb/ui/core/widgets/jamb_dialogs.dart';
 import 'package:jamb/ui/core/widgets/jamb_feedback.dart';
 import '../../../domain/entities/evento.dart';
@@ -104,55 +105,15 @@ class _DettaglioEventoView extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            Text(
-              evento.titolo,
-              style: const TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.w900,
-                color: Color(0xFF1E293B),
-                fontFamily: 'Lexend',
-              ),
-            ),
+            JambTitoloDettaglio(evento.titolo),
             const SizedBox(height: 24),
-            _Riga(icona: Icons.schedule_rounded, testo: viewModel.quando),
+            JambRigaDettaglio(icona: Icons.schedule_rounded, testo: viewModel.quando),
             if (evento.luogo.isNotEmpty)
-              _Riga(icona: Icons.location_on_outlined, testo: evento.luogo),
+              JambRigaDettaglio(icona: Icons.location_on_outlined, testo: evento.luogo),
             const SizedBox(height: 16),
             EtichetteCategorie(categorie: evento.categorie),
           ],
         ),
-      ),
-    );
-  }
-}
-
-/// Riga con icona e testo (orario, luogo).
-class _Riga extends StatelessWidget {
-  final IconData icona;
-  final String testo;
-
-  const _Riga({required this.icona, required this.testo});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icona, size: 20, color: const Color(0xFF64748B)),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              testo,
-              style: const TextStyle(
-                fontSize: 15,
-                color: Color(0xFF334155),
-                fontFamily: 'Lexend',
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }
