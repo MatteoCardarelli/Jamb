@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:jamb/core/categoria_evento_colori.dart';
+import 'package:jamb/ui/core/widgets/jamb_campo.dart';
 import 'package:jamb/ui/core/widgets/jamb_feedback.dart';
 import '../../../domain/entities/evento.dart';
 import '../../../domain/repositories/evento_repository.dart';
@@ -98,22 +99,22 @@ class _FormEventoView extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // TITOLO
-            _buildLabel('Titolo Evento'),
+            JambEtichettaCampo('Titolo Evento'),
             TextFormField(
               initialValue: viewModel.titolo,
               onChanged: viewModel.setTitolo,
-              decoration: _inputDecoration('Es. Uscita di Squadriglia'),
+              decoration: jambDecorazioneCampo('Es. Uscita di Squadriglia'),
             ),
             const SizedBox(height: 24),
 
             // LUOGO
-            _buildLabel('Luogo'),
+            JambEtichettaCampo('Luogo'),
             TextFormField(
               initialValue: viewModel.luogo,
               onChanged: viewModel.setLuogo,
-              decoration: _inputDecoration(
+              decoration: jambDecorazioneCampo(
                 'Es. Val di Fassa',
-                icon: Icons.location_on_outlined,
+                icona: Icons.location_on_outlined,
               ),
             ),
             const SizedBox(height: 16),
@@ -129,7 +130,7 @@ class _FormEventoView extends StatelessWidget {
             const SizedBox(height: 8),
 
             // DATA INIZIO
-            _buildLabel('Inizio'),
+            JambEtichettaCampo('Inizio'),
             _buildDataOra(
               context,
               viewModel.dataInizio,
@@ -139,7 +140,7 @@ class _FormEventoView extends StatelessWidget {
             const SizedBox(height: 24),
 
             // DATA FINE
-            _buildLabel('Fine'),
+            JambEtichettaCampo('Fine'),
             _buildDataOra(
               context,
               viewModel.dataFine,
@@ -149,7 +150,7 @@ class _FormEventoView extends StatelessWidget {
             const SizedBox(height: 24),
 
             // CATEGORIE (domini degli obiettivi del Programma d'Unità + "Altro")
-            _buildLabel('Categorie'),
+            JambEtichettaCampo('Categorie'),
             if (viewModel.isLoading)
               const Padding(
                 padding: EdgeInsets.symmetric(vertical: 8),
@@ -287,44 +288,6 @@ class _FormEventoView extends StatelessWidget {
           ),
         ],
       ],
-    );
-  }
-
-  Widget _buildLabel(String text) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8.0),
-      child: Text(
-        text.toUpperCase(),
-        style: const TextStyle(
-          color: Color(0xFF94A3B8),
-          fontSize: 12,
-          fontWeight: FontWeight.bold,
-          letterSpacing: 0.5,
-        ),
-      ),
-    );
-  }
-
-  InputDecoration _inputDecoration(String hint, {IconData? icon}) {
-    return InputDecoration(
-      hintText: hint,
-      prefixIcon: icon != null
-          ? Icon(icon, color: const Color(0xFF94A3B8))
-          : null,
-      filled: true,
-      fillColor: const Color(0xFFF8FAFC),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Color(0xFF1D2660), width: 2),
-      ),
     );
   }
 
