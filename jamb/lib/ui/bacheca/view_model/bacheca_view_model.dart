@@ -1,4 +1,5 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:jamb/domain/entities/avviso.dart';
 import 'package:jamb/domain/repositories/avviso_repository.dart';
 import 'package:jamb/ui/core/view_model/stato_caricamento.dart';
@@ -99,5 +100,14 @@ class BachecaViewModel extends ChangeNotifier with StatoCaricamentoMixin {
   void setFiltro(FiltroAvvisi filtro) {
     _filtro = filtro;
     notifyListeners();
+  }
+
+  /// Data di pubblicazione breve per l'elenco: l'ora se è di oggi, altrimenti
+  /// giorno e mese (con l'anno se diverso da quello corrente).
+  static String dataBreve(DateTime data, {DateTime? adesso}) {
+    final oggi = adesso ?? DateTime.now();
+    if (DateUtils.isSameDay(data, oggi)) return DateFormat('HH:mm').format(data);
+    final formato = data.year == oggi.year ? 'd MMM' : 'd MMM y';
+    return DateFormat(formato, 'it_IT').format(data);
   }
 }
