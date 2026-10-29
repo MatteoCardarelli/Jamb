@@ -48,15 +48,36 @@ class SupabaseEventoRepository extends IEventoRepository {
         await supabase.from(_table).insert({
           'group_id': _session.groupId,
           'unit_id': _session.activeUnitId,
-          'titolo': evento.titolo,
           'tipo_evento': 'RIUNIONE', // l'entità non modella il tipo: valore di default
-          'categorie_tematiche': evento.categorie,
-          'data_inizio': evento.dataInizio.toIso8601String(),
-          'data_fine': evento.dataFine.toIso8601String(),
-          'luogo': evento.luogo,
+          ..._campiModificabili(evento),
         });
         notifyListeners();
       });
+
+  @override
+  Future<void> aggiornaEvento(Evento evento) => eseguiSupabase(() async {
+        await supabase
+            .from(_table)
+            .update(_campiModificabili(evento))
+            .eq('id', evento.id);
+        notifyListeners();
+      });
+
+  @override
+  Future<void> eliminaEvento(String id) => eseguiSupabase(() async {
+        await supabase.from(_table).delete().eq('id', id);
+        notifyListeners();
+      });
+
+  /// Colonne che l'utente può impostare dal form (lo scope resta quello di creazione).
+  Map<String, dynamic> _campiModificabili(Evento evento) => {
+        'titolo': evento.titolo,
+        'categorie_tematiche': evento.categorie,
+        'data_inizio': evento.dataInizio.toIso8601String(),
+        'data_fine': evento.dataFine.toIso8601String(),
+        'luogo': evento.luogo,
+        'tutto_il_giorno': evento.tuttoIlGiorno,
+      };
 
   /// Costruisce un [Evento] a partire da una riga del database.
   Evento _fromDb(Map<String, dynamic> row) {
@@ -74,6 +95,7 @@ class SupabaseEventoRepository extends IEventoRepository {
       colorePrincipale: categorie.isNotEmpty
           ? coloreCategoria(categorie.first)
           : const Color(0xFF25315B),
+      tuttoIlGiorno: row['tutto_il_giorno'] == true,
     );
   }
 

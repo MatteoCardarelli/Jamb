@@ -8,6 +8,12 @@ abstract class IEventoRepository extends ChangeNotifier {
   /// Crea un nuovo evento nell'unità attiva.
   Future<void> creaEvento(Evento evento);
 
+  /// Aggiorna l'evento esistente con lo stesso id di [evento].
+  Future<void> aggiornaEvento(Evento evento);
+
+  /// Elimina l'evento con l'[id] indicato.
+  Future<void> eliminaEvento(String id);
+
   /// Tutti gli eventi visibili, ordinati per data di inizio crescente.
   Future<List<Evento>> getEventi();
 
