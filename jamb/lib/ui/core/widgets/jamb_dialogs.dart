@@ -19,6 +19,56 @@ class JambDialogs {
       builder: (context) => _UploadDocumentDialog(initialPath: initialPath),
     );
   }
+
+  /// Chiede conferma prima di un'eliminazione; restituisce `true` solo se
+  /// l'utente sceglie «Elimina».
+  static Future<bool> confermaEliminazione(
+    BuildContext context, {
+    required String titolo,
+    required String messaggio,
+  }) async {
+    final conferma = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text(
+          titolo,
+          style: const TextStyle(
+            fontFamily: 'Lexend',
+            fontWeight: FontWeight.w900,
+            color: Color(0xFF1D2660),
+          ),
+        ),
+        content: Text(
+          messaggio,
+          style: const TextStyle(fontFamily: 'Lexend', color: Color(0xFF475569)),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text(
+              "ANNULLA",
+              style: TextStyle(fontFamily: 'Lexend', color: Color(0xFF64748B), fontWeight: FontWeight.bold),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFEF4444),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              elevation: 0,
+            ),
+            child: const Text(
+              "ELIMINA",
+              style: TextStyle(fontFamily: 'Lexend', fontWeight: FontWeight.bold),
+            ),
+          ),
+        ],
+      ),
+    );
+    return conferma ?? false;
+  }
 }
 
 // --- DIALOGHI SPECIFICI ---

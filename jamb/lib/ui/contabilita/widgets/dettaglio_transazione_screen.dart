@@ -4,6 +4,7 @@ import 'package:jamb/ui/contabilita/view_model/dettaglio_transazione_view_model.
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:jamb/ui/core/widgets/jamb_app_bar.dart';
+import 'package:jamb/ui/core/widgets/jamb_dialogs.dart';
 import 'package:jamb/ui/core/widgets/jamb_feedback.dart';
 
 /// Schermata di dettaglio di una singola transazione, con opzione di eliminazione.
@@ -173,29 +174,16 @@ class DettaglioTransazioneScreen extends StatelessWidget {
     );
   }
 
-  void _showDeleteConfirmation(BuildContext context, DettaglioTransazioneViewModel viewModel) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text("Elimina transazione"),
-        content: const Text("Sei sicuro di voler eliminare questa transazione? L'azione non è reversibile."),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text("ANNULLA", style: TextStyle(color: Color(0xFF64748B))),
-          ),
-          TextButton(
-            onPressed: () async {
-              final eliminata = await eseguiConFeedback(context, viewModel.elimina);
-              if (!context.mounted) return;
-              Navigator.of(context).pop(); // Chiude il dialog
-              if (eliminata) Navigator.of(context).pop(); // Torna alla lista
-            },
-            child: const Text("ELIMINA", style: TextStyle(color: Color(0xFFB91C1C), fontWeight: FontWeight.bold)),
-          ),
-        ],
-      ),
+  Future<void> _showDeleteConfirmation(BuildContext context, DettaglioTransazioneViewModel viewModel) async {
+    final conferma = await JambDialogs.confermaEliminazione(
+      context,
+      titolo: "Elimina transazione",
+      messaggio: "Sei sicuro di voler eliminare questa transazione? L'azione non è reversibile.",
     );
+    if (!conferma || !context.mounted) return;
+
+    final eliminata = await eseguiConFeedback(context, viewModel.elimina);
+    if (eliminata && context.mounted) Navigator.of(context).pop(); // Torna alla lista
   }
 
   Widget _buildDetailRow({
