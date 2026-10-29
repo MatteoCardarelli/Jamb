@@ -33,7 +33,7 @@ class ObiettivoCard extends StatelessWidget {
         border: Border.all(color: Colors.grey.shade200, width: 1),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -51,7 +51,7 @@ class ObiettivoCard extends StatelessWidget {
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: obiettivo.colore.withOpacity(0.1),
+                  color: obiettivo.colore.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(
@@ -163,8 +163,8 @@ class ObiettivoCard extends StatelessWidget {
                       color: Color(0xFF1D2660),
                       size: 16,
                     ),
-                    const SizedBox(width: 8),
-                    const Text(
+                    SizedBox(width: 8),
+                    Text(
                       "Diario di bordo",
                       style: TextStyle(
                         color: Color(0xFF1D2660),

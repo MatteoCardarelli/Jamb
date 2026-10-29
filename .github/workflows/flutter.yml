@@ -1,0 +1,34 @@
+# Analisi statica e test a ogni push, su qualunque ramo (rami feature e main).
+name: Flutter
+
+on:
+  push:
+
+jobs:
+  analisi-e-test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: jamb
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: 3.41.9
+          cache: true
+
+      # Il file con le credenziali reali non è versionato. I test non usano la
+      # rete, quindi bastano valori fittizi perché il progetto compili.
+      - name: Configurazione Supabase fittizia
+        run: |
+          mkdir -p lib/config
+          cat > lib/config/supabase_config.dart <<'EOF'
+          const supabaseUrl = 'https://progetto-fittizio.supabase.co';
+          const supabaseAnonKey = 'chiave-fittizia-per-la-ci';
+          EOF
+
+      - run: flutter pub get
+      - run: flutter analyze
+      - run: flutter test

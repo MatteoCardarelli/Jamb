@@ -67,7 +67,9 @@ class ExplorerScreen extends StatelessWidget {
                             onTap: isLast ? null : () {
                               // Navigazione a ritroso: torna indietro di N posizioni nella stack delle rotte
                               int steps = viewModel.fullPath.length - 1 - index;
-                              for(int i=0; i<steps; i++) Navigator.of(context).pop();
+                              for (int i = 0; i < steps; i++) {
+                                Navigator.of(context).pop();
+                              }
                             },
                           ),
                         ],

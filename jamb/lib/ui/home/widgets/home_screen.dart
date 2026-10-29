@@ -26,7 +26,7 @@ class HomeScreen extends StatelessWidget {
     final viewModel = context.read<HomeViewModel>();
     final updatedList = await Navigator.of(context).push<List<Obiettivo>>(
       PageRouteBuilder(
-        pageBuilder: (_, __, ___) => ChangeNotifierProvider(
+        pageBuilder: (_, _, _) => ChangeNotifierProvider(
           create: (_) => VerificaObiettiviViewModel(viewModel.obiettivi),
           child: const VerificaObiettiviScreen(),
         ),

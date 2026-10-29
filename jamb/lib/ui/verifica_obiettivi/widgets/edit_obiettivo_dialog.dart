@@ -140,7 +140,7 @@ class _EditObiettivoDialogState extends State<EditObiettivoDialog> {
                         color: color,
                         shape: BoxShape.circle,
                         border: isSelected ? Border.all(color: const Color(0xFF1D2660), width: 3) : null,
-                        boxShadow: isSelected ? [BoxShadow(color: color.withOpacity(0.4), blurRadius: 8)] : null,
+                        boxShadow: isSelected ? [BoxShadow(color: color.withValues(alpha: 0.4), blurRadius: 8)] : null,
                       ),
                       child: isUsed ? const Icon(Icons.close_rounded, color: Colors.white, size: 20) : null,
                     ),
@@ -167,7 +167,7 @@ class _EditObiettivoDialogState extends State<EditObiettivoDialog> {
                   child: Container(
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color: isSelected ? _selectedColor.withOpacity(0.15) : const Color(0xFFF4F6F9),
+                      color: isSelected ? _selectedColor.withValues(alpha: 0.15) : const Color(0xFFF4F6F9),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
                         color: isSelected ? _selectedColor : Colors.transparent,

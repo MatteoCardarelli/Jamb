@@ -182,7 +182,7 @@ class VerificaObiettiviScreen extends StatelessWidget {
                         children: [
                           Icon(Icons.save_rounded, size: 20),
                           SizedBox(width: 8),
-                          const Text(
+                          Text(
                             "Salva Verifica",
                             style: TextStyle(
                               fontSize: 16,

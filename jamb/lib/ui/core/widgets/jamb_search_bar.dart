@@ -25,7 +25,7 @@ class JambSearchBar extends StatelessWidget {
         border: Border.all(color: const Color(0xFFE2E8F0)), // Slate 200
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.02),
+            color: Colors.black.withValues(alpha: 0.02),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -60,7 +60,7 @@ class JambSearchBar extends StatelessWidget {
           ),
           ValueListenableBuilder<TextEditingValue>(
             valueListenable: controller,
-            builder: (_, value, __) => value.text.isNotEmpty
+            builder: (_, value, _) => value.text.isNotEmpty
                 ? GestureDetector(
                     onTap: () {
                       controller.clear();

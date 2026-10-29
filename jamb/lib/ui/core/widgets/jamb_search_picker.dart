@@ -129,7 +129,7 @@ class _JambSearchPickerState extends State<JambSearchPicker> {
             child: ListView.separated(
               itemCount: _filtrate.length,
               physics: const BouncingScrollPhysics(),
-              separatorBuilder: (_, __) => const Divider(color: Color(0xFFF1F5F9), height: 1),
+              separatorBuilder: (_, _) => const Divider(color: Color(0xFFF1F5F9), height: 1),
               itemBuilder: (context, i) {
                 final voce = _filtrate[i];
                 final bool isSelected = voce == widget.selezionato;

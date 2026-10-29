@@ -65,7 +65,7 @@ class BottomNavBar extends StatelessWidget {
   void _navigateTo(BuildContext context, Widget view) {
     Navigator.of(context).pushAndRemoveUntil(
       PageRouteBuilder(
-        pageBuilder: (_, __, ___) => view,
+        pageBuilder: (_, _, _) => view,
         transitionDuration: Duration.zero,
         reverseTransitionDuration: Duration.zero,
       ),

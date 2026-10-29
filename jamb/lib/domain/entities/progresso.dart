@@ -1,3 +1,8 @@
+// I valori di SpecialitaNome e BrevettoNome devono coincidere con le etichette
+// degli enum PostgreSQL (specialita_nome_enum, brevetto_nome_enum), perché il
+// mapping usa `.name`: per questo non seguono il lowerCamelCase.
+// ignore_for_file: constant_identifier_names
+
 /// Tappe del Sentiero (la progressione personale dello scout).
 enum TappaSentiero {
     nulla,
