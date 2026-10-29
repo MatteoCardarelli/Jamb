@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:jamb/ui/core/widgets/empty_background_screen.dart';
-import 'package:jamb/ui/core/widgets/back_action_button.dart';
+import 'package:jamb/ui/core/widgets/jamb_barra_azioni.dart';
 import 'package:jamb/ui/contabilita/widgets/add_transaction/transaction_header.dart';
 import 'package:jamb/ui/contabilita/widgets/add_transaction/transaction_details_cards.dart';
 import 'package:jamb/ui/contabilita/widgets/add_transaction/receipt_upload_card.dart';
@@ -81,54 +81,20 @@ class AddTransactionScreen extends StatelessWidget {
               bottom: 130, // Posizionata sopra la barra di navigazione
               left: 20,
               right: 20,
-              child: Row(
-                children: [
-                  // Tasto Indietro Core
-                  const BackActionButton(),
-                  const SizedBox(width: 16),
-                  
-                  // Tasto Salvataggio
-                  Expanded(
-                    child: SizedBox(
-                      height: 58,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          final transazione = viewModel.buildTransaction();
-                          if (transazione != null) {
-                            Navigator.of(context).pop(transazione);
-                          } else {
-                            // Opzionale: mostrare un errore se l'importo è 0
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text("Inserisci un importo valido")),
-                            );
-                          }
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF1D2660),
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-                          elevation: 0,
-                        ),
-                        child: const Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.save_rounded, size: 20),
-                            SizedBox(width: 12),
-                            Text(
-                              "SALVA TRANSAZIONE",
-                              style: TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w800,
-                                fontFamily: 'Lexend',
-                                letterSpacing: 0.5,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
+              child: JambBarraAzioni(
+                etichetta: "SALVA TRANSAZIONE",
+                icona: Icons.save_rounded,
+                onPressed: () {
+                  final transazione = viewModel.buildTransaction();
+                  if (transazione != null) {
+                    Navigator.of(context).pop(transazione);
+                  } else {
+                    // Opzionale: mostrare un errore se l'importo è 0
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text("Inserisci un importo valido")),
+                    );
+                  }
+                },
               ),
             ),
           ],

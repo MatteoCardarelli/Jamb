@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:jamb/domain/entities/obiettivo.dart';
-import 'package:jamb/ui/core/widgets/back_action_button.dart';
+import 'package:jamb/ui/core/widgets/jamb_barra_azioni.dart';
 import 'package:jamb/ui/core/widgets/empty_background_screen.dart';
 import 'package:jamb/ui/core/widgets/jamb_dialogs.dart';
 import 'package:jamb/ui/verifica_obiettivi/view_model/verifica_obiettivi_view_model.dart';
@@ -107,11 +107,11 @@ class VerificaObiettiviScreen extends StatelessWidget {
             bottom: 130,
             left: 20,
             right: 20,
-            child: Row(
-              children: [
-                const BackActionButton(),
-                const SizedBox(width: 12),
-                
+            child: JambBarraAzioni(
+              etichetta: "SALVA VERIFICA",
+              icona: Icons.save_rounded,
+              onPressed: () => Navigator.of(context).pop(viewModel.obiettivi),
+              azioniSecondarie: [
                 // Pulsante AGGIUNGI
                 Container(
                   height: 56,
@@ -124,41 +124,6 @@ class VerificaObiettiviScreen extends StatelessWidget {
                   child: IconButton(
                     onPressed: () => _addNewObiettivo(context),
                     icon: const Icon(Icons.add_rounded, color: Color(0xFF1D2660), size: 28),
-                  ),
-                ),
-                
-                const SizedBox(width: 12),
-                
-                // Pulsante di Salvataggio
-                Expanded(
-                  child: SizedBox(
-                    height: 56,
-                    child: ElevatedButton(
-                      onPressed: () => Navigator.of(context).pop(viewModel.obiettivi),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF00005C),
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        elevation: 0,
-                      ),
-                      child: const Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.save_rounded, size: 20),
-                          SizedBox(width: 8),
-                          Text(
-                            "Salva Verifica",
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              fontFamily: 'Lexend',
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
                   ),
                 ),
               ],
