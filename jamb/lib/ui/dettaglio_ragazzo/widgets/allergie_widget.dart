@@ -22,7 +22,7 @@ class AllergieWidget extends StatelessWidget {
         border: Border.all(color: const Color(0xFFFECACA)), // Red 200
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFFB91C1C).withOpacity(0.05),
+            color: const Color(0xFFB91C1C).withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -39,7 +39,7 @@ class AllergieWidget extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFB91C1C).withOpacity(0.1),
+                  color: const Color(0xFFB91C1C).withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: const Text(

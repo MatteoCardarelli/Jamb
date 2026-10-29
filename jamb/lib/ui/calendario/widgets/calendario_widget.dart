@@ -100,7 +100,7 @@ class _CalendarioWidgetState extends State<CalendarioWidget> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -212,7 +212,7 @@ class _CalendarioWidgetState extends State<CalendarioWidget> {
             shape: BoxShape.circle,
           ),
           todayDecoration: BoxDecoration(
-            color: const Color(0xFF25315B).withOpacity(0.3),
+            color: const Color(0xFF25315B).withValues(alpha: 0.3),
             shape: BoxShape.circle,
           ),
           selectedTextStyle: const TextStyle(
@@ -229,7 +229,7 @@ class _CalendarioWidgetState extends State<CalendarioWidget> {
           ),
           outsideTextStyle: TextStyle(
             fontWeight: FontWeight.bold,
-            color: const Color(0xFF1E293B).withOpacity(0.3),
+            color: const Color(0xFF1E293B).withValues(alpha: 0.3),
           ),
         ),
         headerStyle: const HeaderStyle(

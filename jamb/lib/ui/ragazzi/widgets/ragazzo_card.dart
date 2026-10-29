@@ -24,9 +24,12 @@ class RagazzoCard extends StatelessWidget {
 
     return GestureDetector(
       onTap: () {
+        // Letto prima della navigazione: al ritorno il context della card
+        // potrebbe non essere più valido.
+        final ragazziViewModel = context.read<RagazziViewModel>();
         Navigator.of(context).push(
           PageRouteBuilder(
-            pageBuilder: (context, __, ___) => ChangeNotifierProvider(
+            pageBuilder: (context, _, _) => ChangeNotifierProvider(
               create: (_) => DettaglioRagazzoViewModel(
                 scout: scout,
                 repository: context.read<IScoutRepository>(),
@@ -39,7 +42,7 @@ class RagazzoCard extends StatelessWidget {
         ).then((_) {
           // Quando torniamo indietro, rinfreschiamo la lista principale
           // per mostrare i dati aggiornati
-          context.read<RagazziViewModel>().refresh();
+          ragazziViewModel.refresh();
         });
       },
       child: Container(
@@ -49,7 +52,7 @@ class RagazzoCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withValues(alpha: 0.05),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),

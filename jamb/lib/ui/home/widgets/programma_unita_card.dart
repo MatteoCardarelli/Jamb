@@ -25,7 +25,7 @@ class ProgrammaUnitaCard extends StatelessWidget {
         border: Border.all(color: Colors.grey.shade200, width: 1),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
+            color: Colors.black.withValues(alpha: 0.08),
             blurRadius: 15,
             offset: const Offset(0, 4),
           ),
@@ -54,7 +54,7 @@ class ProgrammaUnitaCard extends StatelessWidget {
               Text(
                 "26/04/2026",
                 style: TextStyle(
-                  color: darkBlue.withOpacity(0.9),
+                  color: darkBlue.withValues(alpha: 0.9),
                   fontSize: 14,
                   fontWeight: FontWeight.w700,
                   fontFamily: 'Lexend',

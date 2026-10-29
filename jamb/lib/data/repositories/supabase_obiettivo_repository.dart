@@ -33,7 +33,7 @@ class SupabaseObiettivoRepository implements IObiettivoRepository {
           'descrizione': o.descrizione,
           'grado': o.grado,
           'diario_di_bordo': o.diarioDiBordo,
-          'colore': o.colore.value,
+          'colore': o.colore.toARGB32(),
           'icona': o.icona.codePoint,
         };
 

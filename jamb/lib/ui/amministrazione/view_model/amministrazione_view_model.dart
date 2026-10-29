@@ -69,10 +69,11 @@ class AmministrazioneViewModel extends ChangeNotifier with StatoCaricamentoMixin
   Future<void> _cycleStatus(String id, String field) async {
     final index = _ragazzi.indexWhere((r) => r.id == id);
     if (index != -1) {
-      DocumentoStatus currentStatus;
-      if (field == 'censimento') currentStatus = _ragazzi[index].statoCensimento;
-      else if (field == 'privacy') currentStatus = _ragazzi[index].statoPrivacy;
-      else currentStatus = _ragazzi[index].statoMedica;
+      final DocumentoStatus currentStatus = switch (field) {
+        'censimento' => _ragazzi[index].statoCensimento,
+        'privacy' => _ragazzi[index].statoPrivacy,
+        _ => _ragazzi[index].statoMedica,
+      };
 
       DocumentoStatus nextStatus;
       switch (currentStatus) {

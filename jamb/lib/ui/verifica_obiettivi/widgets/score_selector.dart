@@ -42,7 +42,7 @@ class ScoreSelector extends StatelessWidget {
           padding: const EdgeInsets.symmetric(vertical: 8),
           decoration: BoxDecoration(
             // Sfondo colorato semitrasparente se selezionato, grigio altrimenti
-            color: isSelected ? color.withOpacity(0.15) : const Color(0xFFF4F6F9),
+            color: isSelected ? color.withValues(alpha: 0.15) : const Color(0xFFF4F6F9),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
               color: isSelected ? color : Colors.transparent,

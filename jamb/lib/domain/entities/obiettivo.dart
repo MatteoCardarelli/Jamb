@@ -49,7 +49,7 @@ class Obiettivo {
       'dominio': dominio,
       'descrizione': descrizione,
       'grado': grado,
-      'colore': colore.value,
+      'colore': colore.toARGB32(),
       'icona': icona.codePoint,
       'diarioDiBordo': diarioDiBordo,
     };
