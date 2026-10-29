@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:jamb/core/categoria_evento_colori.dart';
 import 'package:jamb/ui/core/widgets/jamb_campo.dart';
+import 'package:jamb/ui/core/widgets/jamb_errore_in_linea.dart';
 import 'package:jamb/ui/core/widgets/jamb_feedback.dart';
 import '../../../domain/entities/evento.dart';
 import '../../../domain/repositories/evento_repository.dart';
@@ -163,25 +164,10 @@ class _FormEventoView extends StatelessWidget {
             else ...[
               // Senza obiettivi caricati il form resta utilizzabile con "Altro".
               if (viewModel.haErrore)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          'Categorie del Programma d\'Unità non disponibili: ${viewModel.errore}',
-                          style: TextStyle(
-                            color: Colors.grey[600],
-                            fontSize: 12,
-                          ),
-                        ),
-                      ),
-                      TextButton(
-                        onPressed: viewModel.ricaricaCategorie,
-                        child: const Text('Riprova'),
-                      ),
-                    ],
-                  ),
+                JambErroreInLinea(
+                  messaggio:
+                      'Categorie del Programma d\'Unità non disponibili: ${viewModel.errore}',
+                  onRiprova: viewModel.ricaricaCategorie,
                 ),
               Wrap(
                 spacing: 8,
