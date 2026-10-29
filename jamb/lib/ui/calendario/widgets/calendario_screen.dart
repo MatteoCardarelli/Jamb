@@ -7,7 +7,7 @@ import 'package:jamb/ui/core/widgets/jamb_stato_errore.dart';
 import 'package:jamb/ui/calendario/widgets/calendario_widget.dart';
 import 'package:jamb/ui/calendario/widgets/eventi_oggi_widget.dart';
 import 'package:jamb/ui/calendario/widgets/prossimi_eventi_widget.dart';
-import 'package:jamb/ui/calendario/widgets/crea_evento_screen.dart';
+import 'package:jamb/ui/calendario/widgets/form_evento_screen.dart';
 
 /// Schermata del calendario: calendario mensile, eventi del giorno e prossimi eventi.
 class CalendarioScreen extends StatelessWidget {
@@ -21,9 +21,12 @@ class CalendarioScreen extends StatelessWidget {
       currentIndex: 3, // Indice per il Calendario
       floatingActionButton: JambFab(
         onPressed: () {
+          // Il nuovo evento parte dal giorno selezionato nel calendario.
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => const CreaEventoScreen()),
+            MaterialPageRoute(
+              builder: (context) => FormEventoScreen(giorno: viewModel.selectedDate),
+            ),
           );
         },
       ),
