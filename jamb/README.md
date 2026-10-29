@@ -153,10 +153,12 @@ ricreati a ogni cambio di utente, così non restano in memoria i dati di chi
 - Nella sezione Documenti si naviga soltanto: caricamento file e creazione
   cartelle non sono disponibili.
 - La foto della ricevuta di una transazione viene selezionata ma non caricata.
-- Tra le azioni rapide della schermata principale, «Crea Avviso» e «Carica
-  Doc» non sono ancora disponibili (lo segnalano quando vengono toccate).
-- Bacheca avvisi e appello delle presenze hanno le tabelle nel database ma
-  non ancora l'interfaccia.
+- Tra le azioni rapide della schermata principale, «Carica Doc» non è ancora
+  disponibile (lo segnala quando viene toccata).
+- Gli avvisi pubblicati dagli altri capi compaiono aprendo la bacheca o
+  trascinando l'elenco verso il basso: non c'è aggiornamento in tempo reale.
+- L'appello delle presenze ha la tabella nel database ma non ancora
+  l'interfaccia.
 - L'unità attiva è la prima tra quelle dell'utente: manca un selettore.
 - L'area dedicata ai ragazzi non esiste: l'applicazione è oggi rivolta ai soli
   capi, e un ragazzo che accede vede solo un avviso.
