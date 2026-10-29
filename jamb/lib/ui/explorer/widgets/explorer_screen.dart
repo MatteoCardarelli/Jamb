@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:jamb/ui/core/widgets/empty_background_screen.dart';
+import 'package:jamb/ui/core/widgets/jamb_intestazione.dart';
 import 'package:jamb/ui/core/widgets/jamb_search_bar.dart';
 import 'package:jamb/ui/core/widgets/jamb_category_card.dart';
 import 'package:jamb/ui/core/widgets/jamb_expandable_fab.dart';
@@ -34,6 +35,10 @@ class ExplorerScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // La freccia risale di un livello (dalla prima cartella torna all'hub Documenti).
+              JambIntestazione(titolo: viewModel.titolo),
+              const SizedBox(height: 24),
+
               // BARRA DI RICERCA
               JambSearchBar(
                 controller: viewModel.searchController,
