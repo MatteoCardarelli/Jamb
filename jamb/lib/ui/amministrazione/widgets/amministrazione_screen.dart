@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:jamb/ui/core/widgets/empty_background_screen.dart';
-import 'package:jamb/ui/core/widgets/back_action_button.dart';
+import 'package:jamb/ui/core/widgets/jamb_intestazione.dart';
 import 'package:jamb/ui/core/widgets/jamb_feedback.dart';
 import 'package:jamb/ui/core/widgets/jamb_stato_errore.dart';
 import 'package:jamb/ui/amministrazione/widgets/status_documento_card.dart';
@@ -66,22 +66,7 @@ class _AmministrazioneScreenState extends State<AmministrazioneScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // --- INTESTAZIONE ---
-                  Row(
-                    children: [
-                      const BackActionButton(),
-                      const SizedBox(width: 16),
-                      const Text(
-                        "Amministrazione",
-                        style: TextStyle(
-                          color: Color(0xFF0F172A),
-                          fontSize: 22,
-                          fontWeight: FontWeight.w900,
-                          fontFamily: 'Lexend',
-                        ),
-                      ),
-                    ],
-                  ),
+                  const JambIntestazione(titolo: "Amministrazione"),
                   const SizedBox(height: 24),
 
                   // --- STATISTICHE GLOBALI ---

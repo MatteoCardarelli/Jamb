@@ -6,7 +6,7 @@ import 'package:jamb/ui/contabilita/widgets/expenses_distribution_card.dart';
 import 'package:jamb/ui/contabilita/widgets/recent_transactions_list.dart';
 import 'package:provider/provider.dart';
 import 'package:jamb/ui/contabilita/view_model/contabilita_view_model.dart';
-import 'package:jamb/ui/core/widgets/back_action_button.dart';
+import 'package:jamb/ui/core/widgets/jamb_intestazione.dart';
 import 'package:jamb/ui/core/widgets/jamb_fab.dart';
 import 'package:jamb/ui/core/widgets/jamb_stato_errore.dart';
 
@@ -33,22 +33,7 @@ class ContabilitaScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header con tasto back
-              Row(
-                children: [
-                  const BackActionButton(),
-                  const SizedBox(width: 16),
-                  const Text(
-                    "Contabilità",
-                    style: TextStyle(
-                      color: Color(0xFF25315B),
-                      fontSize: 24,
-                      fontWeight: FontWeight.w900,
-                      fontFamily: 'Lexend',
-                    ),
-                  ),
-                ],
-              ),
+              const JambIntestazione(titolo: "Contabilità"),
               const SizedBox(height: 32),
 
               // In caso di errore non si mostra un saldo a zero, che sarebbe falso.
