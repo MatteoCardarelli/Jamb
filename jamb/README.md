@@ -103,8 +103,13 @@ flutter run
 flutter test
 ```
 
-La suite copre le entità di dominio, le funzioni di utilità e i ViewModel,
-usando repository finti in memoria: non serve né connessione né database.
+La suite copre le entità di dominio, i permessi, la traduzione degli errori, i
+ViewModel e alcuni widget, usando repository finti in memoria: non serve né
+connessione né database. Alcuni test leggono le migrazioni in
+`../supabase/migrations/` per verificare il contratto con lo schema.
+
+A ogni push la CI di GitHub Actions (`.github/workflows/flutter.yml`) esegue
+`flutter analyze`, che deve restare senza segnalazioni, e `flutter test`.
 
 ## Build di un APK
 
@@ -119,13 +124,16 @@ L'archivio viene prodotto in `build/app/outputs/flutter-apk/`.
 ```
 lib/
   config/        credenziali Supabase (non versionato)
-  core/          client Supabase, sessione, utilità condivise
+  core/          client Supabase, sessione, permessi, utilità condivise
   domain/
     entities/    modelli di dominio (Scout, Evento, Transazione, ...)
+    errori/      eccezione di dominio JambException
     repositories/ interfacce dei repository
   data/
-    repositories/ implementazioni Supabase e JSON
-  ui/            una cartella per sezione, ciascuna con widget e view model
+    repositories/ implementazioni Supabase
+    errori_supabase.dart traduzione degli errori di Supabase e della rete
+  ui/            una cartella per sezione, ciascuna con widget e view model;
+                 ui/core/ contiene i widget condivisi
   app.dart       albero dei provider e gate di autenticazione
   main.dart      inizializzazione di Supabase e localizzazione
 test/            test automatici, rispecchia la struttura di lib/
@@ -134,7 +142,9 @@ testing/         repository finti e costruttori di dati di prova
 
 La scelta dell'implementazione dei repository avviene in `app.dart`: per
 cambiare sorgente dati basta sostituire la classe registrata nel provider,
-senza toccare interfaccia e view model.
+senza toccare interfaccia e view model. Repository e view model vengono
+ricreati a ogni cambio di utente, così non restano in memoria i dati di chi
+è uscito.
 
 ## Limitazioni note
 
@@ -143,8 +153,10 @@ senza toccare interfaccia e view model.
 - Nella sezione Documenti si naviga soltanto: caricamento file e creazione
   cartelle non sono disponibili.
 - La foto della ricevuta di una transazione viene selezionata ma non caricata.
-- I pulsanti delle azioni rapide nella schermata principale non sono collegati.
-- Gli errori dei repository non vengono mostrati a schermo: se un'operazione
-  fallisce, l'interfaccia resta silenziosa.
+- Tra le azioni rapide della schermata principale, «Crea Avviso» e «Carica
+  Doc» non sono ancora disponibili (lo segnalano quando vengono toccate).
+- Bacheca avvisi e appello delle presenze hanno le tabelle nel database ma
+  non ancora l'interfaccia.
+- L'unità attiva è la prima tra quelle dell'utente: manca un selettore.
 - L'area dedicata ai ragazzi non esiste: l'applicazione è oggi rivolta ai soli
-  capi.
+  capi, e un ragazzo che accede vede solo un avviso.
