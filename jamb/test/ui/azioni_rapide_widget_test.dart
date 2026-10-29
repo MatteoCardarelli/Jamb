@@ -10,9 +10,9 @@ void main() {
       home: Scaffold(body: SingleChildScrollView(child: AzioniRapideWidget())),
     ));
 
-    await tester.tap(find.text('Crea Avviso'));
+    await tester.tap(find.text('Carica Doc'));
     await tester.pump();
 
-    expect(find.text('Crea Avviso sarà disponibile in una prossima versione.'), findsOneWidget);
+    expect(find.text('Carica Doc sarà disponibile in una prossima versione.'), findsOneWidget);
   });
 }

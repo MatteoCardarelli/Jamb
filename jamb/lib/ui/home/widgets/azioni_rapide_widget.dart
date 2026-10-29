@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:jamb/ui/bacheca/widgets/form_avviso_screen.dart';
 import 'package:jamb/ui/calendario/widgets/form_evento_screen.dart';
 import 'package:jamb/ui/contabilita/widgets/add_transaction_screen.dart';
 import 'package:jamb/ui/core/stile.dart';
@@ -45,6 +46,7 @@ class AzioniRapideWidget extends StatelessWidget {
                 context,
                 icon: Icons.campaign_outlined,
                 label: "Crea Avviso",
+                onTap: () => FormAvvisoScreen.apri(context),
               ),
               _buildAzioneCard(
                 context,
