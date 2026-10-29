@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:provider/provider.dart';
+import 'package:jamb/core/ruolo_display.dart';
+import 'package:jamb/core/session_service.dart';
+import 'package:jamb/ui/core/widgets/jamb_feedback.dart';
 
 /// Barra superiore personalizzata con design distintivo Jamb.
 /// Presenta una forma a "tuffo" (dip) al centro che ospita il logo AGESCI,
-/// icone profilo e notifiche, e informazioni sull'utente corrente.
+/// icone profilo e notifiche, e nome e ruolo dell'utente collegato.
 class TopBar extends StatelessWidget implements PreferredSizeWidget {
   const TopBar({super.key});
 
@@ -17,6 +21,10 @@ class TopBar extends StatelessWidget implements PreferredSizeWidget {
     const double dipRadius = 36.0; // Raggio della curvatura centrale
     final double totalHeight = defaultBarHeight + statusBarHeight + dipRadius;
     const Color greenColor = Color(0xFF2F4F39); // Colore istituzionale verde scout
+
+    final session = context.watch<SessionService>();
+    final nome = session.nomeCompleto;
+    final ruolo = session.activeRole == null ? '' : ruoloLabel(session.activeRole!);
 
     return SizedBox(
       height: totalHeight,
@@ -49,39 +57,56 @@ class TopBar extends StatelessWidget implements PreferredSizeWidget {
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: Row(
                 children: [
-                  // Avatar Utente (SVG)
-                  SvgPicture.asset(
-                    'assets/icons/profilo.svg',
-                    width: 36,
-                    height: 36,
-                  ),
-                  const SizedBox(width: 10),
-                  
-                  // Info Utente: Nome e Totem
-                  const Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Matteo',
-                        style: TextStyle(
-                          color: greenColor,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                          fontFamily: 'Lexend',
-                        ),
+                  // Avatar e info utente: toccandoli si apre il menu del profilo.
+                  // Il totem non è nel database: sotto il nome si mostra il ruolo.
+                  Expanded(
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () => _apriMenuProfilo(context, nome, ruolo),
+                      child: Row(
+                        children: [
+                          SvgPicture.asset(
+                            'assets/icons/profilo.svg',
+                            width: 36,
+                            height: 36,
+                          ),
+                          const SizedBox(width: 10),
+                          Flexible(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  nome,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    color: greenColor,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14,
+                                    fontFamily: 'Lexend',
+                                  ),
+                                ),
+                                Text(
+                                  ruolo,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    color: greenColor,
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 9,
+                                    fontFamily: 'Lexend',
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
-                      Text(
-                        'Quokka Impassibile',
-                        style: TextStyle(
-                          color: greenColor,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 9,
-                          fontFamily: 'Lexend',
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
+                  // Spazio libero sotto il logo centrale.
+                  const SizedBox(width: 72),
                   const Spacer(),
                   
                   // Icone d'azione (Opzioni e Notifiche)
@@ -122,6 +147,60 @@ class TopBar extends StatelessWidget implements PreferredSizeWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  /// Menu del profilo: chi è collegato e il tasto per uscire.
+  void _apriMenuProfilo(BuildContext context, String nome, String ruolo) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                nome,
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w900,
+                  color: Color(0xFF1D2660),
+                  fontFamily: 'Lexend',
+                ),
+              ),
+              if (ruolo.isNotEmpty)
+                Text(
+                  ruolo,
+                  style: const TextStyle(color: Color(0xFF64748B), fontFamily: 'Lexend'),
+                ),
+              const SizedBox(height: 16),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.logout_rounded, color: Color(0xFFB91C1C)),
+                title: const Text(
+                  'Esci',
+                  style: TextStyle(
+                    color: Color(0xFFB91C1C),
+                    fontWeight: FontWeight.w700,
+                    fontFamily: 'Lexend',
+                  ),
+                ),
+                onTap: () {
+                  Navigator.of(ctx).pop();
+                  // L'app si ricrea per il nuovo stato della sessione e torna al login.
+                  eseguiConFeedback(context, context.read<SessionService>().logout);
+                },
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
