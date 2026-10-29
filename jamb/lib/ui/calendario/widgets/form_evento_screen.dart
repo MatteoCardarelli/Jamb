@@ -3,30 +3,44 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:jamb/core/categoria_evento_colori.dart';
 import 'package:jamb/ui/core/widgets/jamb_feedback.dart';
+import '../../../domain/entities/evento.dart';
 import '../../../domain/repositories/evento_repository.dart';
 import '../../../domain/repositories/obiettivo_repository.dart';
-import '../view_model/crea_evento_view_model.dart';
+import '../view_model/form_evento_view_model.dart';
 
-/// Schermata per la creazione di un nuovo evento del calendario.
-class CreaEventoScreen extends StatelessWidget {
-  const CreaEventoScreen({super.key});
+/// Schermata per creare un evento del calendario o modificare [eventoEsistente].
+///
+/// Alla chiusura dopo un salvataggio restituisce l'[Evento] salvato.
+class FormEventoScreen extends StatelessWidget {
+  final Evento? eventoEsistente;
+
+  /// Giorno da cui parte un nuovo evento (es. quello selezionato nel calendario).
+  final DateTime? giorno;
+
+  const FormEventoScreen({super.key, this.eventoEsistente, this.giorno});
 
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (context) => CreaEventoViewModel(
+      create: (context) => FormEventoViewModel(
         context.read<IEventoRepository>(),
         context.read<IObiettivoRepository>(),
+        eventoEsistente: eventoEsistente,
+        giorno: giorno,
       ),
-      child: const _CreaEventoView(),
+      child: const _FormEventoView(),
     );
   }
 }
 
-class _CreaEventoView extends StatelessWidget {
-  const _CreaEventoView();
+class _FormEventoView extends StatelessWidget {
+  const _FormEventoView();
 
-  Future<void> _selectDate(BuildContext context, DateTime initialDate, ValueChanged<DateTime> onSelected) async {
+  Future<void> _selectDate(
+    BuildContext context,
+    DateTime initialDate,
+    ValueChanged<DateTime> onSelected,
+  ) async {
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: initialDate,
@@ -39,7 +53,11 @@ class _CreaEventoView extends StatelessWidget {
     }
   }
 
-  Future<void> _selectTime(BuildContext context, DateTime initialDate, ValueChanged<DateTime> onSelected) async {
+  Future<void> _selectTime(
+    BuildContext context,
+    DateTime initialDate,
+    ValueChanged<DateTime> onSelected,
+  ) async {
     final TimeOfDay? picked = await showTimePicker(
       context: context,
       initialTime: TimeOfDay.fromDateTime(initialDate),
@@ -58,16 +76,17 @@ class _CreaEventoView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final viewModel = context.watch<CreaEventoViewModel>();
-    final dateFormat = DateFormat('dd/MM/yyyy');
-    final timeFormat = DateFormat('HH:mm');
+    final viewModel = context.watch<FormEventoViewModel>();
 
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text(
-          'Nuovo Evento',
-          style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1D2660)),
+        title: Text(
+          viewModel.isModifica ? 'Modifica Evento' : 'Nuovo Evento',
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Color(0xFF1D2660),
+          ),
         ),
         backgroundColor: Colors.white,
         elevation: 0,
@@ -80,7 +99,8 @@ class _CreaEventoView extends StatelessWidget {
           children: [
             // TITOLO
             _buildLabel('Titolo Evento'),
-            TextField(
+            TextFormField(
+              initialValue: viewModel.titolo,
               onChanged: viewModel.setTitolo,
               decoration: _inputDecoration('Es. Uscita di Squadriglia'),
             ),
@@ -88,79 +108,43 @@ class _CreaEventoView extends StatelessWidget {
 
             // LUOGO
             _buildLabel('Luogo'),
-            TextField(
+            TextFormField(
+              initialValue: viewModel.luogo,
               onChanged: viewModel.setLuogo,
-              decoration: _inputDecoration('Es. Val di Fassa', icon: Icons.location_on_outlined),
+              decoration: _inputDecoration(
+                'Es. Val di Fassa',
+                icon: Icons.location_on_outlined,
+              ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 16),
+
+            // GIORNATA INTERA: nasconde gli orari
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: const Text('Tutto il giorno'),
+              value: viewModel.tuttoIlGiorno,
+              activeThumbColor: const Color(0xFF1D2660),
+              onChanged: viewModel.setTuttoIlGiorno,
+            ),
+            const SizedBox(height: 8),
 
             // DATA INIZIO
             _buildLabel('Inizio'),
-            Row(
-              children: [
-                Expanded(
-                  child: InkWell(
-                    onTap: () async {
-                      await _selectDate(context, viewModel.dataInizio, (d) {
-                        viewModel.setDataInizio(DateTime(d.year, d.month, d.day, viewModel.dataInizio.hour, viewModel.dataInizio.minute));
-                      });
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: _boxDecoration(),
-                      child: Text(dateFormat.format(viewModel.dataInizio)),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: InkWell(
-                    onTap: () async {
-                      await _selectTime(context, viewModel.dataInizio, viewModel.setDataInizio);
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: _boxDecoration(),
-                      child: Text(timeFormat.format(viewModel.dataInizio)),
-                    ),
-                  ),
-                ),
-              ],
+            _buildDataOra(
+              context,
+              viewModel.dataInizio,
+              viewModel.setDataInizio,
+              mostraOra: !viewModel.tuttoIlGiorno,
             ),
             const SizedBox(height: 24),
 
             // DATA FINE
             _buildLabel('Fine'),
-            Row(
-              children: [
-                Expanded(
-                  child: InkWell(
-                    onTap: () async {
-                      await _selectDate(context, viewModel.dataFine, (d) {
-                        viewModel.setDataFine(DateTime(d.year, d.month, d.day, viewModel.dataFine.hour, viewModel.dataFine.minute));
-                      });
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: _boxDecoration(),
-                      child: Text(dateFormat.format(viewModel.dataFine)),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: InkWell(
-                    onTap: () async {
-                      await _selectTime(context, viewModel.dataFine, viewModel.setDataFine);
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: _boxDecoration(),
-                      child: Text(timeFormat.format(viewModel.dataFine)),
-                    ),
-                  ),
-                ),
-              ],
+            _buildDataOra(
+              context,
+              viewModel.dataFine,
+              viewModel.setDataFine,
+              mostraOra: !viewModel.tuttoIlGiorno,
             ),
             const SizedBox(height: 24),
 
@@ -185,7 +169,10 @@ class _CreaEventoView extends StatelessWidget {
                       Expanded(
                         child: Text(
                           'Categorie del Programma d\'Unità non disponibili: ${viewModel.errore}',
-                          style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontSize: 12,
+                          ),
                         ),
                       ),
                       TextButton(
@@ -199,14 +186,18 @@ class _CreaEventoView extends StatelessWidget {
                 spacing: 8,
                 runSpacing: 8,
                 children: viewModel.categorieDisponibili.map((cat) {
-                  final isSelected = viewModel.categorieSelezionate.contains(cat);
+                  final isSelected = viewModel.categorieSelezionate.contains(
+                    cat,
+                  );
                   final colore = coloreCategoria(cat);
                   return ChoiceChip(
                     label: Text(
                       cat,
                       style: TextStyle(
                         color: isSelected ? colore : Colors.grey[700],
-                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                        fontWeight: isSelected
+                            ? FontWeight.bold
+                            : FontWeight.normal,
                       ),
                     ),
                     selected: isSelected,
@@ -225,24 +216,77 @@ class _CreaEventoView extends StatelessWidget {
               width: double.infinity,
               height: 56,
               child: ElevatedButton(
-                onPressed: viewModel.isValid ? () async {
-                  final salvato = await eseguiConFeedback(context, viewModel.salvaEvento);
-                  if (salvato && context.mounted) {
-                    Navigator.pop(context);
-                  }
-                } : null,
+                onPressed: viewModel.isValid
+                    ? () async {
+                        Evento? evento;
+                        final salvato = await eseguiConFeedback(
+                          context,
+                          () async {
+                            evento = await viewModel.salvaEvento();
+                          },
+                        );
+                        if (salvato && context.mounted) {
+                          Navigator.pop(context, evento);
+                        }
+                      }
+                    : null,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF1D2660),
                   foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
                   elevation: 0,
                 ),
-                child: const Text('SALVA EVENTO', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                child: const Text(
+                  'SALVA EVENTO',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                ),
               ),
             ),
           ],
         ),
       ),
+    );
+  }
+
+  /// Riquadri per scegliere la data e, se [mostraOra], l'orario di [valore].
+  Widget _buildDataOra(
+    BuildContext context,
+    DateTime valore,
+    ValueChanged<DateTime> onChanged, {
+    required bool mostraOra,
+  }) {
+    return Row(
+      children: [
+        Expanded(
+          child: InkWell(
+            onTap: () => _selectDate(context, valore, (d) {
+              onChanged(
+                DateTime(d.year, d.month, d.day, valore.hour, valore.minute),
+              );
+            }),
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: _boxDecoration(),
+              child: Text(DateFormat('dd/MM/yyyy').format(valore)),
+            ),
+          ),
+        ),
+        if (mostraOra) ...[
+          const SizedBox(width: 12),
+          Expanded(
+            child: InkWell(
+              onTap: () => _selectTime(context, valore, onChanged),
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: _boxDecoration(),
+                child: Text(DateFormat('HH:mm').format(valore)),
+              ),
+            ),
+          ),
+        ],
+      ],
     );
   }
 
@@ -264,7 +308,9 @@ class _CreaEventoView extends StatelessWidget {
   InputDecoration _inputDecoration(String hint, {IconData? icon}) {
     return InputDecoration(
       hintText: hint,
-      prefixIcon: icon != null ? Icon(icon, color: const Color(0xFF94A3B8)) : null,
+      prefixIcon: icon != null
+          ? Icon(icon, color: const Color(0xFF94A3B8))
+          : null,
       filled: true,
       fillColor: const Color(0xFFF8FAFC),
       border: OutlineInputBorder(
