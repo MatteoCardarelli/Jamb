@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:jamb/ui/core/widgets/jamb_chip_filtro.dart';
 
 /// Barra dei filtri orizzontale per l'elenco ragazzi.
 /// Permette di filtrare per squadriglia (tramite menu a tendina) e per segnalazioni mediche.
@@ -89,105 +90,35 @@ class RagazziFilters extends StatelessWidget {
       child: Row(
         children: [
           // CHIP "TUTTI": Resetta tutti i filtri
-          GestureDetector(
+          JambChipFiltro(
+            etichetta: "Tutti",
+            selezionato: nessunFiltro,
             onTap: () {
               onSquadrigliaChanged(null);
               onAlertChanged(false);
             },
-            child: _buildChip(
-              label: "Tutti",
-              isSelected: nessunFiltro,
-            ),
           ),
           const SizedBox(width: 8),
 
           // CHIP SQUADRIGLIA: Apre il dropdown
           Builder(
-            builder: (ctx) => GestureDetector(
+            builder: (ctx) => JambChipFiltro(
+              etichetta: hasSquadriglia ? squadrigliaSelezionata! : "Squadriglia",
+              selezionato: hasSquadriglia,
+              menu: true,
               onTap: () => _apriDropdownSquadriglia(ctx),
-              child: _buildChip(
-                label: hasSquadriglia ? squadrigliaSelezionata! : "Squadriglia",
-                isSelected: hasSquadriglia,
-                hasDropdown: true,
-              ),
             ),
           ),
           const SizedBox(width: 8),
 
           // CHIP ALERT MEDICI: Filtra chi ha segnalazioni
-          GestureDetector(
+          JambChipFiltro(
+            etichetta: "Alert Medici",
+            selezionato: alertMediciAttivo,
+            icona: Icons.medical_services_rounded,
+            alert: true,
             onTap: () => onAlertChanged(!alertMediciAttivo),
-            child: _buildChip(
-              label: "Alert Medici",
-              isSelected: alertMediciAttivo,
-              icon: Icons.medical_services_rounded,
-              isAlert: true,
-            ),
           ),
-        ],
-      ),
-    );
-  }
-
-  /// Helper per costruire un chip coerente con lo stato del filtro
-  Widget _buildChip({
-    required String label,
-    bool isSelected = false,
-    bool hasDropdown = false,
-    IconData? icon,
-    bool isAlert = false,
-  }) {
-    // Logica cromatica dinamica
-    Color bgColor;
-    Color borderColor;
-    Color textColor;
-
-    if (isSelected && isAlert) {
-      bgColor = const Color(0xFFE11D48); // Rosso Alert Attivo
-      borderColor = const Color(0xFFE11D48);
-      textColor = Colors.white;
-    } else if (isSelected) {
-      bgColor = const Color(0xFF1D2660); // Blu Jamb Attivo
-      borderColor = const Color(0xFF1D2660);
-      textColor = Colors.white;
-    } else if (isAlert) {
-      bgColor = const Color(0xFFFFF1F2); // Rosa Alert Inattivo
-      borderColor = const Color(0xFFFECDD3);
-      textColor = const Color(0xFFE11D48);
-    } else {
-      bgColor = Colors.white;
-      borderColor = const Color(0xFFE2E8F0);
-      textColor = const Color(0xFF64748B);
-    }
-
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-      decoration: BoxDecoration(
-        color: bgColor,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: borderColor, width: 1.5),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (icon != null) ...[
-            Icon(icon, size: 16, color: textColor),
-            const SizedBox(width: 6),
-          ],
-          Text(
-            label, 
-            style: TextStyle(
-              color: textColor, 
-              fontSize: 13, 
-              fontWeight: FontWeight.w700, 
-              fontFamily: 'Lexend',
-            ),
-          ),
-          if (hasDropdown) ...[
-            const SizedBox(width: 4),
-            Icon(Icons.keyboard_arrow_down_rounded, size: 18, color: textColor),
-          ],
         ],
       ),
     );
