@@ -22,18 +22,38 @@ import 'package:jamb/ui/core/widgets/jamb_feedback.dart';
 import 'package:jamb/domain/repositories/documento_repository.dart';
 import 'package:jamb/data/repositories/supabase_documento_repository.dart';
 
-/// Widget radice dell'app: registra sessione, repository e ViewModel (Provider)
-/// e configura [MaterialApp] con localizzazione italiana e tema.
+/// Widget radice dell'app: registra la sessione, che vive per tutta la durata
+/// dell'app, e sotto di essa l'app legata all'utente corrente.
 class JambApp extends StatelessWidget {
   const JambApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return MultiProvider(
-      providers: [
-        // Sessione (creata subito, non lazy, così si sottoscrive all'auth)
-        ChangeNotifierProvider(create: (_) => SessionService(), lazy: false),
+    return ChangeNotifierProvider(
+      // Creata subito, non lazy, così si sottoscrive all'auth.
+      create: (_) => SessionService(),
+      lazy: false,
+      child: const _AppPerUtente(),
+    );
+  }
+}
 
+/// Repository, ViewModel e navigazione dell'utente corrente.
+///
+/// Sono ricreati da zero quando l'utente cambia o esce: nessun dato
+/// dell'utente precedente (es. schede sanitarie) resta in memoria, e la
+/// navigazione riparte da [AuthGate] anche se la barra in basso ha
+/// sostituito la schermata iniziale.
+class _AppPerUtente extends StatelessWidget {
+  const _AppPerUtente();
+
+  @override
+  Widget build(BuildContext context) {
+    final userId = context.select<SessionService, String?>((s) => s.userId);
+
+    return MultiProvider(
+      key: ValueKey(userId),
+      providers: [
         // Repositories
         ChangeNotifierProvider<IScoutRepository>(create: (ctx) => SupabaseScoutRepository(ctx.read<SessionService>())),
         Provider<IObiettivoRepository>(create: (ctx) => SupabaseObiettivoRepository(ctx.read<SessionService>())),
