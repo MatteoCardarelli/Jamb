@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:jamb/domain/entities/progresso.dart'; // Importa entità di dominio
+import 'package:jamb/ui/dettaglio_ragazzo/widgets/riquadro_ragazzo.dart';
 
 /// Widget per la visualizzazione e gestione del Sentiero scout (E/G).
 /// Utilizza le entità di dominio [Tappa] e [Impegno] (Shared Model).
@@ -90,123 +91,106 @@ class _SentieroWidgetState extends State<SentieroWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: const Color(0xFFF1F5F9)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 15,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      "SENTIERO E/G",
-                      style: TextStyle(
-                        color: Color(0xFF16A34A),
-                        fontSize: 10,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 0.8,
-                        fontFamily: 'Lexend',
-                      ),
+    return RiquadroRagazzo(
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    "SENTIERO E/G",
+                    style: TextStyle(
+                      color: Color(0xFF16A34A),
+                      fontSize: 10,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0.8,
+                      fontFamily: 'Lexend',
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      "Tappa della ${_tappa.tipo.name.toUpperCase()}",
-                      style: const TextStyle(
-                        color: Color(0xFF1D2660),
-                        fontSize: 22,
-                        fontWeight: FontWeight.w900,
-                        fontFamily: 'Lexend',
-                        height: 1.2,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    "Tappa della ${_tappa.tipo.name.toUpperCase()}",
+                    style: const TextStyle(
+                      color: Color(0xFF1D2660),
+                      fontSize: 22,
+                      fontWeight: FontWeight.w900,
+                      fontFamily: 'Lexend',
+                      height: 1.2,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            IconButton(
+              onPressed: _apriModifica,
+              icon: const Icon(Icons.edit_note_rounded, color: Color(0xFF94A3B8), size: 24),
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(),
+            ),
+          ],
+        ),
+
+        const SizedBox(height: 16),
+
+        Text(
+          _descrizione,
+          style: const TextStyle(
+            color: Color(0xFF475569),
+            fontSize: 14,
+            fontFamily: 'Lexend',
+            height: 1.5,
+          ),
+        ),
+
+        const SizedBox(height: 20),
+
+        ...List.generate(_tappa.impegni.length, (i) {
+          final obj = _tappa.impegni[i];
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: GestureDetector(
+              onTap: () => _toggleObiettivo(i),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                decoration: BoxDecoration(
+                  color: obj.isCompletato ? const Color(0xFFF0FDF4) : Colors.white,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: obj.isCompletato ? const Color(0xFFBBF7D0) : const Color(0xFFE2E8F0),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      obj.isCompletato ? Icons.check_circle_rounded : Icons.circle_outlined,
+                      color: obj.isCompletato ? const Color(0xFF16A34A) : const Color(0xFFCBD5E1),
+                      size: 22,
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Text(
+                        obj.titolo,
+                        style: TextStyle(
+                          color: obj.isCompletato ? const Color(0xFF14532D) : const Color(0xFF64748B),
+                          fontSize: 14,
+                          fontWeight: obj.isCompletato ? FontWeight.w700 : FontWeight.w500,
+                          fontFamily: 'Lexend',
+                          decoration: obj.isCompletato ? TextDecoration.lineThrough : null,
+                        ),
                       ),
                     ),
                   ],
                 ),
               ),
-              IconButton(
-                onPressed: _apriModifica,
-                icon: const Icon(Icons.edit_note_rounded, color: Color(0xFF94A3B8), size: 24),
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 16),
-
-          Text(
-            _descrizione,
-            style: const TextStyle(
-              color: Color(0xFF475569),
-              fontSize: 14,
-              fontFamily: 'Lexend',
-              height: 1.5,
             ),
-          ),
-
-          const SizedBox(height: 20),
-
-          ...List.generate(_tappa.impegni.length, (i) {
-            final obj = _tappa.impegni[i];
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 10),
-              child: GestureDetector(
-                onTap: () => _toggleObiettivo(i),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                  decoration: BoxDecoration(
-                    color: obj.isCompletato ? const Color(0xFFF0FDF4) : Colors.white,
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(
-                      color: obj.isCompletato ? const Color(0xFFBBF7D0) : const Color(0xFFE2E8F0),
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        obj.isCompletato ? Icons.check_circle_rounded : Icons.circle_outlined,
-                        color: obj.isCompletato ? const Color(0xFF16A34A) : const Color(0xFFCBD5E1),
-                        size: 22,
-                      ),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: Text(
-                          obj.titolo,
-                          style: TextStyle(
-                            color: obj.isCompletato ? const Color(0xFF14532D) : const Color(0xFF64748B),
-                            fontSize: 14,
-                            fontWeight: obj.isCompletato ? FontWeight.w700 : FontWeight.w500,
-                            fontFamily: 'Lexend',
-                            decoration: obj.isCompletato ? TextDecoration.lineThrough : null,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            );
-          }),
-        ],
-      ),
+          );
+        }),
+      ],
     );
   }
 }

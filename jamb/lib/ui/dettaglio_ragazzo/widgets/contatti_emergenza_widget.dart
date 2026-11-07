@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:jamb/domain/entities/scout.dart'; // Importa entità di dominio
+import 'package:jamb/ui/dettaglio_ragazzo/widgets/riquadro_ragazzo.dart';
 
 /// Widget che visualizza la lista dei contatti di emergenza dello scout.
 /// Utilizza l'entità di dominio [ContattoEmergenza] (Shared Model).
@@ -23,59 +24,23 @@ class ContattiEmergenzaWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: const Color(0xFFF1F5F9)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 15,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            "Contatti di emergenza",
-            style: TextStyle(
-              color: Color(0xFF0F172A),
-              fontSize: 22,
-              fontWeight: FontWeight.w900,
-              fontFamily: 'Lexend',
-            ),
-          ),
-          
-          if (contatti.isEmpty)
-            const Padding(
-              padding: EdgeInsets.only(top: 16),
-              child: Text(
-                "Nessun contatto registrato.",
-                style: TextStyle(
-                  color: Color(0xFF94A3B8), 
-                  fontFamily: 'Lexend',
-                  fontSize: 14,
-                ),
-              ),
-            )
-          else
-            ...List.generate(contatti.length, (index) {
-              return Column(
-                children: [
-                  if (index > 0) 
-                    const Divider(color: Color(0xFFF1F5F9), height: 32, thickness: 1.5),
-                  if (index == 0) const SizedBox(height: 24),
-                  _buildContactRow(contatti[index]),
-                ],
-              );
-            }),
-        ],
-      ),
+    return RiquadroRagazzo(
+      titolo: "Contatti di emergenza",
+      children: [
+        if (contatti.isEmpty)
+          const RiquadroRagazzoVuoto("Nessun contatto registrato.")
+        else
+          ...List.generate(contatti.length, (index) {
+            return Column(
+              children: [
+                if (index > 0)
+                  const Divider(color: Color(0xFFF1F5F9), height: 32, thickness: 1.5),
+                if (index == 0) const SizedBox(height: 8),
+                _buildContactRow(contatti[index]),
+              ],
+            );
+          }),
+      ],
     );
   }
 
