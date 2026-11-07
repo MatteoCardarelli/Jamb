@@ -1,3 +1,5 @@
+import 'package:jamb/domain/entities/documento.dart';
+
 /// Ruoli in ordine crescente di autorità, nello stesso ordine di `ruolo_enum`
 /// nel database: le policy RLS li confrontano con `>=`.
 const List<String> gerarchiaRuoli = [
@@ -38,6 +40,18 @@ class Permessi {
   /// Cambiare ruolo e squadriglia di un ragazzo
   /// (policy `memberships_insert`/`memberships_update`: `CAPO_UNITA`).
   bool get puoCambiareRuoloESquadriglia => _almeno('CAPO_UNITA');
+
+  /// Caricare, rinominare ed eliminare i documenti di Metodo e Statuto e
+  /// Modulistica (`posso_scrivere_libreria`: `CAPO_UNITA`, decisione
+  /// dell'utente del 2026-11-07). Il database guarda tutte le membership,
+  /// qui solo l'unità attiva: la UI può nascondere un'azione permessa, mai
+  /// mostrarne una vietata.
+  bool get puoGestireLibreria => _almeno('CAPO_UNITA');
+
+  /// Modificare l'archivio [archivio]: i drive come le altre scritture
+  /// operative, le librerie solo da Capo Unità in su.
+  bool puoModificare(ArchivioDocumenti archivio) =>
+      archivio.isLibreria ? puoGestireLibreria : puoUsareAreaCapi;
 
   bool _almeno(String minimo) =>
       capoGruppo || _livello(ruolo) >= _livello(minimo);

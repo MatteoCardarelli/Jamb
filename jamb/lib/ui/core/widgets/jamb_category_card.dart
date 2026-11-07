@@ -15,6 +15,8 @@ class JambCategoryCard extends StatelessWidget {
   final String? progressoTesto;
   /// Callback invocata al tocco della card
   final VoidCallback? onTap;
+  /// Callback invocata alla pressione prolungata (es. menu di un file)
+  final VoidCallback? onLongPress;
 
   const JambCategoryCard({
     super.key,
@@ -24,12 +26,14 @@ class JambCategoryCard extends StatelessWidget {
     this.progresso,
     this.progressoTesto,
     this.onTap,
+    this.onLongPress,
   });
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
+      onLongPress: onLongPress,
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(

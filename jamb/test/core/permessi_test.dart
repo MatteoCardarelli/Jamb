@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:jamb/core/permessi.dart';
+import 'package:jamb/domain/entities/documento.dart';
 
 /// Valori di `ruolo_enum` nell'ordine definito dall'ultima migrazione che lo crea.
 List<String> _ruoliNelDatabase() {
@@ -32,6 +33,17 @@ void main() {
     test('il capo unità può cambiare ruolo e squadriglia', () {
       const p = Permessi(ruolo: 'CAPO_UNITA');
       expect(p.puoCambiareRuoloESquadriglia, isTrue);
+    });
+
+    // Le librerie di gruppo hanno una soglia diversa dai drive (decisione
+    // dell'utente): l'aiuto capo usa il drive ma legge soltanto la libreria.
+    test('la libreria la modifica il capo unità, non l\'aiuto capo', () {
+      const aiuto = Permessi(ruolo: 'AIUTO_CAPO');
+      const capo = Permessi(ruolo: 'CAPO_UNITA');
+      expect(aiuto.puoModificare(ArchivioDocumenti.driveBranca), isTrue);
+      expect(aiuto.puoModificare(ArchivioDocumenti.driveCoca), isTrue);
+      expect(aiuto.puoModificare(ArchivioDocumenti.modulistica), isFalse);
+      expect(capo.puoModificare(ArchivioDocumenti.metodoStatuto), isTrue);
     });
 
     // CAPO_SQ contiene "CAPO" ma è un ruolo da ragazzo.

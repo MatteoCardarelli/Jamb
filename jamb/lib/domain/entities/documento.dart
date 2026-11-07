@@ -44,6 +44,28 @@ String? erroreNomeDocumento(String nome) {
   return null;
 }
 
+/// Raccolta di documenti navigabile come un albero di cartelle.
+enum ArchivioDocumenti {
+  /// Drive dell'unità attiva.
+  driveBranca('Drive di Branca'),
+
+  /// Drive della Comunità Capi, aperto a tutti i capi del gruppo.
+  driveCoca('Drive di Co.Ca.'),
+
+  /// Libreria di gruppo con i documenti ufficiali dell'associazione.
+  metodoStatuto('Metodo e Statuto'),
+
+  /// Libreria di gruppo con i moduli e i modelli per le uscite.
+  modulistica('Modulistica Uscite');
+
+  final String titolo;
+  const ArchivioDocumenti(this.titolo);
+
+  /// `true` per le librerie di gruppo, che modificano solo Capo Unità e
+  /// Capo Gruppo; i drive li modificano tutti i capi che li vedono.
+  bool get isLibreria => this == metodoStatuto || this == modulistica;
+}
+
 /// Nodo dell'albero documenti: una cartella o un file.
 ///
 /// L'albero si naviga per [id]/[parentId]; [figli] è opzionale e usato solo
@@ -57,6 +79,10 @@ class Documento {
   final DateTime ultimaModifica;
   final int? dimensioni;
 
+  /// Percorso del file nell'archivio; `null` per le cartelle e per i file
+  /// senza contenuto (es. inseriti a mano prima dell'archiviazione).
+  final String? percorsoFile;
+
   const Documento({
     required this.id,
     required this.nome,
@@ -65,10 +91,14 @@ class Documento {
     this.figli,
     required this.ultimaModifica,
     this.dimensioni,
+    this.percorsoFile,
   });
 
   /// Vero se questo nodo è una cartella.
   bool get isCartella => tipo == TipoDocumento.cartella;
+
+  /// Vero se il file ha un contenuto archiviato da aprire.
+  bool get apribile => !isCartella && percorsoFile != null;
 
   /// Restituisce una copia del documento con i campi indicati sostituiti.
   Documento copyWith({
@@ -79,6 +109,7 @@ class Documento {
     List<Documento>? figli,
     DateTime? ultimaModifica,
     int? dimensioni,
+    String? percorsoFile,
   }) {
     return Documento(
       id: id ?? this.id,
@@ -88,6 +119,38 @@ class Documento {
       figli: figli ?? this.figli,
       ultimaModifica: ultimaModifica ?? this.ultimaModifica,
       dimensioni: dimensioni ?? this.dimensioni,
+      percorsoFile: percorsoFile ?? this.percorsoFile,
     );
   }
+}
+
+/// Ordine di un elenco di documenti: prima le cartelle, poi i file, ciascuno
+/// in ordine alfabetico senza distinguere maiuscole e minuscole.
+List<Documento> ordinaDocumenti(Iterable<Documento> documenti) => documenti.toList()
+  ..sort((a, b) {
+    if (a.isCartella != b.isCartella) return a.isCartella ? -1 : 1;
+    return a.nome.toLowerCase().compareTo(b.nome.toLowerCase());
+  });
+
+/// Tutti i documenti contenuti, a qualunque profondità, nella cartella
+/// [idCartella], cercati in [tutti] (i documenti dello stesso archivio).
+/// Servono per eliminare dallo storage i file di una cartella cancellata.
+List<Documento> discendenti(Iterable<Documento> tutti, String idCartella) {
+  final perPadre = <String, List<Documento>>{};
+  for (final d in tutti) {
+    if (d.parentId != null) perPadre.putIfAbsent(d.parentId!, () => []).add(d);
+  }
+  final trovati = <Documento>[];
+  final daVisitare = [idCartella];
+  final visitati = <String>{};
+  while (daVisitare.isNotEmpty) {
+    final id = daVisitare.removeLast();
+    // Un ciclo nei dati non deve bloccare l'app.
+    if (!visitati.add(id)) continue;
+    for (final figlio in perPadre[id] ?? const <Documento>[]) {
+      trovati.add(figlio);
+      daVisitare.add(figlio.id);
+    }
+  }
+  return trovati;
 }

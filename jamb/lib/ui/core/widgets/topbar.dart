@@ -6,6 +6,7 @@ import 'package:jamb/core/session_service.dart';
 import 'package:jamb/ui/bacheca/view_model/bacheca_view_model.dart';
 import 'package:jamb/ui/bacheca/widgets/bacheca_screen.dart';
 import 'package:jamb/ui/core/widgets/jamb_feedback.dart';
+import 'package:jamb/ui/core/widgets/jamb_menu.dart';
 import 'package:jamb/ui/core/widgets/selettore_unita.dart';
 
 /// Barra superiore personalizzata con design distintivo Jamb.
@@ -180,67 +181,31 @@ class TopBar extends StatelessWidget implements PreferredSizeWidget {
   /// d'una) e il tasto per uscire.
   void _apriMenuProfilo(BuildContext context, String nome, String ruolo) {
     final session = context.read<SessionService>();
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-      ),
-      builder: (ctx) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                nome,
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w900,
-                  color: Color(0xFF1D2660),
-                  fontFamily: 'Lexend',
-                ),
-              ),
-              if (ruolo.isNotEmpty)
-                Text(
-                  ruolo,
-                  style: const TextStyle(color: Color(0xFF64748B), fontFamily: 'Lexend'),
-                ),
-              const SizedBox(height: 16),
-              if (session.unitaDisponibili.length > 1) ...[
-                SelettoreUnita(
-                  unita: session.unitaDisponibili,
-                  attiva: session.activeUnitId,
-                  onScegli: (unitId) {
-                    Navigator.of(ctx).pop();
-                    // L'app si ricrea per la nuova unità e riparte dalla Home.
-                    session.impostaUnitaAttiva(unitId);
-                  },
-                ),
-                const Divider(height: 24),
-              ],
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                leading: const Icon(Icons.logout_rounded, color: Color(0xFFB91C1C)),
-                title: const Text(
-                  'Esci',
-                  style: TextStyle(
-                    color: Color(0xFFB91C1C),
-                    fontWeight: FontWeight.w700,
-                    fontFamily: 'Lexend',
-                  ),
-                ),
-                onTap: () {
-                  Navigator.of(ctx).pop();
-                  // L'app si ricrea per il nuovo stato della sessione e torna al login.
-                  eseguiConFeedback(context, context.read<SessionService>().logout);
-                },
-              ),
-            ],
+    mostraMenuJamb(
+      context,
+      titolo: nome,
+      sottotitolo: ruolo,
+      voci: (menu) => [
+        if (session.unitaDisponibili.length > 1) ...[
+          SelettoreUnita(
+            unita: session.unitaDisponibili,
+            attiva: session.activeUnitId,
+            onScegli: (unitId) {
+              Navigator.of(menu).pop();
+              // L'app si ricrea per la nuova unità e riparte dalla Home.
+              session.impostaUnitaAttiva(unitId);
+            },
           ),
+          const Divider(height: 24),
+        ],
+        JambVoceMenu(
+          icona: Icons.logout_rounded,
+          etichetta: 'Esci',
+          pericolosa: true,
+          // L'app si ricrea per il nuovo stato della sessione e torna al login.
+          onTap: () => eseguiConFeedback(context, session.logout),
         ),
-      ),
+      ],
     );
   }
 }
