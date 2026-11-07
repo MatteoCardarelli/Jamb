@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:jamb/domain/entities/file_da_caricare.dart';
 import 'package:jamb/domain/entities/transazione.dart';
 import 'package:jamb/domain/repositories/transazione_repository.dart';
 import 'package:jamb/ui/core/view_model/stato_caricamento.dart';
@@ -64,10 +65,11 @@ class ContabilitaViewModel extends ChangeNotifier with StatoCaricamentoMixin {
     return map;
   }
 
-  /// Salva una nuova transazione (la lista si ricarica via listener).
-  /// Un errore viene propagato alla View, che lo mostra all'utente.
-  Future<void> addTransaction(Transazione transazione) async {
-    await _repository.salvaTransazione(transazione);
+  /// Salva una nuova transazione, con la foto dello scontrino se c'è (la
+  /// lista si ricarica via listener). Un errore viene propagato alla View,
+  /// che lo mostra all'utente.
+  Future<void> addTransaction(Transazione transazione, {FileDaCaricare? ricevuta}) async {
+    await _repository.salvaTransazione(transazione, ricevuta: ricevuta);
   }
 
   /// Elimina la transazione con l'[id] indicato.

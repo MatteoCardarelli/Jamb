@@ -7,6 +7,7 @@ import 'package:jamb/ui/contabilita/widgets/add_transaction/transaction_details_
 import 'package:jamb/ui/contabilita/widgets/add_transaction/receipt_upload_card.dart';
 import 'package:jamb/ui/contabilita/view_model/add_transaction_view_model.dart';
 import 'package:jamb/ui/contabilita/view_model/contabilita_view_model.dart';
+import 'package:jamb/domain/entities/file_da_caricare.dart';
 import 'package:jamb/domain/entities/transazione.dart';
 import 'package:jamb/ui/core/widgets/jamb_feedback.dart';
 
@@ -19,7 +20,7 @@ class AddTransactionScreen extends StatelessWidget {
   /// l'eventuale errore. Usato dalla Contabilità e dalle azioni rapide della Home.
   static Future<void> apri(BuildContext context) async {
     final contabilita = context.read<ContabilitaViewModel>();
-    final transazione = await Navigator.of(context).push<Transazione>(PageRouteBuilder(
+    final esito = await Navigator.of(context).push<(Transazione, FileDaCaricare?)>(PageRouteBuilder(
       pageBuilder: (context, animation, secondaryAnimation) => ChangeNotifierProvider(
         create: (_) => AddTransactionViewModel(),
         child: const AddTransactionScreen(),
@@ -27,8 +28,12 @@ class AddTransactionScreen extends StatelessWidget {
       transitionDuration: Duration.zero,
     ));
 
-    if (transazione != null && context.mounted) {
-      await eseguiConFeedback(context, () => contabilita.addTransaction(transazione));
+    if (esito != null && context.mounted) {
+      final (transazione, ricevuta) = esito;
+      await eseguiConFeedback(
+        context,
+        () => contabilita.addTransaction(transazione, ricevuta: ricevuta),
+      );
     }
   }
 
@@ -84,10 +89,11 @@ class AddTransactionScreen extends StatelessWidget {
               child: JambBarraAzioni(
                 etichetta: "SALVA TRANSAZIONE",
                 icona: Icons.save_rounded,
-                onPressed: () {
+                onPressed: () async {
                   final transazione = viewModel.buildTransaction();
                   if (transazione != null) {
-                    Navigator.of(context).pop(transazione);
+                    final ricevuta = await viewModel.ricevutaDaCaricare();
+                    if (context.mounted) Navigator.of(context).pop((transazione, ricevuta));
                   } else {
                     // Opzionale: mostrare un errore se l'importo è 0
                     ScaffoldMessenger.of(context).showSnackBar(

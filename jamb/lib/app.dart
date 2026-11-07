@@ -68,7 +68,7 @@ class _AppPerUtente extends StatelessWidget {
         // Repositories
         ChangeNotifierProvider<IScoutRepository>(create: (ctx) => SupabaseScoutRepository(ctx.read<SessionService>())),
         Provider<IObiettivoRepository>(create: (ctx) => SupabaseObiettivoRepository(ctx.read<SessionService>())),
-        ChangeNotifierProvider<ITransazioneRepository>(create: (ctx) => SupabaseTransazioneRepository(ctx.read<SessionService>())),
+        ChangeNotifierProvider<ITransazioneRepository>(create: (ctx) => SupabaseTransazioneRepository(ctx.read<SessionService>(), ctx.read<IStorageService>())),
         ChangeNotifierProvider<IEventoRepository>(create: (ctx) => SupabaseEventoRepository(ctx.read<SessionService>())),
         Provider<IDocumentoRepository>(create: (ctx) => SupabaseDocumentoRepository(ctx.read<SessionService>())),
         ChangeNotifierProvider<IAvvisoRepository>(create: (ctx) => SupabaseAvvisoRepository(ctx.read<SessionService>())),

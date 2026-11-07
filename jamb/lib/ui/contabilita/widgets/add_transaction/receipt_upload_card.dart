@@ -120,7 +120,7 @@ class ReceiptUploadCard extends StatelessWidget {
                     Icon(Icons.check_circle_rounded, color: Color(0xFF16A34A), size: 20),
                     SizedBox(width: 8),
                     Text(
-                      "Scontrino caricato correttamente", 
+                      "Scontrino pronto: si archivia al salvataggio", 
                       style: TextStyle(color: Color(0xFF1D2660), fontWeight: FontWeight.w800, fontFamily: 'Lexend', fontSize: 13)
                     ),
                   ],

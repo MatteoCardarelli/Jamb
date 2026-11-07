@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:jamb/domain/entities/file_da_caricare.dart';
 import 'package:jamb/domain/entities/transazione.dart';
 
 /// Stato del form di inserimento transazione: importo, categoria, data, note
@@ -48,7 +49,14 @@ class AddTransactionViewModel extends ChangeNotifier {
 
   Future<void> pickImage(ImageSource source) async {
     try {
-      final XFile? selected = await _picker.pickImage(source: source);
+      // Ridimensionata e compressa: una foto di uno scontrino resta leggibile
+      // e sta comodamente sotto il limite del bucket delle ricevute.
+      final XFile? selected = await _picker.pickImage(
+        source: source,
+        maxWidth: 2000,
+        maxHeight: 2000,
+        imageQuality: 80,
+      );
       if (selected != null) {
         receiptFile = selected;
         notifyListeners();
@@ -70,8 +78,16 @@ class AddTransactionViewModel extends ChangeNotifier {
       categoria: _mapCategory(selectedCategory),
       data: selectedDate,
       note: noteText,
-      percorsoRicevuta: receiptFile?.path,
     );
+  }
+
+  /// Foto dello scontrino scelta, da archiviare al salvataggio (`null` se
+  /// non è stata scelta). Il percorso sul dispositivo non viene salvato:
+  /// sugli altri telefoni non servirebbe a nulla.
+  Future<FileDaCaricare?> ricevutaDaCaricare() async {
+    final file = receiptFile;
+    if (file == null) return null;
+    return FileDaCaricare(nome: file.name, byte: await file.readAsBytes());
   }
 
   Categoria _mapCategory(String cat) {

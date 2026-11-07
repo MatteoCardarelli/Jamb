@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/foundation.dart';
 import 'package:jamb/domain/errori/jamb_exception.dart';
 
@@ -55,6 +57,17 @@ String estensioneDi(String nomeFile) {
   final punto = nomeFile.lastIndexOf('.');
   if (punto <= 0 || punto == nomeFile.length - 1) return '';
   return nomeFile.substring(punto + 1).toLowerCase();
+}
+
+/// Identificativo casuale nel formato UUID v4, per il nome dei file archiviati.
+String idCasuale([Random? casuale]) {
+  final r = casuale ?? Random.secure();
+  final b = List<int>.generate(16, (_) => r.nextInt(256));
+  b[6] = (b[6] & 0x0f) | 0x40; // versione 4
+  b[8] = (b[8] & 0x3f) | 0x80; // variante RFC 4122
+  final hex = b.map((x) => x.toRadixString(16).padLeft(2, '0')).join();
+  return '${hex.substring(0, 8)}-${hex.substring(8, 12)}-${hex.substring(12, 16)}-'
+      '${hex.substring(16, 20)}-${hex.substring(20)}';
 }
 
 /// Percorso di un file: `{gruppo}/{cartella}/{id}.{estensione}`, dove
