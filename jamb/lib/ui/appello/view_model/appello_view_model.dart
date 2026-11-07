@@ -78,6 +78,17 @@ class AppelloViewModel extends ChangeNotifier with StatoCaricamentoMixin {
   /// Ragazzi dell'unità ancora senza stato.
   int get daSegnare => _ragazzi.where((r) => !_stati.containsKey(r.id)).length;
 
+  /// Riepilogo dell'appello, es. "12 presenti · 1 assente · 0 giustificati · 2 da segnare".
+  String get riepilogo {
+    String voce(int n, String singolare, String plurale) => '$n ${n == 1 ? singolare : plurale}';
+    return [
+      voce(conta(StatoPresenza.presente), 'presente', 'presenti'),
+      voce(conta(StatoPresenza.assente), 'assente', 'assenti'),
+      voce(conta(StatoPresenza.giustificato), 'giustificato', 'giustificati'),
+      '$daSegnare da segnare',
+    ].join(' · ');
+  }
+
   /// Stati cambiati rispetto all'ultimo salvataggio.
   Map<String, StatoPresenza> get _modifiche => {
         for (final voce in _stati.entries)
