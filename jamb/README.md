@@ -159,6 +159,7 @@ ricreati a ogni cambio di utente, così non restano in memoria i dati di chi
   trascinando l'elenco verso il basso: non c'è aggiornamento in tempo reale.
 - L'appello si apre solo dal dettaglio di un evento: non è ancora tra le
   azioni rapide della schermata principale.
-- L'unità attiva è la prima tra quelle dell'utente: manca un selettore.
+- Chi opera in più unità le sceglie dal menu del profilo; cambiando unità
+  l'applicazione torna alla schermata principale.
 - L'area dedicata ai ragazzi non esiste: l'applicazione è oggi rivolta ai soli
   capi, e un ragazzo che accede vede solo un avviso.
