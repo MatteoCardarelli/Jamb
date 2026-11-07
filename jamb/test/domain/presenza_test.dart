@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:jamb/data/repositories/supabase_presenza_repository.dart';
 import 'package:jamb/domain/entities/presenza.dart';
+import '../../testing/models/evento_di_test.dart';
 import '../../testing/models/presenza_di_test.dart';
 
 /// Valori di `stato_presenza_enum` dichiarati nelle migrazioni: quelli della
@@ -74,6 +75,54 @@ void main() {
 
     test('senza storico non ci sono assenze', () {
       expect(assenzeConsecutive(const [], adesso: adesso), 0);
+    });
+  });
+
+  group('eventoPerAppello', () {
+    final ora = DateTime(2026, 11, 7, 15, 30);
+    DateTime alle(int giorno, int h, [int m = 0]) => DateTime(2026, 11, giorno, h, m);
+
+    test("l'evento in corso vince su quelli recenti e imminenti", () {
+      final eventi = [
+        eventoDiTest('ieri', alle(6, 15)),
+        eventoDiTest('riunione', alle(7, 15), fine: alle(7, 17)),
+        eventoDiTest('tra poco', alle(7, 16)),
+      ];
+      expect(eventoPerAppello(eventi, ora)?.id, 'riunione');
+    });
+
+    test('tra due eventi in corso sceglie quello iniziato più di recente', () {
+      final eventi = [
+        eventoDiTest('campo', alle(5, 9), fine: alle(9, 18)),
+        eventoDiTest('veglia', alle(7, 15), fine: alle(7, 18)),
+      ];
+      expect(eventoPerAppello(eventi, ora)?.id, 'veglia');
+    });
+
+    // L'appello si fa spesso all'arrivo, qualche minuto prima dell'inizio.
+    test("senza eventi in corso sceglie quello che inizia entro un'ora", () {
+      final eventi = [
+        eventoDiTest('ieri', alle(6, 15)),
+        eventoDiTest('riunione', alle(7, 16)),
+      ];
+      expect(eventoPerAppello(eventi, ora)?.id, 'riunione');
+    });
+
+    test("altrimenti l'ultimo iniziato nell'ultima settimana", () {
+      final eventi = [
+        eventoDiTest('martedì', alle(3, 15)),
+        eventoDiTest('giovedì', alle(5, 15)),
+        eventoDiTest('domani', alle(8, 15)),
+      ];
+      expect(eventoPerAppello(eventi, ora)?.id, 'giovedì');
+    });
+
+    test('eventi troppo lontani nel passato o nel futuro non contano', () {
+      final eventi = [
+        eventoDiTest('due settimane fa', alle(7, 15).subtract(const Duration(days: 14))),
+        eventoDiTest('stasera', alle(7, 21)),
+      ];
+      expect(eventoPerAppello(eventi, ora), isNull);
     });
   });
 

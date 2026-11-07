@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:jamb/domain/entities/evento.dart';
+import 'package:jamb/domain/entities/presenza.dart';
+import 'package:jamb/domain/repositories/evento_repository.dart';
 import 'package:jamb/domain/repositories/presenza_repository.dart';
 import 'package:jamb/domain/repositories/scout_repository.dart';
 import 'package:jamb/ui/appello/view_model/appello_view_model.dart';
@@ -26,6 +28,30 @@ class AppelloScreen extends StatelessWidget {
     return Navigator.of(context).push(
       MaterialPageRoute(builder: (_) => AppelloScreen(evento: evento)),
     );
+  }
+
+  /// Apre dall'azione rapida della Home l'appello dell'evento scelto da
+  /// [eventoPerAppello] (in corso, imminente o recente); se non ce n'è
+  /// nessuno lo dice e rimanda al calendario.
+  static Future<void> apriDaHome(BuildContext context) async {
+    final repository = context.read<IEventoRepository>();
+    final messenger = ScaffoldMessenger.of(context);
+    Evento? evento;
+    final letti = await eseguiConFeedback(context, () async {
+      evento = eventoPerAppello(await repository.getEventi(), DateTime.now());
+    });
+    if (!letti || !context.mounted) return;
+
+    final scelto = evento;
+    if (scelto == null) {
+      messenger.showSnackBar(const SnackBar(
+        content: Text(
+          "Nessun evento in corso o recente: apri l'appello dal dettaglio di un evento nel calendario.",
+        ),
+      ));
+      return;
+    }
+    await apri(context, scelto);
   }
 
   @override

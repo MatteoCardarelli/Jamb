@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:jamb/ui/appello/widgets/appello_screen.dart';
 import 'package:jamb/ui/bacheca/widgets/form_avviso_screen.dart';
 import 'package:jamb/ui/calendario/widgets/form_evento_screen.dart';
 import 'package:jamb/ui/contabilita/widgets/add_transaction_screen.dart';
 import 'package:jamb/ui/core/stile.dart';
 
-/// Griglia di pulsanti rapidi per le azioni comuni (Crea Avviso, Nuovo Evento, ecc.).
+/// Griglia di pulsanti rapidi per le azioni comuni (Crea Avviso, Appello, Nuovo Evento, ecc.).
 /// Visualizzata sotto gli avvisi amministrativi nella HomeView.
 ///
 /// Le azioni non ancora realizzate sono attenuate e lo dicono quando vengono
@@ -47,6 +48,12 @@ class AzioniRapideWidget extends StatelessWidget {
                 icon: Icons.campaign_outlined,
                 label: "Crea Avviso",
                 onTap: () => FormAvvisoScreen.apri(context),
+              ),
+              _buildAzioneCard(
+                context,
+                icon: Icons.fact_check_outlined,
+                label: "Appello",
+                onTap: () => AppelloScreen.apriDaHome(context),
               ),
               _buildAzioneCard(
                 context,

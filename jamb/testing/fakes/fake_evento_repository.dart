@@ -7,9 +7,13 @@ import 'package:jamb/domain/repositories/evento_repository.dart';
 /// Registra gli eventi creati e aggiornati per verificare quale operazione
 /// è stata chiamata.
 class FakeEventoRepository extends ChangeNotifier implements IEventoRepository {
+  /// Eventi restituiti da [getEventi].
+  final List<Evento> eventi;
   final List<Evento> creati = [];
   final List<Evento> aggiornati = [];
   final List<String> eliminati = [];
+
+  FakeEventoRepository({List<Evento>? eventi}) : eventi = eventi ?? [];
 
   @override
   Future<void> creaEvento(Evento evento) async => creati.add(evento);
@@ -21,7 +25,7 @@ class FakeEventoRepository extends ChangeNotifier implements IEventoRepository {
   Future<void> eliminaEvento(String id) async => eliminati.add(id);
 
   @override
-  Future<List<Evento>> getEventi() async => const [];
+  Future<List<Evento>> getEventi() async => List.of(eventi);
 
   @override
   Future<List<Evento>> getEventiPerData(DateTime data) async => const [];
