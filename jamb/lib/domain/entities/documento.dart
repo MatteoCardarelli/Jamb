@@ -12,6 +12,36 @@ enum TipoDocumento {
       return TipoDocumento.txt;
     }
   }
+
+  /// Tipo con cui mostrare un file con estensione [estensione] (minuscola,
+  /// senza punto): i formati simili condividono icona e colore.
+  static TipoDocumento daEstensione(String estensione) => switch (estensione) {
+        'pdf' => TipoDocumento.pdf,
+        'jpg' || 'jpeg' || 'webp' || 'heic' => TipoDocumento.jpeg,
+        'png' => TipoDocumento.png,
+        'doc' || 'docx' || 'odt' => TipoDocumento.doc,
+        'xls' || 'xlsx' || 'ods' || 'csv' => TipoDocumento.xls,
+        'ppt' || 'pptx' || 'odp' => TipoDocumento.ppt,
+        'zip' => TipoDocumento.zip,
+        _ => TipoDocumento.txt,
+      };
+}
+
+/// Lunghezza massima del nome di una cartella o di un file (`documents.titolo`).
+const int lunghezzaMassimaNomeDocumento = 150;
+
+/// Motivo per cui [nome] non va bene per una cartella o un file, oppure
+/// `null` se va bene.
+String? erroreNomeDocumento(String nome) {
+  final pulito = nome.trim();
+  if (pulito.isEmpty) return 'Il nome non può essere vuoto.';
+  if (pulito.length > lunghezzaMassimaNomeDocumento) {
+    return 'Il nome è troppo lungo (massimo $lunghezzaMassimaNomeDocumento caratteri).';
+  }
+  if (pulito.contains('/') || pulito.contains(r'\')) {
+    return r'Il nome non può contenere / o \.';
+  }
+  return null;
 }
 
 /// Nodo dell'albero documenti: una cartella o un file.

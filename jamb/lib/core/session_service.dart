@@ -186,7 +186,9 @@ class SessionService extends ChangeNotifier {
         final List<dynamic> unita = await supabase
             .from('units')
             .select('id, nome')
-            .eq('group_id', _groupId!);
+            .eq('group_id', _groupId!)
+            // La Co.Ca. non è un'unità in cui operare: ha solo un drive condiviso.
+            .neq('tipo_branca', 'COCA');
         delGruppo = [
           for (final u in unita)
             UnitaDisponibile(id: u['id'] as String, nome: (u['nome'] ?? '') as String),
