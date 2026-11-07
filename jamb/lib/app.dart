@@ -26,6 +26,8 @@ import 'package:jamb/data/repositories/supabase_avviso_repository.dart';
 import 'package:jamb/ui/bacheca/view_model/bacheca_view_model.dart';
 import 'package:jamb/domain/repositories/presenza_repository.dart';
 import 'package:jamb/data/repositories/supabase_presenza_repository.dart';
+import 'package:jamb/data/services/storage_service.dart';
+import 'package:jamb/data/services/supabase_storage_service.dart';
 
 /// Widget radice dell'app: registra la sessione, che vive per tutta la durata
 /// dell'app, e sotto di essa l'app legata all'utente corrente.
@@ -60,6 +62,9 @@ class _AppPerUtente extends StatelessWidget {
     return MultiProvider(
       key: ValueKey('$userId/$unitId'),
       providers: [
+        // Archivio dei file, usato dai repository di documenti e transazioni
+        Provider<IStorageService>(create: (_) => SupabaseStorageService()),
+
         // Repositories
         ChangeNotifierProvider<IScoutRepository>(create: (ctx) => SupabaseScoutRepository(ctx.read<SessionService>())),
         Provider<IObiettivoRepository>(create: (ctx) => SupabaseObiettivoRepository(ctx.read<SessionService>())),
