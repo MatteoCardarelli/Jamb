@@ -5,6 +5,8 @@ import 'package:jamb/ui/core/widgets/jamb_app_bar.dart';
 import 'package:jamb/ui/core/widgets/jamb_dettaglio.dart';
 import 'package:jamb/ui/core/widgets/jamb_dialogs.dart';
 import 'package:jamb/ui/core/widgets/jamb_feedback.dart';
+import 'package:jamb/ui/core/widgets/jamb_pulsante_secondario.dart';
+import 'package:jamb/ui/appello/widgets/appello_screen.dart';
 import '../../../domain/entities/evento.dart';
 import '../../../domain/repositories/evento_repository.dart';
 import '../view_model/dettaglio_evento_view_model.dart';
@@ -112,6 +114,12 @@ class _DettaglioEventoView extends StatelessWidget {
               JambRigaDettaglio(icona: Icons.location_on_outlined, testo: evento.luogo),
             const SizedBox(height: 16),
             EtichetteCategorie(categorie: evento.categorie),
+            const SizedBox(height: 32),
+            JambPulsanteSecondario(
+              icona: Icons.fact_check_outlined,
+              etichetta: "Fai l'appello",
+              onTap: () => AppelloScreen.apri(context, evento),
+            ),
           ],
         ),
       ),
