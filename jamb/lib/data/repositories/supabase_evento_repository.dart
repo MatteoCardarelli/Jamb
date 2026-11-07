@@ -18,8 +18,15 @@ class SupabaseEventoRepository extends IEventoRepository {
 
   @override
   Future<List<Evento>> getEventi() => eseguiSupabase(() async {
-        final List<dynamic> rows =
-            await supabase.from(_table).select().order('data_inizio', ascending: true);
+        final unitId = _session.activeUnitId;
+        if (unitId == null) return [];
+        // Gli eventi dell'unità attiva e quelli di gruppo (senza unità): le RLS
+        // lasciano leggere a ogni capo tutti gli eventi del gruppo.
+        final List<dynamic> rows = await supabase
+            .from(_table)
+            .select()
+            .or('unit_id.eq.$unitId,unit_id.is.null')
+            .order('data_inizio', ascending: true);
         return rows.map((r) => _fromDb(r as Map<String, dynamic>)).toList();
       });
 

@@ -6,8 +6,8 @@ import '../../domain/repositories/transazione_repository.dart';
 
 /// Repository delle transazioni di cassa su Supabase (tabella `transactions`).
 ///
-/// Le letture sono filtrate automaticamente dalla RLS in base all'utente
-/// loggato; in scrittura lo scope (unità) viene preso dalla sessione.
+/// Legge e scrive la cassa dell'unità attiva, presa dalla sessione; le RLS
+/// restano il controllo d'accesso.
 class SupabaseTransazioneRepository extends ITransazioneRepository {
   final SessionService _session;
   SupabaseTransazioneRepository(this._session);
@@ -23,8 +23,13 @@ class SupabaseTransazioneRepository extends ITransazioneRepository {
 
   @override
   Future<List<Transazione>> getTransazioni() => eseguiSupabase(() async {
-        final List<dynamic> rows =
-            await supabase.from(_table).select().order('data', ascending: false);
+        final unitId = _session.activeUnitId;
+        if (unitId == null) return [];
+        final List<dynamic> rows = await supabase
+            .from(_table)
+            .select()
+            .eq('unit_id', unitId)
+            .order('data', ascending: false);
         return rows.map((row) => _fromDb(row as Map<String, dynamic>)).toList();
       });
 
