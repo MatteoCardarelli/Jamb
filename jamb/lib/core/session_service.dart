@@ -1,8 +1,10 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:jamb/core/permessi.dart';
 import 'package:jamb/core/supabase_client.dart';
+import 'package:jamb/core/unita_attiva.dart';
 
 /// Stati possibili della sessione applicativa.
 enum SessionStatus { loading, unauthenticated, noMembership, ready, error }
@@ -32,6 +34,7 @@ class SessionService extends ChangeNotifier {
   String? _cognome;
   String? _groupId;
   List<SessionMembership> _memberships = const [];
+  List<UnitaDisponibile> _unita = const [];
   String? _activeUnitId;
 
   StreamSubscription<AuthState>? _authSub;
@@ -72,8 +75,21 @@ class SessionService extends ChangeNotifier {
   /// Gruppo scout dell'utente.
   String? get groupId => _groupId;
 
-  /// Unità in cui l'utente sta operando (per ora la prima membership attiva).
+  /// Unità in cui l'utente sta operando: scelta dal selettore nel menu del
+  /// profilo e ricordata sul dispositivo (vedi [impostaUnitaAttiva]).
   String? get activeUnitId => _activeUnitId;
+
+  /// Unità tra cui l'utente può scegliere, in ordine alfabetico: quelle delle
+  /// sue membership e, per il Capo Gruppo, tutte quelle del gruppo.
+  List<UnitaDisponibile> get unitaDisponibili => _unita;
+
+  /// Nome dell'unità attiva (vuoto se non determinabile).
+  String get nomeUnitaAttiva {
+    for (final u in _unita) {
+      if (u.id == _activeUnitId) return u.nome;
+    }
+    return '';
+  }
 
   /// Tutte le membership attive dell'utente.
   List<SessionMembership> get memberships => _memberships;
@@ -82,19 +98,50 @@ class SessionService extends ChangeNotifier {
   String get nomeCompleto =>
       [_nome, _cognome].where((e) => e != null && e.trim().isNotEmpty).join(' ');
 
-  /// Ruolo dell'utente nell'unità attiva (`null` se non determinabile).
+  bool get _capoGruppo => _memberships.any((m) => m.ruolo == 'CAPO_GRUPPO');
+
+  /// Ruolo dell'utente nell'unità attiva: quello della membership, oppure
+  /// `CAPO_GRUPPO` in un'unità del gruppo di cui non è membro.
   String? get activeRole {
     for (final m in _memberships) {
       if (m.unitId == _activeUnitId) return m.ruolo;
     }
-    return null;
+    return _capoGruppo && _activeUnitId != null ? 'CAPO_GRUPPO' : null;
   }
 
   /// Cosa l'utente può fare nell'unità attiva.
-  Permessi get permessi => Permessi(
-        ruolo: activeRole,
-        capoGruppo: _memberships.any((m) => m.ruolo == 'CAPO_GRUPPO'),
-      );
+  Permessi get permessi => Permessi(ruolo: activeRole, capoGruppo: _capoGruppo);
+
+  /// Chiave della preferenza con l'ultima unità scelta, per utente: sullo
+  /// stesso dispositivo possono accedere capi diversi.
+  static String _chiaveUnita(String userId) => 'unita_attiva_$userId';
+
+  /// Rende attiva l'unità [unitId] e la ricorda per il prossimo accesso.
+  /// Un'unità non disponibile è ignorata. L'app ricrea repository e
+  /// ViewModel, così nessun dato dell'unità precedente resta in memoria.
+  Future<void> impostaUnitaAttiva(String unitId) async {
+    if (unitId == _activeUnitId || !_unita.any((u) => u.id == unitId)) return;
+    _activeUnitId = unitId;
+    notifyListeners();
+    try {
+      final preferenze = await SharedPreferences.getInstance();
+      await preferenze.setString(_chiaveUnita(_userId!), unitId);
+    } catch (e) {
+      // Non ricordarla costa solo una scelta in più al prossimo accesso.
+      debugPrint('Unità attiva non salvata: $e');
+    }
+  }
+
+  /// Ultima unità scelta dall'utente su questo dispositivo, se c'è.
+  Future<String?> _unitaSalvata(String userId) async {
+    try {
+      final preferenze = await SharedPreferences.getInstance();
+      return preferenze.getString(_chiaveUnita(userId));
+    } catch (e) {
+      debugPrint('Unità salvata non leggibile: $e');
+      return null;
+    }
+  }
 
   /// Carica profilo (`users`) e membership attive dell'utente loggato,
   /// impostando lo `status` di conseguenza (ready / noMembership / error).
@@ -115,9 +162,9 @@ class SessionService extends ChangeNotifier {
           .eq('id', user.id)
           .maybeSingle();
 
-      final rows = await supabase
+      final List<dynamic> rows = await supabase
           .from('memberships')
-          .select('unit_id, squad_id, ruolo')
+          .select('unit_id, squad_id, ruolo, units ( nome )')
           .eq('user_id', user.id)
           .eq('is_active', true);
 
@@ -125,7 +172,7 @@ class SessionService extends ChangeNotifier {
       _nome = profilo?['nome'] as String?;
       _cognome = profilo?['cognome'] as String?;
       _groupId = profilo?['group_id'] as String?;
-      _memberships = (rows as List)
+      _memberships = rows
           .map((r) => SessionMembership(
                 unitId: r['unit_id'] as String,
                 squadId: r['squad_id'] as String?,
@@ -133,14 +180,34 @@ class SessionService extends ChangeNotifier {
               ))
           .toList();
 
-      if (_memberships.isEmpty) {
-        _activeUnitId = null;
-        _status = SessionStatus.noMembership;
-      } else {
-        // Sessione minima: l'unità attiva è la prima membership.
-        _activeUnitId = _memberships.first.unitId;
-        _status = SessionStatus.ready;
+      // Il Capo Gruppo può operare in tutte le unità del gruppo.
+      var delGruppo = <UnitaDisponibile>[];
+      if (_capoGruppo && _groupId != null) {
+        final List<dynamic> unita = await supabase
+            .from('units')
+            .select('id, nome')
+            .eq('group_id', _groupId!);
+        delGruppo = [
+          for (final u in unita)
+            UnitaDisponibile(id: u['id'] as String, nome: (u['nome'] ?? '') as String),
+        ];
       }
+      _unita = componiUnitaDisponibili(
+        daMembership: [
+          for (final r in rows)
+            UnitaDisponibile(
+              id: r['unit_id'] as String,
+              nome: ((r['units'] as Map?)?['nome'] ?? '') as String,
+              ruolo: r['ruolo'] as String,
+            ),
+        ],
+        delGruppo: delGruppo,
+      );
+
+      _activeUnitId = scegliUnitaIniziale(_unita, await _unitaSalvata(user.id));
+      _status = _activeUnitId == null
+          ? SessionStatus.noMembership
+          : SessionStatus.ready;
     } catch (e) {
       debugPrint('Errore caricamento sessione: $e');
       _status = SessionStatus.error;
@@ -160,6 +227,7 @@ class SessionService extends ChangeNotifier {
     _cognome = null;
     _groupId = null;
     _memberships = const [];
+    _unita = const [];
     _activeUnitId = null;
     _status = SessionStatus.unauthenticated;
     notifyListeners();
