@@ -31,6 +31,13 @@ void main() {
     });
   });
 
+  test('gli id dei file sono UUID v4 e non si ripetono', () {
+    final uuid = RegExp(r'^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$');
+    final id = List.generate(50, (_) => idCasuale());
+    expect(id.every(uuid.hasMatch), isTrue);
+    expect(id.toSet(), hasLength(50));
+  });
+
   test('il percorso usa id ed estensione, non il nome originale', () {
     expect(
       percorsoFile(gruppo: 'g', cartella: 'u', id: 'abc', estensione: 'pdf'),
