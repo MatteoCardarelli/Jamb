@@ -43,21 +43,22 @@ class JambApp extends StatelessWidget {
   }
 }
 
-/// Repository, ViewModel e navigazione dell'utente corrente.
+/// Repository, ViewModel e navigazione dell'utente corrente nell'unità attiva.
 ///
-/// Sono ricreati da zero quando l'utente cambia o esce: nessun dato
-/// dell'utente precedente (es. schede sanitarie) resta in memoria, e la
-/// navigazione riparte da [AuthGate] anche se la barra in basso ha
-/// sostituito la schermata iniziale.
+/// Sono ricreati da zero quando l'utente cambia, esce o cambia unità: nessun
+/// dato dell'utente o dell'unità precedente (es. schede sanitarie) resta in
+/// memoria, e la navigazione riparte da [AuthGate] anche se la barra in basso
+/// ha sostituito la schermata iniziale.
 class _AppPerUtente extends StatelessWidget {
   const _AppPerUtente();
 
   @override
   Widget build(BuildContext context) {
     final userId = context.select<SessionService, String?>((s) => s.userId);
+    final unitId = context.select<SessionService, String?>((s) => s.activeUnitId);
 
     return MultiProvider(
-      key: ValueKey(userId),
+      key: ValueKey('$userId/$unitId'),
       providers: [
         // Repositories
         ChangeNotifierProvider<IScoutRepository>(create: (ctx) => SupabaseScoutRepository(ctx.read<SessionService>())),
