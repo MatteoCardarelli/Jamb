@@ -5,7 +5,10 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:jamb/ui/core/widgets/jamb_app_bar.dart';
 import 'package:jamb/ui/core/widgets/jamb_dialogs.dart';
+import 'package:jamb/ui/core/widgets/jamb_apri_file.dart';
+import 'package:jamb/ui/core/widgets/jamb_errore_in_linea.dart';
 import 'package:jamb/ui/core/widgets/jamb_feedback.dart';
+import 'package:jamb/ui/core/widgets/jamb_pulsante_secondario.dart';
 
 /// Schermata di dettaglio di una singola transazione, con opzione di eliminazione.
 class DettaglioTransazioneScreen extends StatelessWidget {
@@ -149,21 +152,7 @@ class DettaglioTransazioneScreen extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 24),
-                  Center(
-                    child: Container(
-                      width: 100,
-                      height: 100,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF3F4F6),
-                        borderRadius: BorderRadius.circular(50),
-                      ),
-                      child: const Icon(
-                        Icons.camera_alt_outlined,
-                        color: Color(0xFF94A3B8),
-                        size: 32,
-                      ),
-                    ),
-                  ),
+                  _Ricevuta(viewModel),
                 ],
               ),
             ),
@@ -175,6 +164,7 @@ class DettaglioTransazioneScreen extends StatelessWidget {
   }
 
   Future<void> _showDeleteConfirmation(BuildContext context, DettaglioTransazioneViewModel viewModel) async {
+    // La ricevuta viene eliminata insieme alla transazione.
     final conferma = await JambDialogs.confermaEliminazione(
       context,
       titolo: "Elimina transazione",
@@ -262,5 +252,64 @@ class DettaglioTransazioneScreen extends StatelessWidget {
       case Categoria.quote: return "Quote";
       case Categoria.altro: return "Altro";
     }
+  }
+}
+
+/// Foto (o PDF) dello scontrino: un tocco la apre a schermo intero con
+/// l'app del telefono.
+class _Ricevuta extends StatelessWidget {
+  final DettaglioTransazioneViewModel viewModel;
+
+  const _Ricevuta(this.viewModel);
+
+  @override
+  Widget build(BuildContext context) {
+    if (!viewModel.haRicevuta) {
+      return const Center(
+        child: Text(
+          "Nessuno scontrino allegato.",
+          style: TextStyle(color: Color(0xFF94A3B8), fontFamily: 'Lexend'),
+        ),
+      );
+    }
+    if (viewModel.isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (viewModel.haErrore) {
+      return JambErroreInLinea(
+        messaggio: 'Scontrino non disponibile: ${viewModel.errore}',
+        onRiprova: viewModel.caricaRicevuta,
+      );
+    }
+
+    final url = viewModel.urlRicevuta!;
+    void apri() => apriFile(context, () async => url);
+
+    if (viewModel.ricevutaPdf) {
+      return JambPulsanteSecondario(
+        icona: Icons.picture_as_pdf_outlined,
+        etichetta: "Apri la ricevuta (PDF)",
+        onTap: apri,
+      );
+    }
+    return GestureDetector(
+      onTap: apri,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: Image.network(
+          url,
+          height: 260,
+          width: double.infinity,
+          fit: BoxFit.contain,
+          loadingBuilder: (context, child, progresso) => progresso == null
+              ? child
+              : const SizedBox(height: 260, child: Center(child: CircularProgressIndicator())),
+          errorBuilder: (context, _, _) => JambErroreInLinea(
+            messaggio: 'Impossibile scaricare lo scontrino.',
+            onRiprova: viewModel.caricaRicevuta,
+          ),
+        ),
+      ),
+    );
   }
 }
