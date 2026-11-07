@@ -150,11 +150,8 @@ ricreati a ogni cambio di utente, così non restano in memoria i dati di chi
 
 - Serve una connessione attiva. Il funzionamento offline è progettato ma non
   ancora implementato.
-- Nella sezione Documenti si naviga soltanto: caricamento file e creazione
-  cartelle non sono disponibili.
-- La foto della ricevuta di una transazione viene selezionata ma non caricata.
-- Tra le azioni rapide della schermata principale, «Carica Doc» non è ancora
-  disponibile (lo segnala quando viene toccata).
+- I file del Drive e le ricevute si aprono con le app del telefono (lettore PDF,
+  galleria): l'applicazione non ha un visualizzatore interno.
 - Gli avvisi pubblicati dagli altri capi compaiono aprendo la bacheca o
   trascinando l'elenco verso il basso: non c'è aggiornamento in tempo reale.
 - Chi opera in più unità le sceglie dal menu del profilo; cambiando unità
