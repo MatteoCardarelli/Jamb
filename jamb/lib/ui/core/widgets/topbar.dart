@@ -6,6 +6,7 @@ import 'package:jamb/core/session_service.dart';
 import 'package:jamb/ui/bacheca/view_model/bacheca_view_model.dart';
 import 'package:jamb/ui/bacheca/widgets/bacheca_screen.dart';
 import 'package:jamb/ui/core/widgets/jamb_feedback.dart';
+import 'package:jamb/ui/core/widgets/selettore_unita.dart';
 
 /// Barra superiore personalizzata con design distintivo Jamb.
 /// Presenta una forma a "tuffo" (dip) al centro che ospita il logo AGESCI,
@@ -27,7 +28,11 @@ class TopBar extends StatelessWidget implements PreferredSizeWidget {
 
     final session = context.watch<SessionService>();
     final nome = session.nomeCompleto;
-    final ruolo = session.activeRole == null ? '' : ruoloLabel(session.activeRole!);
+    // Sotto il nome: ruolo e unità attiva, es. "Aiuto Capo · Velino e Dada".
+    final ruolo = [
+      if (session.activeRole != null) ruoloLabel(session.activeRole!),
+      session.nomeUnitaAttiva,
+    ].where((s) => s.isNotEmpty).join(' · ');
     final nonLetti = context.select<BachecaViewModel, int>((vm) => vm.nonLetti);
 
     return SizedBox(
@@ -171,8 +176,10 @@ class TopBar extends StatelessWidget implements PreferredSizeWidget {
     );
   }
 
-  /// Menu del profilo: chi è collegato e il tasto per uscire.
+  /// Menu del profilo: chi è collegato, la scelta dell'unità (se ce n'è più
+  /// d'una) e il tasto per uscire.
   void _apriMenuProfilo(BuildContext context, String nome, String ruolo) {
+    final session = context.read<SessionService>();
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.white,
@@ -201,6 +208,18 @@ class TopBar extends StatelessWidget implements PreferredSizeWidget {
                   style: const TextStyle(color: Color(0xFF64748B), fontFamily: 'Lexend'),
                 ),
               const SizedBox(height: 16),
+              if (session.unitaDisponibili.length > 1) ...[
+                SelettoreUnita(
+                  unita: session.unitaDisponibili,
+                  attiva: session.activeUnitId,
+                  onScegli: (unitId) {
+                    Navigator.of(ctx).pop();
+                    // L'app si ricrea per la nuova unità e riparte dalla Home.
+                    session.impostaUnitaAttiva(unitId);
+                  },
+                ),
+                const Divider(height: 24),
+              ],
               ListTile(
                 contentPadding: EdgeInsets.zero,
                 leading: const Icon(Icons.logout_rounded, color: Color(0xFFB91C1C)),

@@ -21,8 +21,13 @@ class SupabaseObiettivoRepository implements IObiettivoRepository {
 
   @override
   Future<List<Obiettivo>> getObiettivi() => eseguiSupabase(() async {
-        final List<dynamic> rows =
-            await supabase.from(_table).select().order('created_at', ascending: true);
+        final unitId = _session.activeUnitId;
+        if (unitId == null) return [];
+        final List<dynamic> rows = await supabase
+            .from(_table)
+            .select()
+            .eq('unit_id', unitId)
+            .order('created_at', ascending: true);
         return rows.map((r) => _fromDb(r as Map<String, dynamic>)).toList();
       });
 
