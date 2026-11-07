@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:jamb/ui/core/widgets/jamb_dialogs.dart';
 import 'package:jamb/ui/core/widgets/jamb_feedback.dart';
+import 'package:jamb/ui/core/widgets/jamb_pulsante_secondario.dart';
 import 'package:jamb/ui/core/widgets/jamb_search_picker.dart';
 import 'package:jamb/domain/entities/progresso.dart';
 import 'package:jamb/ui/dettaglio_ragazzo/view_model/dettaglio_ragazzo_view_model.dart';
@@ -125,20 +126,10 @@ class BrevettiWidget extends StatelessWidget {
             );
           }),
         const SizedBox(height: 20),
-        GestureDetector(
+        JambPulsanteSecondario(
+          icona: Icons.stars_rounded,
+          etichetta: "Aggiungi brevetto",
           onTap: () => _apriAggiungi(context, viewModel),
-          child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 14),
-            decoration: BoxDecoration(color: const Color(0xFFF8FAFC), borderRadius: BorderRadius.circular(16), border: Border.all(color: const Color(0xFFE2E8F0))),
-            child: const Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.stars_rounded, color: Color(0xFF1D2660), size: 18),
-                SizedBox(width: 8),
-                Text("Aggiungi brevetto", style: TextStyle(color: Color(0xFF1D2660), fontWeight: FontWeight.w800, fontFamily: 'Lexend')),
-              ],
-            ),
-          ),
         ),
       ],
     );

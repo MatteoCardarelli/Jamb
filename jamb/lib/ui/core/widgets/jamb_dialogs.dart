@@ -26,6 +26,17 @@ class JambDialogs {
     BuildContext context, {
     required String titolo,
     required String messaggio,
+  }) =>
+      conferma(context, titolo: titolo, messaggio: messaggio, etichetta: "ELIMINA");
+
+  /// Chiede conferma prima di un'azione che fa perdere dati (eliminare,
+  /// uscire senza salvare); restituisce `true` solo se l'utente sceglie
+  /// [etichetta], mostrata sul pulsante rosso.
+  static Future<bool> conferma(
+    BuildContext context, {
+    required String titolo,
+    required String messaggio,
+    required String etichetta,
   }) async {
     final conferma = await showDialog<bool>(
       context: context,
@@ -59,9 +70,9 @@ class JambDialogs {
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               elevation: 0,
             ),
-            child: const Text(
-              "ELIMINA",
-              style: TextStyle(fontFamily: 'Lexend', fontWeight: FontWeight.bold),
+            child: Text(
+              etichetta,
+              style: const TextStyle(fontFamily: 'Lexend', fontWeight: FontWeight.bold),
             ),
           ),
         ],

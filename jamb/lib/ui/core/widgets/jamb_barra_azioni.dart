@@ -5,12 +5,14 @@ import 'package:jamb/ui/core/widgets/back_action_button.dart';
 /// indietro, eventuali [azioniSecondarie] e il pulsante principale.
 ///
 /// Va posizionata dal chiamante (es. sopra la barra di navigazione in basso).
-/// Con [onPressed] `null` il pulsante principale è disabilitato.
+/// Con [onPressed] `null` il pulsante principale è disabilitato; senza
+/// [mostraIndietro] la freccia è omessa (es. quando c'è già nella barra in alto).
 class JambBarraAzioni extends StatelessWidget {
   final String etichetta;
   final IconData icona;
   final VoidCallback? onPressed;
   final List<Widget> azioniSecondarie;
+  final bool mostraIndietro;
 
   const JambBarraAzioni({
     super.key,
@@ -18,18 +20,21 @@ class JambBarraAzioni extends StatelessWidget {
     required this.icona,
     required this.onPressed,
     this.azioniSecondarie = const [],
+    this.mostraIndietro = true,
   });
 
   @override
   Widget build(BuildContext context) {
+    final sinistra = [
+      if (mostraIndietro) const BackActionButton(),
+      ...azioniSecondarie,
+    ];
     return Row(
       children: [
-        const BackActionButton(),
-        for (final azione in azioniSecondarie) ...[
-          const SizedBox(width: 12),
+        for (final azione in sinistra) ...[
           azione,
+          const SizedBox(width: 12),
         ],
-        const SizedBox(width: 12),
         Expanded(
           child: SizedBox(
             height: 56,

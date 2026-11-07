@@ -10,6 +10,7 @@ import 'package:jamb/ui/dettaglio_ragazzo/widgets/allergie_widget.dart';
 import 'package:jamb/ui/dettaglio_ragazzo/widgets/contatti_emergenza_widget.dart';
 import 'package:jamb/ui/dettaglio_ragazzo/widgets/dettaglio_ragazzo_header.dart';
 import 'package:jamb/ui/dettaglio_ragazzo/widgets/edit_ragazzo_sheet.dart';
+import 'package:jamb/ui/dettaglio_ragazzo/widgets/presenze_widget.dart';
 import 'package:jamb/ui/dettaglio_ragazzo/widgets/privacy_widget.dart';
 import 'package:jamb/ui/dettaglio_ragazzo/widgets/sentiero_widget.dart';
 import 'package:jamb/ui/dettaglio_ragazzo/widgets/brevetti_widget.dart';
@@ -125,6 +126,10 @@ class DettaglioRagazzoScreen extends StatelessWidget {
                     const SizedBox(height: 24),
 
                     ContattiEmergenzaWidget(contatti: s.contattiEmergenza),
+
+                    const SizedBox(height: 24),
+
+                    PresenzeWidget(ragazzoId: s.id),
 
                     const SizedBox(height: 24),
 
