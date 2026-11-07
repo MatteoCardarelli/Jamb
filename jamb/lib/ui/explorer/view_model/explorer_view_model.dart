@@ -43,6 +43,10 @@ class ExplorerViewModel extends ChangeNotifier with StatoCaricamentoMixin {
     );
   }
 
+  /// Solo i file del livello corrente, in ordine alfabetico (es. i moduli
+  /// proposti alla creazione di un evento).
+  List<Documento> get file => contenutoFiltrato.where((d) => !d.isCartella).toList();
+
   /// Riga sotto il nome: "Cartella", oppure formato e dimensione del file.
   String sottotitolo(Documento d) {
     if (d.isCartella) return 'Cartella';

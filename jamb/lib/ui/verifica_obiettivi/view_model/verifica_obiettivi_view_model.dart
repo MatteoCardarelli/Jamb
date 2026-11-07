@@ -1,13 +1,45 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:jamb/domain/entities/anno_scout.dart';
+import 'package:jamb/domain/entities/documento.dart';
+import 'package:jamb/domain/entities/file_da_caricare.dart';
 import 'package:jamb/domain/entities/obiettivo.dart';
+import 'package:jamb/domain/repositories/documento_repository.dart';
+import 'package:jamb/ui/verifica_obiettivi/programma_pdf.dart';
 
 /// ViewModel per la gestione dello stato della schermata di verifica obiettivi.
-/// Mantiene una lista locale di obiettivi che può essere modificata prima del salvataggio.
+/// Mantiene una lista locale di obiettivi che può essere modificata prima del
+/// salvataggio, e può archiviarla in PDF nel Drive di Branca (US17).
 class VerificaObiettiviViewModel extends ChangeNotifier {
   final List<Obiettivo> _obiettivi;
+  final IDocumentoRepository _documenti;
 
-  VerificaObiettiviViewModel(List<Obiettivo> initialObiettivi)
+  VerificaObiettiviViewModel(List<Obiettivo> initialObiettivi, this._documenti)
       : _obiettivi = List.from(initialObiettivi);
+
+  /// Nome del PDF archiviato il giorno [oggi], es.
+  /// "Programma d'Unità 2026-2027 - 07-11-2026.pdf": la data distingue le
+  /// versioni archiviate nello stesso anno.
+  static String nomeFileProgramma(DateTime oggi) =>
+      "Programma d'Unità ${annoScoutDi(oggi)} - ${DateFormat('dd-MM-yyyy').format(oggi)}.pdf";
+
+  /// Archivia il Programma così come appare ora (anche con modifiche non
+  /// ancora salvate) in PDF, nella radice del Drive di Branca dell'unità.
+  /// [oggi] serve solo ai test. Un errore viene propagato alla View.
+  Future<void> archiviaNelDrive({required String unita, DateTime? oggi}) async {
+    final data = oggi ?? DateTime.now();
+    final pdf = await generaProgrammaPdf(
+      unita: unita,
+      annoScout: annoScoutDi(data),
+      obiettivi: _obiettivi,
+      data: data,
+    );
+    await _documenti.caricaFile(
+      ArchivioDocumenti.driveBranca,
+      FileDaCaricare(nome: nomeFileProgramma(data), byte: pdf),
+      null,
+    );
+  }
 
   /// Getter per la lista degli obiettivi correnti
   List<Obiettivo> get obiettivi => _obiettivi;
