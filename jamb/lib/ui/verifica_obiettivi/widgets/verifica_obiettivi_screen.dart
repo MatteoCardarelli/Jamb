@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:jamb/core/session_service.dart';
 import 'package:jamb/domain/entities/obiettivo.dart';
 import 'package:jamb/ui/core/widgets/jamb_barra_azioni.dart';
 import 'package:jamb/ui/core/widgets/empty_background_screen.dart';
 import 'package:jamb/ui/core/widgets/jamb_dialogs.dart';
+import 'package:jamb/ui/core/widgets/jamb_feedback.dart';
+import 'package:jamb/ui/core/widgets/jamb_pulsante_secondario.dart';
 import 'package:jamb/ui/verifica_obiettivi/view_model/verifica_obiettivi_view_model.dart';
 import 'package:jamb/ui/verifica_obiettivi/widgets/edit_obiettivo_dialog.dart';
 import 'package:jamb/ui/verifica_obiettivi/widgets/obiettivo_card.dart';
@@ -78,6 +81,22 @@ class VerificaObiettiviScreen extends StatelessWidget {
     }
   }
 
+  /// Archivia il Programma in PDF nel Drive di Branca e lo conferma.
+  Future<void> _archivia(BuildContext context) async {
+    final viewModel = context.read<VerificaObiettiviViewModel>();
+    final unita = context.read<SessionService>().nomeUnitaAttiva;
+    final messenger = ScaffoldMessenger.of(context);
+    final archiviato = await eseguiConFeedback(
+      context,
+      () => viewModel.archiviaNelDrive(unita: unita),
+    );
+    if (archiviato) {
+      messenger.showSnackBar(const SnackBar(
+        content: Text("Programma archiviato nel Drive di Branca."),
+      ));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final viewModel = context.watch<VerificaObiettiviViewModel>();
@@ -90,8 +109,19 @@ class VerificaObiettiviScreen extends StatelessWidget {
           Positioned.fill(
             child: ListView.builder(
               padding: const EdgeInsets.only(top: 170, left: 20, right: 20, bottom: 200),
-              itemCount: viewModel.obiettivi.length,
+              // In fondo all'elenco, l'archiviazione in PDF nel Drive (US17).
+              itemCount: viewModel.obiettivi.length + 1,
               itemBuilder: (context, index) {
+                if (index == viewModel.obiettivi.length) {
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: JambPulsanteSecondario(
+                      icona: Icons.picture_as_pdf_outlined,
+                      etichetta: "Archivia nel Drive di Branca (PDF)",
+                      onTap: () => _archivia(context),
+                    ),
+                  );
+                }
                 return ObiettivoCard(
                   obiettivo: viewModel.obiettivi[index],
                   onScoreChanged: (score) => viewModel.updateScore(index, score),
