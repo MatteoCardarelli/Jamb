@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 
 /// Pulsante circolare per tornare alla schermata precedente.
+///
+/// Usa `maybePop`, come il tasto indietro del sistema: una schermata con
+/// modifiche non salvate può chiedere conferma tramite `PopScope`.
 class BackActionButton extends StatelessWidget {
   final VoidCallback? onPressed;
 
@@ -9,7 +12,7 @@ class BackActionButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      onTap: onPressed ?? () => Navigator.of(context).pop(),
+      onTap: onPressed ?? () => Navigator.of(context).maybePop(),
       borderRadius: BorderRadius.circular(50),
       child: Container(
         width: 56,
