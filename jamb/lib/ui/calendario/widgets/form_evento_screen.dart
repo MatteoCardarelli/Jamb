@@ -5,6 +5,7 @@ import 'package:jamb/core/categoria_evento_colori.dart';
 import 'package:jamb/ui/core/widgets/jamb_campo.dart';
 import 'package:jamb/ui/core/widgets/jamb_errore_in_linea.dart';
 import 'package:jamb/ui/core/widgets/jamb_feedback.dart';
+import 'package:jamb/ui/calendario/widgets/modulistica_suggerita.dart';
 import '../../../domain/entities/evento.dart';
 import '../../../domain/repositories/evento_repository.dart';
 import '../../../domain/repositories/obiettivo_repository.dart';
@@ -196,7 +197,12 @@ class _FormEventoView extends StatelessWidget {
               ),
             ],
 
-            const SizedBox(height: 48),
+            const SizedBox(height: 32),
+
+            // MODULISTICA: proposta solo creando un evento (come da mockup)
+            if (!viewModel.isModifica) const ModulisticaSuggerita(),
+
+            const SizedBox(height: 16),
 
             // TASTO SALVA
             SizedBox(

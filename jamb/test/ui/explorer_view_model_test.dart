@@ -47,6 +47,13 @@ void main() {
       expect(vm.contenutoFiltrato.map((d) => d.id), ['Uscite', 'verbale.pdf']);
     });
 
+    // I moduli proposti nel form evento sono file da aprire, non cartelle.
+    test('file esclude le cartelle', () async {
+      final vm = radice();
+      await _attendi();
+      expect(vm.file.map((d) => d.id), ['verbale.pdf']);
+    });
+
     test('il sottotitolo distingue cartelle, file e file senza contenuto', () async {
       final vm = radice();
       expect(vm.sottotitolo(_doc('Uscite', cartella: true)), 'Cartella');
