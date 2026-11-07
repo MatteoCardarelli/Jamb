@@ -157,8 +157,6 @@ ricreati a ogni cambio di utente, così non restano in memoria i dati di chi
   disponibile (lo segnala quando viene toccata).
 - Gli avvisi pubblicati dagli altri capi compaiono aprendo la bacheca o
   trascinando l'elenco verso il basso: non c'è aggiornamento in tempo reale.
-- L'appello si apre solo dal dettaglio di un evento: non è ancora tra le
-  azioni rapide della schermata principale.
 - Chi opera in più unità le sceglie dal menu del profilo; cambiando unità
   l'applicazione torna alla schermata principale.
 - L'area dedicata ai ragazzi non esiste: l'applicazione è oggi rivolta ai soli
