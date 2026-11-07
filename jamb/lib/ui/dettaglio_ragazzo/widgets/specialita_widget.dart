@@ -5,6 +5,7 @@ import 'package:jamb/ui/core/widgets/jamb_feedback.dart';
 import 'package:jamb/ui/core/widgets/jamb_search_picker.dart';
 import 'package:jamb/domain/entities/progresso.dart';
 import 'package:jamb/ui/dettaglio_ragazzo/view_model/dettaglio_ragazzo_view_model.dart';
+import 'package:jamb/ui/dettaglio_ragazzo/widgets/riquadro_ragazzo.dart';
 
 /// Widget per la visualizzazione e gestione delle Specialità attive di uno scout.
 /// Ora completamente integrato con il ViewModel.
@@ -73,79 +74,61 @@ class SpecialitaWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final viewModel = context.watch<DettaglioRagazzoViewModel>();
 
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: const Color(0xFFF1F5F9)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 15,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text("Specialità Attive", style: TextStyle(color: Color(0xFF0F172A), fontSize: 22, fontWeight: FontWeight.w900, fontFamily: 'Lexend')),
-          const SizedBox(height: 16),
-          ...List.generate(specialita.length, (i) {
-            final s = specialita[i];
-            return Column(
-              children: [
-                if (i > 0) const Divider(color: Color(0xFFF1F5F9), height: 24, thickness: 1.5),
-                GestureDetector(
-                  onTap: () => _apriDettaglio(context, i, viewModel),
-                  behavior: HitTestBehavior.opaque,
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 48, height: 48,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
-                          image: DecorationImage(image: AssetImage(_getImagePath(s.nome)), fit: BoxFit.cover),
-                        ),
+    return RiquadroRagazzo(
+      titolo: "Specialità Attive",
+      children: [
+        ...List.generate(specialita.length, (i) {
+          final s = specialita[i];
+          return Column(
+            children: [
+              if (i > 0) const Divider(color: Color(0xFFF1F5F9), height: 24, thickness: 1.5),
+              GestureDetector(
+                onTap: () => _apriDettaglio(context, i, viewModel),
+                behavior: HitTestBehavior.opaque,
+                child: Row(
+                  children: [
+                    Container(
+                      width: 48, height: 48,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12),
+                        image: DecorationImage(image: AssetImage(_getImagePath(s.nome)), fit: BoxFit.cover),
                       ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(s.nome.name, style: const TextStyle(color: Color(0xFF1E293B), fontSize: 16, fontWeight: FontWeight.w700, fontFamily: 'Lexend')),
-                            const SizedBox(height: 2),
-                            Text(_sottotitolo(s), style: TextStyle(color: s.isPosseduta ? const Color(0xFF16A34A) : const Color(0xFF94A3B8), fontSize: 13, fontWeight: s.isPosseduta ? FontWeight.w600 : FontWeight.w400, fontFamily: 'Lexend')),
-                          ],
-                        ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(s.nome.name, style: const TextStyle(color: Color(0xFF1E293B), fontSize: 16, fontWeight: FontWeight.w700, fontFamily: 'Lexend')),
+                          const SizedBox(height: 2),
+                          Text(_sottotitolo(s), style: TextStyle(color: s.isPosseduta ? const Color(0xFF16A34A) : const Color(0xFF94A3B8), fontSize: 13, fontWeight: s.isPosseduta ? FontWeight.w600 : FontWeight.w400, fontFamily: 'Lexend')),
+                        ],
                       ),
-                      const Icon(Icons.chevron_right_rounded, color: Color(0xFFCBD5E1)),
-                    ],
-                  ),
+                    ),
+                    const Icon(Icons.chevron_right_rounded, color: Color(0xFFCBD5E1)),
+                  ],
                 ),
-              ],
-            );
-          }),
-          const SizedBox(height: 20),
-          GestureDetector(
-            onTap: () => _apriAggiungi(context, viewModel),
-            child: Container(
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              decoration: BoxDecoration(color: const Color(0xFFF8FAFC), borderRadius: BorderRadius.circular(16), border: Border.all(color: const Color(0xFFE2E8F0))),
-              child: const Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.add_circle_outline_rounded, color: Color(0xFF1D2660), size: 18),
-                  SizedBox(width: 8),
-                  Text("Aggiungi specialità", style: TextStyle(color: Color(0xFF1D2660), fontWeight: FontWeight.w800, fontFamily: 'Lexend')),
-                ],
               ),
+            ],
+          );
+        }),
+        const SizedBox(height: 20),
+        GestureDetector(
+          onTap: () => _apriAggiungi(context, viewModel),
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 14),
+            decoration: BoxDecoration(color: const Color(0xFFF8FAFC), borderRadius: BorderRadius.circular(16), border: Border.all(color: const Color(0xFFE2E8F0))),
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.add_circle_outline_rounded, color: Color(0xFF1D2660), size: 18),
+                SizedBox(width: 8),
+                Text("Aggiungi specialità", style: TextStyle(color: Color(0xFF1D2660), fontWeight: FontWeight.w800, fontFamily: 'Lexend')),
+              ],
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
