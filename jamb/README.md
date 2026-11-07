@@ -157,8 +157,8 @@ ricreati a ogni cambio di utente, così non restano in memoria i dati di chi
   disponibile (lo segnala quando viene toccata).
 - Gli avvisi pubblicati dagli altri capi compaiono aprendo la bacheca o
   trascinando l'elenco verso il basso: non c'è aggiornamento in tempo reale.
-- L'appello delle presenze ha la tabella nel database ma non ancora
-  l'interfaccia.
+- L'appello si apre solo dal dettaglio di un evento: non è ancora tra le
+  azioni rapide della schermata principale.
 - L'unità attiva è la prima tra quelle dell'utente: manca un selettore.
 - L'area dedicata ai ragazzi non esiste: l'applicazione è oggi rivolta ai soli
   capi, e un ragazzo che accede vede solo un avviso.
