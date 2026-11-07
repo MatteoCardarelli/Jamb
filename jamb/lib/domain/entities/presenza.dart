@@ -1,5 +1,41 @@
+import 'evento.dart';
+
 /// Esito dell'appello di un ragazzo a un evento.
 enum StatoPresenza { presente, assente, giustificato }
+
+/// Anticipo con cui un evento diventa quello dell'appello dalla Home.
+const Duration anticipoAppello = Duration(hours: 1);
+
+/// Quanto indietro si cerca l'ultimo evento, per un appello compilato dopo.
+const Duration finestraAppelloRecente = Duration(days: 7);
+
+/// Evento di cui aprire l'appello dall'azione rapida della Home:
+/// 1. quello in corso (il più recente, se sono più d'uno);
+/// 2. altrimenti il primo che inizia entro [anticipoAppello];
+/// 3. altrimenti l'ultimo iniziato negli ultimi [finestraAppelloRecente].
+/// `null` se non ce n'è nessuno: l'appello si apre allora dal calendario.
+Evento? eventoPerAppello(Iterable<Evento> eventi, DateTime adesso) {
+  final iniziati = eventi.where((e) => !e.dataInizio.isAfter(adesso)).toList()
+    ..sort((a, b) => b.dataInizio.compareTo(a.dataInizio));
+
+  for (final e in iniziati) {
+    if (!e.dataFine.isBefore(adesso)) return e; // in corso
+  }
+
+  final imminenti = eventi
+      .where((e) =>
+          e.dataInizio.isAfter(adesso) &&
+          !e.dataInizio.isAfter(adesso.add(anticipoAppello)))
+      .toList()
+    ..sort((a, b) => a.dataInizio.compareTo(b.dataInizio));
+  if (imminenti.isNotEmpty) return imminenti.first;
+
+  final limite = adesso.subtract(finestraAppelloRecente);
+  for (final e in iniziati) {
+    if (!e.dataInizio.isBefore(limite)) return e;
+  }
+  return null;
+}
 
 /// Assenze non giustificate consecutive oltre le quali un ragazzo va
 /// segnalato ai capi.
