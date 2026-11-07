@@ -4,12 +4,11 @@ import 'package:jamb/ui/bacheca/widgets/form_avviso_screen.dart';
 import 'package:jamb/ui/calendario/widgets/form_evento_screen.dart';
 import 'package:jamb/ui/contabilita/widgets/add_transaction_screen.dart';
 import 'package:jamb/ui/core/stile.dart';
+import 'package:jamb/domain/entities/documento.dart';
+import 'package:jamb/ui/explorer/widgets/explorer_screen.dart';
 
 /// Griglia di pulsanti rapidi per le azioni comuni (Crea Avviso, Appello, Nuovo Evento, ecc.).
 /// Visualizzata sotto gli avvisi amministrativi nella HomeView.
-///
-/// Le azioni non ancora realizzate sono attenuate e lo dicono quando vengono
-/// toccate: un pulsante visibile non deve sembrare funzionante se non lo è.
 class AzioniRapideWidget extends StatelessWidget {
   const AzioniRapideWidget({super.key});
 
@@ -69,10 +68,12 @@ class AzioniRapideWidget extends StatelessWidget {
                 label: "Nuova Transazione",
                 onTap: () => AddTransactionScreen.apri(context),
               ),
+              // Apre il Drive di Branca: la cartella si sceglie lì.
               _buildAzioneCard(
                 context,
                 icon: Icons.upload_file_outlined,
                 label: "Carica Doc",
+                onTap: () => ExplorerScreen.apri(context, ArchivioDocumenti.driveBranca),
               ),
             ],
           ),
@@ -81,25 +82,20 @@ class AzioniRapideWidget extends StatelessWidget {
     );
   }
 
-  /// Costruisce una singola card d'azione; senza [onTap] l'azione non è
-  /// ancora disponibile e viene mostrata attenuata.
+  /// Costruisce una singola card d'azione.
   Widget _buildAzioneCard(
     BuildContext context, {
     required IconData icon,
     required String label,
-    VoidCallback? onTap,
+    required VoidCallback onTap,
   }) {
-    final disponibile = onTap != null;
-    final colore = disponibile ? const Color(0xFF1D2660) : const Color(0xFF94A3B8);
+    const colore = Color(0xFF1D2660);
 
     return GestureDetector(
-      onTap: onTap ??
-          () => ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text("$label sarà disponibile in una prossima versione.")),
-              ),
+      onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
-          color: disponibile ? Colors.white : const Color(0xFFF8FAFC),
+          color: Colors.white,
           borderRadius: BorderRadius.circular(12),
           border: bordoRiquadro,
         ),
@@ -114,7 +110,7 @@ class AzioniRapideWidget extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               label,
-              style: TextStyle(
+              style: const TextStyle(
                 color: colore,
                 fontSize: 12,
                 fontWeight: FontWeight.w700,

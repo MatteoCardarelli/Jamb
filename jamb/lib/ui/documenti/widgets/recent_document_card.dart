@@ -1,20 +1,19 @@
 import 'package:flutter/material.dart';
-
-/// Tipi di file supportati per la visualizzazione personalizzata
-enum FileType { pdf, doc, image }
+import 'package:jamb/domain/entities/documento.dart';
+import 'package:jamb/ui/documenti/widgets/tipo_documento_ui.dart';
 
 /// Card per la visualizzazione di un documento recente nella lista documenti.
-/// Gestisce automaticamente colori e icone in base al formato del file (PDF, Documento, Immagine).
+/// Icona e colori dipendono dal tipo di file (PDF, documento, immagine, ...).
 class RecentDocumentCard extends StatelessWidget {
   /// Nome del file
   final String titolo;
-  /// Informazioni accessorie (es: "Modificato ieri • 2.4 MB")
+  /// Informazioni accessorie (es: "Modificato ieri • 2,4 MB")
   final String info;
   /// Formato del file per la scelta dell'icona e del colore
-  final FileType tipo;
+  final TipoDocumento tipo;
   /// Callback invocata al tocco della card
   final VoidCallback? onTap;
-  /// Callback invocata alla pressione delle opzioni (tre puntini)
+  /// Callback del pulsante opzioni (tre puntini); senza, il pulsante non compare
   final VoidCallback? onOptionsTap;
 
   const RecentDocumentCard({
@@ -48,9 +47,17 @@ class RecentDocumentCard extends StatelessWidget {
         child: Row(
           children: [
             // ICONA FILE: Con sfondo colorato dinamico
-            _buildFileIcon(),
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: tipo.sfondo,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(tipo.icona, color: tipo.colore, size: 22),
+            ),
             const SizedBox(width: 16),
-            
+
             // TESTI: Titolo e Metadati
             Expanded(
               child: Column(
@@ -80,52 +87,18 @@ class RecentDocumentCard extends StatelessWidget {
                 ],
               ),
             ),
-            
+
             // AZIONI: Menu opzioni
-            IconButton(
-              onPressed: onOptionsTap,
-              icon: const Icon(Icons.more_vert_rounded, color: Color(0xFF94A3B8), size: 20),
-              padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(),
-            ),
+            if (onOptionsTap != null)
+              IconButton(
+                onPressed: onOptionsTap,
+                icon: const Icon(Icons.more_vert_rounded, color: Color(0xFF94A3B8), size: 20),
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+              ),
           ],
         ),
       ),
-    );
-  }
-
-  /// Costruisce l'icona con lo sfondo colorato in base al tipo di file
-  Widget _buildFileIcon() {
-    Color bgColor;
-    Color iconColor;
-    IconData iconData;
-
-    switch (tipo) {
-      case FileType.pdf:
-        bgColor = const Color(0xFFFFE4E1); // Rosso pallido
-        iconColor = const Color(0xFFE11D48); // Rosso intenso
-        iconData = Icons.picture_as_pdf_rounded;
-        break;
-      case FileType.doc:
-        bgColor = const Color(0xFFE0F2FE); // Blu pallido
-        iconColor = const Color(0xFF0284C7); // Blu intenso
-        iconData = Icons.description_rounded;
-        break;
-      case FileType.image:
-        bgColor = const Color(0xFFDCFCE7); // Verde pallido
-        iconColor = const Color(0xFF16A34A); // Verde intenso
-        iconData = Icons.image_rounded;
-        break;
-    }
-
-    return Container(
-      width: 44,
-      height: 44,
-      decoration: BoxDecoration(
-        color: bgColor,
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Icon(iconData, color: iconColor, size: 22),
     );
   }
 }

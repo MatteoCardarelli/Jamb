@@ -3,16 +3,15 @@ import 'package:provider/provider.dart';
 import 'package:jamb/ui/core/widgets/empty_background_screen.dart';
 import 'package:jamb/ui/core/widgets/jamb_search_bar.dart';
 import 'package:jamb/ui/core/widgets/jamb_category_card.dart';
-import 'package:jamb/ui/core/widgets/jamb_expandable_fab.dart';
-import 'package:jamb/ui/core/widgets/jamb_dialogs.dart';
+import 'package:jamb/ui/core/widgets/jamb_apri_file.dart';
+import 'package:jamb/ui/core/widgets/jamb_errore_in_linea.dart';
 import 'package:jamb/ui/documenti/widgets/recent_document_card.dart';
 import 'package:jamb/ui/amministrazione/widgets/amministrazione_screen.dart';
 import 'package:jamb/ui/amministrazione/view_model/amministrazione_view_model.dart';
 import 'package:jamb/ui/explorer/widgets/explorer_screen.dart';
-import 'package:jamb/ui/explorer/view_model/explorer_view_model.dart';
 import 'package:jamb/ui/contabilita/widgets/contabilita_screen.dart';
 import 'package:jamb/ui/documenti/view_model/documenti_view_model.dart';
-import 'package:jamb/domain/repositories/documento_repository.dart';
+import 'package:jamb/domain/entities/documento.dart';
 
 /// Hub centrale per la gestione dei documenti e delle sezioni amministrative.
 /// Fornisce accesso rapido ai Drive condivisi, alla Contabilità, all'Amministrazione
@@ -36,10 +35,6 @@ class DocumentiScreen extends StatelessWidget {
       resizeToAvoidBottomInset: false,
       body: EmptyBackgroundScreen(
         currentIndex: 2, // Icona documenti attiva
-        floatingActionButton: JambExpandableFab(
-          onCreateFolder: () => JambDialogs.showCreateFolderDialog(context),
-          onUploadDocument: () => JambDialogs.showUploadDocumentDialog(context),
-        ),
         child: SingleChildScrollView(
           padding: const EdgeInsets.only(top: 170, left: 20, right: 20, bottom: 120),
           child: Column(
@@ -82,15 +77,8 @@ class DocumentiScreen extends StatelessWidget {
                   
                   // Definizione dinamica della rotta di destinazione
                   VoidCallback? onTap;
-                  if (cat['titolo'] == "Drive di Branca") {
-                    onTap = () => _navigateTo(context, ChangeNotifierProvider(
-                      create: (ctx) => ExplorerViewModel(
-                        repository: ctx.read<IDocumentoRepository>(),
-                        titolo: "Drive di Branca",
-                        parentId: null,
-                      ),
-                      child: const ExplorerScreen(),
-                    ));
+                  if (cat['archivio'] case final ArchivioDocumenti archivio) {
+                    onTap = () => ExplorerScreen.apri(context, archivio);
                   } else if (cat['titolo'] == "Amministrazione") {
                     onTap = () => _navigateTo(context, const AmministrazioneScreen());
                   } else if (cat['titolo'] == "Contabilità") {
@@ -114,53 +102,36 @@ class DocumentiScreen extends StatelessWidget {
               ),
               const SizedBox(height: 40),
 
-              // SEZIONE: DOCUMENTI RECENTI
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    "Documenti Recenti",
-                    style: TextStyle(
-                      color: Color(0xFF0F172A),
-                      fontSize: 20,
-                      fontWeight: FontWeight.w900,
-                      fontFamily: 'Lexend',
-                    ),
-                  ),
-                  TextButton(
-                    onPressed: () {
-                      // TODO: Navigazione alla lista completa dei documenti recenti
-                    },
-                    child: const Text(
-                      "Vedi tutti",
-                      style: TextStyle(
-                        color: Color(0xFF1D2660),
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        fontFamily: 'Lexend',
-                      ),
-                    ),
-                  ),
-                ],
+              // SEZIONE: DOCUMENTI RECENTI (ultimi file del Drive di Branca)
+              const Text(
+                "Documenti Recenti",
+                style: TextStyle(
+                  color: Color(0xFF0F172A),
+                  fontSize: 20,
+                  fontWeight: FontWeight.w900,
+                  fontFamily: 'Lexend',
+                ),
               ),
               const SizedBox(height: 12),
 
-              // LISTA DOCUMENTI RECENTI (Mock)
-              const RecentDocumentCard(
-                titolo: "Regolamento_Metodologico_20",
-                info: "Modificato ieri • 2.4 MB",
-                tipo: FileType.pdf,
-              ),
-              const RecentDocumentCard(
-                titolo: "Modulo_Autorizzazione_Uscita",
-                info: "Modificato 3h fa • 120 KB",
-                tipo: FileType.doc,
-              ),
-              const RecentDocumentCard(
-                titolo: "Scansione_Scheda_Medica_Ro",
-                info: "Caricato oggi • 1.1 MB",
-                tipo: FileType.image,
-              ),
+              if (viewModel.haErrore)
+                JambErroreInLinea(
+                  messaggio: 'Documenti recenti non disponibili: ${viewModel.errore}',
+                  onRiprova: viewModel.ricaricaRecenti,
+                )
+              else if (!viewModel.isLoading && viewModel.recenti.isEmpty)
+                const Text(
+                  "Nessun file nel Drive di Branca.",
+                  style: TextStyle(color: Color(0xFF94A3B8), fontFamily: 'Lexend'),
+                )
+              else
+                for (final doc in viewModel.recenti)
+                  RecentDocumentCard(
+                    titolo: doc.nome,
+                    info: viewModel.infoRecente(doc),
+                    tipo: doc.tipo,
+                    onTap: doc.apribile ? () => apriFile(context, () => viewModel.urlFile(doc)) : null,
+                  ),
             ],
           ),
         ),
