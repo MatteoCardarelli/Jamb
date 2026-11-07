@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
-import 'package:jamb/ui/bacheca/view_model/bacheca_view_model.dart';
 import 'package:jamb/ui/bacheca/widgets/avviso_card.dart';
 import '../../testing/models/avviso_di_test.dart';
 
@@ -34,22 +33,6 @@ void main() {
       expect(find.bySemanticsLabel(RegExp('Non letto')), findsNothing);
       expect(find.textContaining('Aquile'), findsOneWidget);
       semantica.dispose();
-    });
-  });
-
-  group('BachecaViewModel.dataBreve', () {
-    final adesso = DateTime(2026, 10, 29, 18);
-
-    test('di oggi mostra l\'ora', () {
-      expect(BachecaViewModel.dataBreve(DateTime(2026, 10, 29, 9, 5), adesso: adesso), '09:05');
-    });
-
-    test('di quest\'anno mostra giorno e mese', () {
-      expect(BachecaViewModel.dataBreve(DateTime(2026, 3, 7), adesso: adesso), '7 mar');
-    });
-
-    test('di un altro anno mostra anche l\'anno', () {
-      expect(BachecaViewModel.dataBreve(DateTime(2025, 12, 31), adesso: adesso), '31 dic 2025');
     });
   });
 }

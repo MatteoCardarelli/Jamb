@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:jamb/domain/entities/avviso.dart';
-import 'package:jamb/ui/bacheca/view_model/bacheca_view_model.dart';
+import 'package:jamb/ui/core/formato.dart';
 import 'package:jamb/ui/core/stile.dart';
 
 /// Riquadro di un avviso nell'elenco della bacheca: oggetto, anteprima del
@@ -65,7 +65,7 @@ class AvvisoCard extends StatelessWidget {
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      BachecaViewModel.dataBreve(avviso.dataPubblicazione),
+                      dataBreve(avviso.dataPubblicazione),
                       style: const TextStyle(color: _grigio, fontSize: 12, fontFamily: 'Lexend'),
                     ),
                   ],
