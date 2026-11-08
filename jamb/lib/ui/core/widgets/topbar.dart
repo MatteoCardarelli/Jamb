@@ -9,6 +9,7 @@ import 'package:jamb/ui/bacheca/widgets/bacheca_screen.dart';
 import 'package:jamb/ui/core/widgets/jamb_feedback.dart';
 import 'package:jamb/ui/core/widgets/jamb_menu.dart';
 import 'package:jamb/ui/core/widgets/selettore_unita.dart';
+import 'package:jamb/ui/profilo/widgets/profilo_screen.dart';
 
 /// Barra superiore personalizzata con design distintivo Jamb.
 /// Presenta una forma a "tuffo" (dip) al centro che ospita il logo AGESCI,
@@ -121,10 +122,18 @@ class TopBar extends StatelessWidget implements PreferredSizeWidget {
                   const Spacer(),
                   
                   // Icone d'azione (Opzioni e Notifiche)
-                  SvgPicture.asset(
-                    'assets/icons/opzioni.svg',
-                    width: 28,
-                    height: 28,
+                  GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () => ProfiloScreen.apri(context),
+                    child: Semantics(
+                      button: true,
+                      label: 'Il mio profilo',
+                      child: SvgPicture.asset(
+                        'assets/icons/opzioni.svg',
+                        width: 28,
+                        height: 28,
+                      ),
+                    ),
                   ),
                   const SizedBox(width: 24),
                   // Campanella: apre la bacheca e conta gli avvisi non letti.
@@ -200,6 +209,11 @@ class TopBar extends StatelessWidget implements PreferredSizeWidget {
           ),
           const Divider(height: 24),
         ],
+        JambVoceMenu(
+          icona: Icons.person_outline_rounded,
+          etichetta: 'Il mio profilo',
+          onTap: () => ProfiloScreen.apri(context),
+        ),
         if (session.permessi.puoNominareAssistente)
           JambVoceMenu(
             icona: Icons.volunteer_activism_outlined,

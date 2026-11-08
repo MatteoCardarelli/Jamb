@@ -74,6 +74,10 @@ class Permessi {
         (archivio == ArchivioDocumenti.driveCoca && assistenteEcclesiastico);
   }
 
+  /// Vedere iter formativo e Progetto del Capo di tutta la Co.Ca.
+  /// (`iter_select`, `progetti_select`: `sono_capo_gruppo_di`).
+  bool get puoVedereFormazioneCoca => capoGruppo;
+
   /// Nominare l'Assistente Ecclesiastico (`incarichi_insert`: `is_capo_gruppo()`).
   bool get puoNominareAssistente => capoGruppo;
 
