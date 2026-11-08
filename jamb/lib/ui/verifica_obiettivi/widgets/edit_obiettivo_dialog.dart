@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:jamb/domain/entities/obiettivo.dart';
+import 'package:jamb/domain/entities/peg.dart';
+import 'package:jamb/ui/core/widgets/jamb_campo.dart';
 
 /// Dialogo modale per la modifica completa di un obiettivo.
 /// Gestisce l'editing di testi (Dominio, Descrizione, Diario), la scelta del colore e dell'icona.
@@ -8,11 +10,14 @@ class EditObiettivoDialog extends StatefulWidget {
   final Obiettivo obiettivo;
   /// Lista dei colori già utilizzati da altri obiettivi
   final List<Color> usedColors;
+  /// Obiettivi del PEG a cui collegarlo (vuoto se non disponibili).
+  final List<PegObiettivo> pegObiettivi;
 
   const EditObiettivoDialog({
     super.key,
     required this.obiettivo,
     this.usedColors = const [],
+    this.pegObiettivi = const [],
   });
 
   @override
@@ -28,6 +33,7 @@ class _EditObiettivoDialogState extends State<EditObiettivoDialog> {
   // Stato locale per le selezioni grafiche
   late Color _selectedColor;
   late IconData _selectedIcon;
+  late String? _pegId;
 
   // Palette di colori predefiniti per gli obiettivi
   final List<Color> _availableColors = [
@@ -60,6 +66,7 @@ class _EditObiettivoDialogState extends State<EditObiettivoDialog> {
     _diarioController = TextEditingController(text: widget.obiettivo.diarioDiBordo);
     _selectedColor = widget.obiettivo.colore;
     _selectedIcon = widget.obiettivo.icona;
+    _pegId = widget.obiettivo.pegObiettivoId;
   }
 
   @override
@@ -78,6 +85,8 @@ class _EditObiettivoDialogState extends State<EditObiettivoDialog> {
       diarioDiBordo: _diarioController.text,
       colore: _selectedColor,
       icona: _selectedIcon,
+      // Se gli obiettivi del PEG non sono disponibili il collegamento non cambia.
+      pegObiettivoId: widget.pegObiettivi.isEmpty ? widget.obiettivo.pegObiettivoId : _pegId,
     );
     Navigator.of(context).pop(updatedObiettivo);
   }
@@ -112,7 +121,27 @@ class _EditObiettivoDialogState extends State<EditObiettivoDialog> {
             _buildInputField("Descrizione", _descrizioneController, maxLines: 2),
             const SizedBox(height: 16),
             _buildInputField("Diario di bordo", _diarioController, maxLines: 3),
-            
+
+            if (widget.pegObiettivi.isNotEmpty) ...[
+              const SizedBox(height: 16),
+              const JambEtichettaCampo('Obiettivo del PEG'),
+              DropdownButtonFormField<String?>(
+                // Un collegamento a un obiettivo eliminato vale come nessuno.
+                initialValue: widget.pegObiettivi.any((p) => p.id == _pegId) ? _pegId : null,
+                isExpanded: true,
+                decoration: jambDecorazioneCampo('Nessuno'),
+                items: [
+                  const DropdownMenuItem<String?>(value: null, child: Text('Nessuno')),
+                  for (final p in widget.pegObiettivi)
+                    DropdownMenuItem<String?>(
+                      value: p.id,
+                      child: Text(p.titolo, overflow: TextOverflow.ellipsis),
+                    ),
+                ],
+                onChanged: (id) => setState(() => _pegId = id),
+              ),
+            ],
+
             const SizedBox(height: 24),
 
             // SELEZIONE COLORE

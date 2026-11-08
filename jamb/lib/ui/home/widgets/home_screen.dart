@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:jamb/domain/entities/obiettivo.dart';
 import 'package:jamb/domain/repositories/documento_repository.dart';
+import 'package:jamb/domain/repositories/peg_repository.dart';
 import 'package:jamb/ui/core/widgets/empty_background_screen.dart';
 import 'package:jamb/ui/core/widgets/jamb_feedback.dart';
 import 'package:jamb/ui/core/widgets/jamb_stato_errore.dart';
@@ -28,7 +29,11 @@ class HomeScreen extends StatelessWidget {
     final updatedList = await Navigator.of(context).push<List<Obiettivo>>(
       PageRouteBuilder(
         pageBuilder: (_, _, _) => ChangeNotifierProvider(
-          create: (ctx) => VerificaObiettiviViewModel(viewModel.obiettivi, ctx.read<IDocumentoRepository>()),
+          create: (ctx) => VerificaObiettiviViewModel(
+            viewModel.obiettivi,
+            ctx.read<IDocumentoRepository>(),
+            peg: ctx.read<IPegRepository>(),
+          ),
           child: const VerificaObiettiviScreen(),
         ),
         transitionDuration: Duration.zero,

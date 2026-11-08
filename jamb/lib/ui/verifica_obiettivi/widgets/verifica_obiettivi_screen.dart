@@ -29,6 +29,7 @@ class VerificaObiettiviScreen extends StatelessWidget {
       builder: (context) => EditObiettivoDialog(
         obiettivo: target,
         usedColors: occupiedColors,
+        pegObiettivi: viewModel.pegObiettivi,
       ),
     );
 
@@ -58,6 +59,7 @@ class VerificaObiettiviScreen extends StatelessWidget {
       builder: (context) => EditObiettivoDialog(
         obiettivo: nuovo,
         usedColors: occupiedColors,
+        pegObiettivi: viewModel.pegObiettivi,
       ),
     );
 

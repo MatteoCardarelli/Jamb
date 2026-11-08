@@ -4,6 +4,7 @@ import 'package:jamb/ui/core/widgets/empty_background_screen.dart';
 import 'package:jamb/ui/core/widgets/jamb_intestazione.dart';
 import 'package:jamb/ui/core/widgets/jamb_pulsante_secondario.dart';
 import 'package:jamb/ui/explorer/widgets/explorer_screen.dart';
+import 'package:jamb/ui/peg/widgets/peg_screen.dart';
 
 /// Punto di partenza dell'Assistente Ecclesiastico che non ha un'unità: senza
 /// unità attiva Home e sezioni dei capi sarebbero vuote.
@@ -18,6 +19,12 @@ class AreaAssistenteScreen extends StatelessWidget {
         children: [
           const JambIntestazione(titolo: 'Assistente Ecclesiastico'),
           const SizedBox(height: 24),
+          JambPulsanteSecondario(
+            icona: Icons.explore_outlined,
+            etichetta: 'Progetto Educativo di Gruppo',
+            onTap: () => PegScreen.apri(context),
+          ),
+          const SizedBox(height: 8),
           JambPulsanteSecondario(
             icona: Icons.folder_shared_outlined,
             etichetta: ArchivioDocumenti.driveCoca.titolo,

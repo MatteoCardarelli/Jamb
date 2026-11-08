@@ -4,7 +4,9 @@ import 'package:jamb/domain/entities/anno_scout.dart';
 import 'package:jamb/domain/entities/documento.dart';
 import 'package:jamb/domain/entities/file_da_caricare.dart';
 import 'package:jamb/domain/entities/obiettivo.dart';
+import 'package:jamb/domain/entities/peg.dart';
 import 'package:jamb/domain/repositories/documento_repository.dart';
+import 'package:jamb/domain/repositories/peg_repository.dart';
 import 'package:jamb/ui/verifica_obiettivi/programma_pdf.dart';
 
 /// ViewModel per la gestione dello stato della schermata di verifica obiettivi.
@@ -14,8 +16,28 @@ class VerificaObiettiviViewModel extends ChangeNotifier {
   final List<Obiettivo> _obiettivi;
   final IDocumentoRepository _documenti;
 
-  VerificaObiettiviViewModel(List<Obiettivo> initialObiettivi, this._documenti)
-      : _obiettivi = List.from(initialObiettivi);
+  List<PegObiettivo> _pegObiettivi = const [];
+
+  VerificaObiettiviViewModel(
+    List<Obiettivo> initialObiettivi,
+    this._documenti, {
+    IPegRepository? peg,
+  }) : _obiettivi = List.from(initialObiettivi) {
+    if (peg != null) _caricaPeg(peg);
+  }
+
+  /// Obiettivi del PEG a cui collegare quelli del Programma. Se non si possono
+  /// leggere la verifica resta utilizzabile, senza il collegamento.
+  Future<void> _caricaPeg(IPegRepository peg) async {
+    try {
+      _pegObiettivi = await peg.getObiettivi();
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Obiettivi del PEG non disponibili: $e');
+    }
+  }
+
+  List<PegObiettivo> get pegObiettivi => _pegObiettivi;
 
   /// Nome del PDF archiviato il giorno [oggi], es.
   /// "Programma d'Unità 2026-2027 - 07-11-2026.pdf": la data distingue le

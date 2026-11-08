@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:jamb/ui/core/widgets/jamb_stati.dart';
+import 'package:jamb/ui/core/widgets/jamb_pulsante_secondario.dart';
+import 'package:jamb/ui/peg/widgets/peg_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:jamb/ui/core/widgets/empty_background_screen.dart';
 import 'package:jamb/ui/core/widgets/jamb_search_bar.dart';
@@ -100,6 +102,13 @@ class DocumentiScreen extends StatelessWidget {
                     onTap: onTap,
                   );
                 },
+              ),
+              const SizedBox(height: 16),
+
+              JambPulsanteSecondario(
+                icona: Icons.explore_outlined,
+                etichetta: "Progetto Educativo di Gruppo",
+                onTap: () => PegScreen.apri(context),
               ),
               const SizedBox(height: 40),
 
