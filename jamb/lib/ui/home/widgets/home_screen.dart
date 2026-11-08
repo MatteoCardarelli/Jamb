@@ -17,6 +17,7 @@ import 'package:jamb/ui/verifica_obiettivi/view_model/verifica_obiettivi_view_mo
 import 'package:provider/provider.dart';
 import 'package:jamb/ui/contabilita/widgets/contabilita_screen.dart';
 import 'package:jamb/ui/home/view_model/home_view_model.dart';
+import 'package:jamb/ui/profilo/view_model/preferenze_view_model.dart';
 
 /// La schermata principale dell'app (Home).
 /// Visualizza un riassunto dello stato del reparto, obiettivi e azioni rapide.
@@ -49,6 +50,7 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final homeViewModel = Provider.of<HomeViewModel>(context);
+    final preferenze = context.watch<PreferenzeViewModel>();
 
     return EmptyBackgroundScreen(
       child: Stack(
@@ -97,10 +99,10 @@ class HomeScreen extends StatelessWidget {
                   const RepartoCardWidget(),
                   
                   // PILLOLE DEL METODO (Contenuto educativo)
-                  const PilloleMetodoWidget(),
-                  
+                  if (preferenze.mostraPillole) const PilloleMetodoWidget(),
+
                   // CASSA DI BRANCA (Contabilità veloce)
-                  GestureDetector(
+                  if (preferenze.mostraCassa) GestureDetector(
                     onTap: () {
                       Navigator.of(context).push(
                         PageRouteBuilder(

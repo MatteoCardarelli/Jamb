@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:jamb/domain/entities/badge.dart';
 import 'package:jamb/domain/entities/formazione.dart';
 import 'package:jamb/domain/errori/jamb_exception.dart';
 import 'package:jamb/domain/repositories/formazione_repository.dart';
@@ -8,6 +9,7 @@ class FakeFormazioneRepository extends ChangeNotifier implements IFormazioneRepo
   final Map<TappaFormativa, TappaCompiuta> tappe = {};
   ProgettoCapo progetto = const ProgettoCapo();
   List<CapoFormazione> capi = const [];
+  List<IncaricoStorico> storico = const [];
   final Map<String, ProgettoCapo> progettiAltrui = {};
   JambException? erroreLettura;
   JambException? erroreScrittura;
@@ -45,6 +47,9 @@ class FakeFormazioneRepository extends ChangeNotifier implements IFormazioneRepo
     progetto = p;
     notifyListeners();
   }
+
+  @override
+  Future<List<IncaricoStorico>> getMioStorico() async => List.of(storico);
 
   @override
   Future<List<CapoFormazione>> getCapiDelGruppo() async {

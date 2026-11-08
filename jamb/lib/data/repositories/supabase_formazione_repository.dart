@@ -2,6 +2,7 @@ import 'package:jamb/core/permessi.dart';
 import 'package:jamb/core/session_service.dart';
 import 'package:jamb/core/supabase_client.dart';
 import 'package:jamb/data/errori_supabase.dart';
+import '../../domain/entities/badge.dart';
 import '../../domain/entities/formazione.dart';
 import '../../domain/repositories/formazione_repository.dart';
 
@@ -90,6 +91,22 @@ class SupabaseFormazioneRepository extends IFormazioneRepository {
         final riga =
             await supabase.from('progetti_capo').select().eq('user_id', userId).maybeSingle();
         return _progettoDaDb(riga);
+      });
+
+  @override
+  Future<List<IncaricoStorico>> getMioStorico() => eseguiSupabase(() async {
+        final List<dynamic> righe = await supabase
+            .from('memberships')
+            .select('ruolo, anno_scout, units ( tipo_branca )')
+            .eq('user_id', _utente);
+        return [
+          for (final r in righe)
+            IncaricoStorico(
+              ruolo: (r['ruolo'] ?? '') as String,
+              annoScout: (r['anno_scout'] ?? '') as String,
+              tipoBranca: (r['units'] as Map?)?['tipo_branca'] as String?,
+            ),
+        ];
       });
 
   @override

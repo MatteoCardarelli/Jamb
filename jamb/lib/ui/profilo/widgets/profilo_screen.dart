@@ -9,6 +9,7 @@ import 'package:jamb/ui/core/widgets/jamb_feedback.dart';
 import 'package:jamb/ui/core/widgets/jamb_menu.dart';
 import 'package:jamb/ui/core/widgets/jamb_pulsante_secondario.dart';
 import 'package:jamb/ui/core/widgets/jamb_stato_errore.dart';
+import 'package:jamb/ui/profilo/view_model/preferenze_view_model.dart';
 import 'package:jamb/ui/profilo/view_model/profilo_view_model.dart';
 import 'package:jamb/ui/profilo/widgets/formazione_coca_screen.dart';
 import 'package:jamb/ui/profilo/widgets/sezioni_formazione.dart';
@@ -29,17 +30,22 @@ class ProfiloScreen extends StatelessWidget {
     final session = context.read<SessionService>();
     return ChangeNotifierProvider(
       create: (context) => ProfiloViewModel(context.read<IFormazioneRepository>()),
-      child: ProfiloView(puoVedereCoca: session.permessi.puoVedereFormazioneCoca),
+      child: ProfiloView(
+        puoVedereCoca: session.permessi.puoVedereFormazioneCoca,
+        conPreferenze: session.permessi.puoUsareAreaCapi,
+      ),
     );
   }
 }
 
 /// Contenuto del profilo; [puoVedereCoca] mostra l'accesso alla formazione di
-/// tutta la Co.Ca.
+/// tutta la Co.Ca., [conPreferenze] le opzioni della Home (chi non ha un'unità
+/// non ha la Home).
 class ProfiloView extends StatelessWidget {
   final bool puoVedereCoca;
+  final bool conPreferenze;
 
-  const ProfiloView({super.key, required this.puoVedereCoca});
+  const ProfiloView({super.key, required this.puoVedereCoca, this.conPreferenze = true});
 
   Future<void> _scegliData(
     BuildContext context,
@@ -122,6 +128,7 @@ class ProfiloView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final viewModel = context.watch<ProfiloViewModel>();
+    final preferenze = context.watch<PreferenzeViewModel>();
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
@@ -135,6 +142,8 @@ class ProfiloView extends StatelessWidget {
                 : ListView(
                     padding: const EdgeInsets.all(20),
                     children: [
+                      RiquadroBadge(badge: viewModel.badge),
+                      const SizedBox(height: 16),
                       RiquadroIter(
                         tappe: viewModel.tappe,
                         onTappa: (t) => _tappa(context, viewModel, t),
@@ -157,6 +166,15 @@ class ProfiloView extends StatelessWidget {
                           ),
                         ],
                       ),
+                      if (conPreferenze) ...[
+                        const SizedBox(height: 16),
+                        RiquadroPreferenze(
+                          mostraPillole: preferenze.mostraPillole,
+                          mostraCassa: preferenze.mostraCassa,
+                          onPillole: (v) => eseguiConFeedback(context, () => preferenze.setMostraPillole(v)),
+                          onCassa: (v) => eseguiConFeedback(context, () => preferenze.setMostraCassa(v)),
+                        ),
+                      ],
                       if (puoVedereCoca) ...[
                         const SizedBox(height: 16),
                         JambPulsanteSecondario(

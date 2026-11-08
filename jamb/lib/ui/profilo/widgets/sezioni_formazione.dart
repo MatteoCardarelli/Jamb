@@ -1,11 +1,84 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:jamb/domain/entities/badge.dart';
 import 'package:jamb/domain/entities/formazione.dart';
+import 'package:jamb/ui/core/widgets/jamb_chip_filtro.dart';
 import 'package:jamb/ui/core/widgets/jamb_riquadro.dart';
 import 'package:jamb/ui/core/widgets/jamb_stati.dart';
 
 const _stileTesto = TextStyle(fontFamily: 'Lexend', fontSize: 15, color: Color(0xFF1E293B));
 const _stileSecondario = TextStyle(fontFamily: 'Lexend', fontSize: 13, color: Color(0xFF64748B));
+
+/// Riquadro con i badge dello storico associativo.
+class RiquadroBadge extends StatelessWidget {
+  final List<BadgeJamb> badge;
+
+  const RiquadroBadge({super.key, required this.badge});
+
+  IconData _icona(TipoBadge tipo) => switch (tipo) {
+        TipoBadge.anniDiServizio => Icons.workspace_premium_outlined,
+        TipoBadge.capoUnita => Icons.flag_outlined,
+        TipoBadge.capoGruppo => Icons.groups_outlined,
+        TipoBadge.branche => Icons.diversity_3_outlined,
+      };
+
+  @override
+  Widget build(BuildContext context) {
+    return JambRiquadro(
+      titolo: 'I miei badge',
+      children: [
+        if (badge.isEmpty) const JambTestoVuoto('Ancora nessun badge.'),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            for (final b in badge)
+              JambChipFiltro(etichetta: b.titolo, selezionato: true, icona: _icona(b.tipo)),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+/// Riquadro delle preferenze sull'aspetto della Home.
+class RiquadroPreferenze extends StatelessWidget {
+  final bool mostraPillole;
+  final bool mostraCassa;
+  final ValueChanged<bool> onPillole;
+  final ValueChanged<bool> onCassa;
+
+  const RiquadroPreferenze({
+    super.key,
+    required this.mostraPillole,
+    required this.mostraCassa,
+    required this.onPillole,
+    required this.onCassa,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return JambRiquadro(
+      titolo: 'Preferenze',
+      children: [
+        SwitchListTile(
+          contentPadding: EdgeInsets.zero,
+          title: const Text('Pillola del giorno nella Home', style: _stileTesto),
+          value: mostraPillole,
+          activeThumbColor: const Color(0xFF1D2660),
+          onChanged: onPillole,
+        ),
+        SwitchListTile(
+          contentPadding: EdgeInsets.zero,
+          title: const Text('Cassa nella Home', style: _stileTesto),
+          value: mostraCassa,
+          activeThumbColor: const Color(0xFF1D2660),
+          onChanged: onCassa,
+        ),
+      ],
+    );
+  }
+}
 
 /// Riquadro dell'iter formativo. Con [onTappa] una tappa si può toccare per
 /// modificarla; senza, è in sola lettura.
