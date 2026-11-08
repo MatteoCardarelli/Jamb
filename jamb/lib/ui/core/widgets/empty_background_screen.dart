@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:jamb/core/session_service.dart';
 import 'package:jamb/ui/core/widgets/topbar.dart';
 import 'package:jamb/ui/core/widgets/bottom_navbar.dart';
 
@@ -32,6 +34,8 @@ class _EmptyBackgroundScreenState extends State<EmptyBackgroundScreen> {
   Widget build(BuildContext context) {
     // Determiniamo se la tastiera è aperta per nascondere componenti ingombranti
     final bool isKeyboardOpen = MediaQuery.of(context).viewInsets.bottom > 0;
+    // L'Assistente senza unità non ha le sezioni dei capi tra cui spostarsi.
+    final bool areaCapi = context.select<SessionService, bool>((s) => s.permessi.puoUsareAreaCapi);
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -39,7 +43,7 @@ class _EmptyBackgroundScreenState extends State<EmptyBackgroundScreen> {
       resizeToAvoidBottomInset: widget.resizeToAvoidBottomInset,
       
       // Nasconde la Navbar se la tastiera è aperta per lasciare più spazio all'input
-      bottomNavigationBar: isKeyboardOpen ? null : BottomNavBar(currentIndex: widget.currentIndex),
+      bottomNavigationBar: isKeyboardOpen || !areaCapi ? null : BottomNavBar(currentIndex: widget.currentIndex),
       
       floatingActionButton: widget.floatingActionButton,
       
