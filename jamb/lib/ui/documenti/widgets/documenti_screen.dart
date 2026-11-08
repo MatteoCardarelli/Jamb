@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:jamb/ui/core/widgets/jamb_stati.dart';
 import 'package:jamb/ui/core/widgets/jamb_pulsante_secondario.dart';
 import 'package:jamb/ui/peg/widgets/peg_screen.dart';
+import 'package:jamb/ui/veglie/widgets/veglie_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:jamb/ui/core/widgets/empty_background_screen.dart';
 import 'package:jamb/ui/core/widgets/jamb_search_bar.dart';
@@ -109,6 +110,12 @@ class DocumentiScreen extends StatelessWidget {
                 icona: Icons.explore_outlined,
                 etichetta: "Progetto Educativo di Gruppo",
                 onTap: () => PegScreen.apri(context),
+              ),
+              const SizedBox(height: 8),
+              JambPulsanteSecondario(
+                icona: Icons.nightlight_outlined,
+                etichetta: "Veglie",
+                onTap: () => VeglieScreen.apri(context),
               ),
               const SizedBox(height: 40),
 

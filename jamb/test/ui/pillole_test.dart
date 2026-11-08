@@ -65,6 +65,14 @@ void main() {
       expect(vm.delGiorno?.testo, 'Nuova');
     });
 
+    // La pillola della Home resta del metodo anche con molti spunti.
+    test('gli spunti non entrano nella pillola del giorno', () async {
+      final vm = PilloleViewModel(FakePillolaRepository(null, [_b]), oggi: () => DateTime(2026, 11, 8));
+      await pumpEventQueue();
+      expect(vm.delGiorno, isNull);
+      expect(vm.pilloleDi(TipoPillola.spiritualita), [_b]);
+    });
+
     test('un errore di lettura diventa uno stato di errore', () async {
       final repo = FakePillolaRepository()
         ..erroreLettura = const JambException(TipoErrore.rete, 'Nessuna connessione');
@@ -97,6 +105,39 @@ void main() {
       await tester.longPress(find.text('Prima'));
       await tester.pumpAndSettle();
       expect(find.text('Modifica'), findsNothing);
+    });
+
+    testWidgets('gli spunti li modifica l\'Assistente, non chi scrive il metodo', (tester) async {
+      await tester.pumpWidget(ChangeNotifierProvider(
+        create: (_) => PilloleViewModel(FakePillolaRepository([_a], [_b])),
+        child: const MaterialApp(
+          home: PilloleView(puoModificare: true, tipoIniziale: TipoPillola.spiritualita),
+        ),
+      ));
+      await tester.pumpAndSettle();
+      expect(find.text('Seconda'), findsOneWidget);
+      expect(find.text('Nuova pillola'), findsNothing);
+      await tester.tap(find.text('Metodo'));
+      await tester.pumpAndSettle();
+      expect(find.text('Nuova pillola'), findsOneWidget);
+    });
+
+    testWidgets('l\'Assistente modifica gli spunti ma non il metodo', (tester) async {
+      await tester.pumpWidget(ChangeNotifierProvider(
+        create: (_) => PilloleViewModel(FakePillolaRepository([_a], [_b])),
+        child: const MaterialApp(
+          home: PilloleView(
+            puoModificare: false,
+            puoModificareSpiritualita: true,
+            tipoIniziale: TipoPillola.spiritualita,
+          ),
+        ),
+      ));
+      await tester.pumpAndSettle();
+      expect(find.text('Nuova pillola'), findsOneWidget);
+      await tester.tap(find.text('Metodo'));
+      await tester.pumpAndSettle();
+      expect(find.text('Nuova pillola'), findsNothing);
     });
 
     testWidgets('l\'Aiuto Capo legge soltanto', (tester) async {

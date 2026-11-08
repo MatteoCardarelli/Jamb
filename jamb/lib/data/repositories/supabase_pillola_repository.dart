@@ -13,16 +13,15 @@ class SupabasePillolaRepository extends IPillolaRepository {
   static const String _table = 'pillole';
 
   @override
-  Future<List<Pillola>> getPillole() => eseguiSupabase(() async {
+  Future<List<Pillola>> getPillole({TipoPillola tipo = TipoPillola.metodo}) => eseguiSupabase(() async {
         final branca = _session.tipoBrancaAttiva;
         final groupId = _session.groupId;
-        if (branca == null || groupId == null) return [];
-        final List<dynamic> righe = await supabase
-            .from(_table)
-            .select('id, testo, group_id')
-            .eq('tipo', 'metodo')
-            .eq('branca', branca)
-            .or('group_id.is.null,group_id.eq.$groupId')
+        if (groupId == null) return [];
+        if (tipo == TipoPillola.metodo && branca == null) return [];
+        final base = supabase.from(_table).select('id, testo, group_id').eq('tipo', tipo.valoreDb);
+        final List<dynamic> righe = await (tipo == TipoPillola.metodo
+                ? base.eq('branca', branca!).or('group_id.is.null,group_id.eq.$groupId')
+                : base.eq('group_id', groupId))
             .order('created_at');
         return [
           for (final r in righe)
@@ -35,12 +34,14 @@ class SupabasePillolaRepository extends IPillolaRepository {
       });
 
   @override
-  Future<void> crea(String testo) => eseguiSupabase(() async {
-        final branca = _session.tipoBrancaAttiva;
+  Future<void> crea(String testo, {TipoPillola tipo = TipoPillola.metodo}) => eseguiSupabase(() async {
+        // Gli spunti di spiritualità sono rivolti alla Comunità Capi.
+        final branca = tipo == TipoPillola.metodo ? _session.tipoBrancaAttiva : 'COCA';
         final groupId = _session.groupId;
         if (branca == null || groupId == null) throw sessioneSenzaUnita;
         await supabase.from(_table).insert({
           'group_id': groupId,
+          'tipo': tipo.valoreDb,
           'branca': branca,
           'testo': testo.trim(),
         });
