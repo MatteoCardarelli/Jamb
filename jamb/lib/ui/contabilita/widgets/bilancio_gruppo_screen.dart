@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:jamb/domain/repositories/transazione_repository.dart';
 import 'package:jamb/ui/contabilita/view_model/bilancio_gruppo_view_model.dart';
 import 'package:jamb/ui/contabilita/widgets/riquadro_bilancio.dart';
+import 'package:jamb/ui/core/widgets/jamb_riquadro.dart';
 
 /// Bilancio consolidato del gruppo per anno scout (US31), per il Capo Gruppo.
 class BilancioGruppoScreen extends StatelessWidget {
@@ -44,9 +45,9 @@ class _BilancioGruppoView extends StatelessWidget {
         RiepilogoBilancio(consolidato.totale),
         for (final cassa in consolidato.casse) ...[
           const SizedBox(height: 12),
-          RiquadroBilancio(
+          JambRiquadro(
             titolo: cassa.nome,
-            righe: [
+            children: [
               RigaImporto('Saldo iniziale', cassa.bilancio.saldoIniziale),
               RigaImporto('Entrate', cassa.bilancio.totaleEntrate),
               RigaImporto('Uscite', cassa.bilancio.totaleUscite),

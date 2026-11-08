@@ -7,7 +7,7 @@ import 'package:jamb/domain/repositories/presenza_repository.dart';
 import 'package:jamb/ui/appello/widgets/stato_presenza_ui.dart';
 import 'package:jamb/ui/core/widgets/jamb_errore_in_linea.dart';
 import 'package:jamb/ui/dettaglio_ragazzo/view_model/presenze_ragazzo_view_model.dart';
-import 'package:jamb/ui/dettaglio_ragazzo/widgets/riquadro_ragazzo.dart';
+import 'package:jamb/ui/core/widgets/jamb_riquadro.dart';
 
 /// Riquadro delle presenze nel dettaglio ragazzo: riepilogo, ultime
 /// presenze e segnalazione delle assenze ripetute.
@@ -33,7 +33,7 @@ class _PresenzeView extends StatelessWidget {
   Widget build(BuildContext context) {
     final viewModel = context.watch<PresenzeRagazzoViewModel>();
 
-    return RiquadroRagazzo(
+    return JambRiquadro(
       titolo: "Presenze",
       children: [
         if (viewModel.isLoading && viewModel.ultime.isEmpty)
