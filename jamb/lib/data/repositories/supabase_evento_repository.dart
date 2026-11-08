@@ -3,6 +3,7 @@ import 'package:jamb/core/categoria_evento_colori.dart';
 import 'package:jamb/core/session_service.dart';
 import 'package:jamb/core/supabase_client.dart';
 import 'package:jamb/data/errori_supabase.dart';
+import 'package:jamb/data/services/file_archiviati.dart' show idCasuale;
 import '../../domain/entities/evento.dart';
 import '../../domain/repositories/evento_repository.dart';
 
@@ -50,29 +51,89 @@ class SupabaseEventoRepository extends IEventoRepository {
         (e.dataInizio.isBefore(al) || e.dataInizio.isAtSameMomentAs(al))).toList();
   }
 
+  static const Map<Ripetizione, String> _ripetizioniDb = {
+    Ripetizione.ogniGiorno: 'giornaliera',
+    Ripetizione.ogniSettimana: 'settimanale',
+    Ripetizione.ogniMese: 'mensile',
+    Ripetizione.ogniAnno: 'annuale',
+  };
+
+  /// Valore di `events.ripetizione` per [r] (`null` per un evento singolo).
+  static String? valoreDbRipetizione(Ripetizione r) => _ripetizioniDb[r];
+
+  /// Ripetizione corrispondente al valore del DB; sconosciuto → [Ripetizione.mai].
+  static Ripetizione ripetizioneDaDb(Object? valore) {
+    for (final voce in _ripetizioniDb.entries) {
+      if (voce.value == valore) return voce.key;
+    }
+    return Ripetizione.mai;
+  }
+
   @override
-  Future<void> creaEvento(Evento evento) => eseguiSupabase(() async {
-        await supabase.from(_table).insert({
-          'group_id': _session.groupId,
-          'unit_id': _session.activeUnitId,
-          'tipo_evento': 'RIUNIONE', // l'entità non modella il tipo: valore di default
-          ..._campiModificabili(evento),
-        });
+  Future<void> creaEvento(
+    Evento evento, {
+    Ripetizione ripetizione = Ripetizione.mai,
+    DateTime? finoAl,
+  }) =>
+      eseguiSupabase(() async {
+        final serie = ripetizione == Ripetizione.mai
+            ? [evento]
+            : eventiDellaSerie(evento, ripetizione, finoAl ?? evento.dataInizio);
+        final serieId = ripetizione == Ripetizione.mai ? null : idCasuale();
+        // Tutte le date in un'unica scrittura: o tutte o nessuna.
+        await supabase.from(_table).insert([
+          for (final e in serie)
+            {
+              'group_id': _session.groupId,
+              'unit_id': _session.activeUnitId,
+              'tipo_evento': 'RIUNIONE', // l'entità non modella il tipo: valore di default
+              'serie_id': serieId,
+              'ripetizione': valoreDbRipetizione(ripetizione),
+              ..._campiModificabili(e),
+            },
+        ]);
         notifyListeners();
       });
 
   @override
-  Future<void> aggiornaEvento(Evento evento) => eseguiSupabase(() async {
-        await supabase
-            .from(_table)
-            .update(_campiModificabili(evento))
-            .eq('id', evento.id);
+  Future<void> aggiornaEvento(Evento evento, {AmbitoSerie ambito = AmbitoSerie.soloQuesto}) =>
+      eseguiSupabase(() async {
+        if (ambito == AmbitoSerie.soloQuesto || !evento.inSerie) {
+          await supabase.from(_table).update(_campiModificabili(evento)).eq('id', evento.id);
+        } else {
+          // I successivi si contano dalla data dell'evento prima della modifica.
+          final Map<String, dynamic> originale =
+              await supabase.from(_table).select().eq('id', evento.id).single();
+          final List<dynamic> successivi = await supabase
+              .from(_table)
+              .select()
+              .eq('serie_id', evento.serieId!)
+              .gt('data_inizio', originale['data_inizio'] as String)
+              .neq('id', evento.id);
+          // Una sola scrittura per l'evento modificato e i successivi. Le
+          // righe sono complete perché un upsert passa anche dai controlli
+          // dell'inserimento (colonne obbligatorie e policy).
+          await supabase.from(_table).upsert([
+            {...originale, ..._campiModificabili(evento)},
+            for (final r in successivi.cast<Map<String, dynamic>>())
+              {...r, ..._campiModificabili(applicaAllaSerie(evento, _fromDb(r)))},
+          ]);
+        }
         notifyListeners();
       });
 
   @override
-  Future<void> eliminaEvento(String id) => eseguiSupabase(() async {
-        await supabase.from(_table).delete().eq('id', id);
+  Future<void> eliminaEvento(Evento evento, {AmbitoSerie ambito = AmbitoSerie.soloQuesto}) =>
+      eseguiSupabase(() async {
+        if (ambito == AmbitoSerie.soloQuesto || !evento.inSerie) {
+          await supabase.from(_table).delete().eq('id', evento.id);
+        } else {
+          await supabase
+              .from(_table)
+              .delete()
+              .eq('serie_id', evento.serieId!)
+              .gte('data_inizio', evento.dataInizio.toIso8601String());
+        }
         notifyListeners();
       });
 
@@ -103,6 +164,8 @@ class SupabaseEventoRepository extends IEventoRepository {
           ? coloreCategoria(categorie.first)
           : const Color(0xFF25315B),
       tuttoIlGiorno: row['tutto_il_giorno'] == true,
+      serieId: row['serie_id'] as String?,
+      ripetizione: ripetizioneDaDb(row['ripetizione']),
     );
   }
 
