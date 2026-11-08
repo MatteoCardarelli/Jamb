@@ -27,6 +27,70 @@ class JambDialogs {
     );
   }
 
+  /// Chiede di scegliere tra [opzioni] (etichetta e valore, una per riga);
+  /// restituisce il valore scelto, o `null` se l'utente annulla. Con
+  /// [pericolosa] le opzioni sono rosse (es. scegliere cosa eliminare).
+  static Future<T?> scegli<T>(
+    BuildContext context, {
+    required String titolo,
+    required String messaggio,
+    required List<(String, T)> opzioni,
+    bool pericolosa = false,
+  }) {
+    final colore = pericolosa ? const Color(0xFFB91C1C) : const Color(0xFF1D2660);
+    return showDialog<T>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text(
+          titolo,
+          style: const TextStyle(
+            fontFamily: 'Lexend',
+            fontWeight: FontWeight.w900,
+            color: Color(0xFF1D2660),
+          ),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              messaggio,
+              style: const TextStyle(fontFamily: 'Lexend', color: Color(0xFF475569)),
+            ),
+            const SizedBox(height: 16),
+            for (final (etichetta, valore) in opzioni)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: OutlinedButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(valore),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: colore,
+                    side: BorderSide(color: colore.withValues(alpha: 0.4)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                  child: Text(
+                    etichetta,
+                    style: const TextStyle(fontFamily: 'Lexend', fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text(
+              "ANNULLA",
+              style: TextStyle(fontFamily: 'Lexend', color: Color(0xFF64748B), fontWeight: FontWeight.bold),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   /// Chiede conferma prima di un'eliminazione; restituisce `true` solo se
   /// l'utente sceglie «Elimina».
   static Future<bool> confermaEliminazione(

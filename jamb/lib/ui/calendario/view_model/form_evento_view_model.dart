@@ -84,6 +84,14 @@ class FormEventoViewModel extends ChangeNotifier with StatoCaricamentoMixin {
   /// `true` se la data di fine taglierebbe la ripetizione al massimo consentito.
   bool get limiteRaggiunto => numeroEventi >= massimoRipetizioni;
 
+  /// Frase sotto «Fino al», es. "Verranno creati 12 eventi.".
+  String get anteprimaRipetizione {
+    final n = numeroEventi;
+    if (n == 0) return 'La data di fine è prima dell\'inizio.';
+    final eventi = n == 1 ? 'Verrà creato 1 evento' : 'Verranno creati $n eventi';
+    return limiteRaggiunto ? '$eventi, il massimo consentito.' : '$eventi.';
+  }
+
   String get titolo => _titolo;
   String get luogo => _luogo;
   DateTime get dataInizio => _dataInizio;

@@ -7,6 +7,8 @@ import 'package:jamb/ui/core/widgets/jamb_campo.dart';
 import 'package:jamb/ui/core/widgets/jamb_errore_in_linea.dart';
 import 'package:jamb/ui/core/widgets/jamb_feedback.dart';
 import 'package:jamb/ui/calendario/widgets/modulistica_suggerita.dart';
+import 'package:jamb/ui/calendario/widgets/ripetizione_ui.dart';
+import 'package:jamb/ui/core/widgets/jamb_chip_filtro.dart';
 import '../../../domain/entities/evento.dart';
 import '../../../domain/repositories/evento_repository.dart';
 import '../../../domain/repositories/obiettivo_repository.dart';
@@ -152,6 +154,48 @@ class _FormEventoView extends StatelessWidget {
             ),
             const SizedBox(height: 24),
 
+            // SI RIPETE: si sceglie creando l'evento; in modifica si chiede al salvataggio
+            if (!viewModel.isModifica) ...[
+              JambEtichettaCampo('Si ripete'),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  for (final r in Ripetizione.values)
+                    JambChipFiltro(
+                      etichetta: r.etichetta,
+                      selezionato: viewModel.ripetizione == r,
+                      onTap: () => viewModel.setRipetizione(r),
+                    ),
+                ],
+              ),
+              if (viewModel.ripetizione != Ripetizione.mai) ...[
+                const SizedBox(height: 16),
+                JambEtichettaCampo('Fino al'),
+                _buildDataOra(
+                  context,
+                  viewModel.finoAl,
+                  viewModel.setFinoAl,
+                  mostraOra: false,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  viewModel.anteprimaRipetizione,
+                  style: TextStyle(
+                    color: viewModel.numeroEventi == 0 ? const Color(0xFFB91C1C) : Colors.grey[600],
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+              const SizedBox(height: 24),
+            ] else if (viewModel.inSerie) ...[
+              Text(
+                'Fa parte di una ripetizione: salvando potrai scegliere se modificare anche gli eventi successivi.',
+                style: TextStyle(color: Colors.grey[600], fontSize: 12),
+              ),
+              const SizedBox(height: 24),
+            ],
+
             // CATEGORIE (domini degli obiettivi del Programma d'Unità + "Altro")
             JambEtichettaCampo('Categorie'),
             if (viewModel.isLoading)
@@ -215,9 +259,16 @@ class _FormEventoView extends StatelessWidget {
   }
 
   Future<void> _salva(BuildContext context, FormEventoViewModel viewModel) async {
+    var ambito = AmbitoSerie.soloQuesto;
+    if (viewModel.inSerie) {
+      final scelto = await chiediAmbitoSerie(context, azione: 'Modifica');
+      if (scelto == null || !context.mounted) return;
+      ambito = scelto;
+    }
+
     Evento? evento;
     final salvato = await eseguiConFeedback(context, () async {
-      evento = await viewModel.salvaEvento();
+      evento = await viewModel.salvaEvento(ambito: ambito);
     });
     if (salvato && context.mounted) Navigator.pop(context, evento);
   }

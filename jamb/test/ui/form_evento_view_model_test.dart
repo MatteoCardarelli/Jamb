@@ -125,6 +125,14 @@ void main() {
         ..setRipetizione(Ripetizione.ogniSettimana)
         ..setFinoAl(DateTime(2026, 11, 28));
       expect(vm.numeroEventi, 4);
+      expect(vm.anteprimaRipetizione, 'Verranno creati 4 eventi.');
+    });
+
+    test('l\'anteprima avverte quando si arriva al massimo di eventi', () {
+      final vm = nuovo(FakeEventoRepository())
+        ..setRipetizione(Ripetizione.ogniGiorno)
+        ..setFinoAl(DateTime(2028, 12, 31));
+      expect(vm.anteprimaRipetizione, 'Verranno creati $massimoRipetizioni eventi, il massimo consentito.');
     });
 
     test('salva la ripetizione e la data di fine scelte', () async {
