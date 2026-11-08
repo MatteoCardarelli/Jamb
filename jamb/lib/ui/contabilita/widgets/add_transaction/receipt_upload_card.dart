@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:jamb/ui/contabilita/view_model/add_transaction_view_model.dart';
+import 'package:jamb/ui/core/widgets/jamb_menu.dart';
 
 /// Componente per l'upload e la visualizzazione dello scontrino/ricevuta.
 /// Permette di scegliere tra fotocamera e galleria.
@@ -12,65 +13,21 @@ class ReceiptUploadCard extends StatelessWidget {
   const ReceiptUploadCard({super.key});
 
   void _showPickerOptions(BuildContext context, AddTransactionViewModel viewModel) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+    mostraMenuJamb(
+      context,
+      titolo: "Carica Scontrino",
+      voci: (_) => [
+        JambVoceMenu(
+          icona: Icons.camera_alt_rounded,
+          etichetta: "Scatta una foto",
+          onTap: () => viewModel.pickImage(ImageSource.camera),
         ),
-        padding: EdgeInsets.fromLTRB(24, 24, 24, 24 + MediaQuery.of(context).padding.bottom),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              "Carica Scontrino",
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: Color(0xFF1D2660), fontFamily: 'Lexend'),
-            ),
-            const SizedBox(height: 24),
-            _buildOption(
-              icon: Icons.camera_alt_rounded,
-              label: "Scatta una foto",
-              onTap: () {
-                Navigator.pop(context);
-                viewModel.pickImage(ImageSource.camera);
-              },
-            ),
-            const SizedBox(height: 12),
-            _buildOption(
-              icon: Icons.photo_library_rounded,
-              label: "Scegli dalla galleria",
-              onTap: () {
-                Navigator.pop(context);
-                viewModel.pickImage(ImageSource.gallery);
-              },
-            ),
-          ],
+        JambVoceMenu(
+          icona: Icons.photo_library_rounded,
+          etichetta: "Scegli dalla galleria",
+          onTap: () => viewModel.pickImage(ImageSource.gallery),
         ),
-      ),
-    );
-  }
-
-  Widget _buildOption({required IconData icon, required String label, required VoidCallback onTap}) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: const Color(0xFFF8FAFC),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: const Color(0xFFE2E8F0)),
-        ),
-        child: Row(
-          children: [
-            Icon(icon, color: const Color(0xFF1D2660)),
-            const SizedBox(width: 16),
-            Text(label, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: Color(0xFF1E293B), fontFamily: 'Lexend')),
-          ],
-        ),
-      ),
+      ],
     );
   }
 
