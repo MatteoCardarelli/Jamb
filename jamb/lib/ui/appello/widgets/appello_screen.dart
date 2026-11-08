@@ -107,16 +107,10 @@ class _AppelloView extends StatelessWidget {
           ],
         ),
         body: _corpo(viewModel),
-        bottomNavigationBar: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(24, 8, 24, 16),
-            child: JambBarraAzioni(
-              mostraIndietro: false,
-              etichetta: "SALVA APPELLO",
-              icona: Icons.save_rounded,
-              onPressed: viewModel.modificato ? () => _salva(context, viewModel) : null,
-            ),
-          ),
+        bottomNavigationBar: JambBarraInFondo(
+          etichetta: "SALVA APPELLO",
+          icona: Icons.save_rounded,
+          onPressed: viewModel.modificato ? () => _salva(context, viewModel) : null,
         ),
       ),
     );

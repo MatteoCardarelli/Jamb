@@ -36,128 +36,132 @@ class DettaglioTransazioneScreen extends StatelessWidget {
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 40),
-              decoration: const BoxDecoration(
-                color: Color(0xFFF3F4F6),
-                borderRadius: BorderRadius.only(
-                  bottomLeft: Radius.circular(32),
-                  bottomRight: Radius.circular(32),
+      // Il contenuto non finisce sotto la barra di sistema di Android.
+      body: SafeArea(
+        top: false,
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 40),
+                decoration: const BoxDecoration(
+                  color: Color(0xFFF3F4F6),
+                  borderRadius: BorderRadius.only(
+                    bottomLeft: Radius.circular(32),
+                    bottomRight: Radius.circular(32),
+                  ),
+                ),
+                child: Column(
+                  children: [
+                    Text(
+                      "${transazione.isUscita ? '-' : '+'} ${currencyFormat.format(transazione.importo)}",
+                      style: TextStyle(
+                        fontSize: 48,
+                        fontWeight: FontWeight.w900,
+                        color: viewModel.colorePrincipale,
+                        fontFamily: 'Lexend',
+                        letterSpacing: -1.5,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: viewModel.coloreSfondo,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            transazione.isUscita ? Icons.trending_down_rounded : Icons.trending_up_rounded,
+                            size: 14,
+                            color: viewModel.colorePrincipale,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            viewModel.tipoMovimento,
+                            style: TextStyle(
+                              color: viewModel.colorePrincipale,
+                              fontWeight: FontWeight.w900,
+                              fontSize: 12,
+                              letterSpacing: 1.0,
+                              fontFamily: 'Lexend',
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              child: Column(
-                children: [
-                  Text(
-                    "${transazione.isUscita ? '-' : '+'} ${currencyFormat.format(transazione.importo)}",
-                    style: TextStyle(
-                      fontSize: 48,
-                      fontWeight: FontWeight.w900,
-                      color: viewModel.colorePrincipale,
-                      fontFamily: 'Lexend',
-                      letterSpacing: -1.5,
+  
+              const SizedBox(height: 32),
+  
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Column(
+                  children: [
+                    _buildDetailRow(
+                      icon: Icons.calendar_today_outlined,
+                      label: "DATA OPERAZIONE",
+                      value: dateFormat.format(transazione.data),
+                      trailing: timeFormat.format(transazione.data),
                     ),
-                  ),
-                  const SizedBox(height: 12),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: viewModel.coloreSfondo,
-                      borderRadius: BorderRadius.circular(20),
+                    const SizedBox(height: 24),
+                    _buildDetailRow(
+                      icon: Icons.build_outlined,
+                      label: "CATEGORIA",
+                      value: _getLabelForCategory(transazione.categoria),
                     ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          transazione.isUscita ? Icons.trending_down_rounded : Icons.trending_up_rounded,
-                          size: 14,
-                          color: viewModel.colorePrincipale,
-                        ),
-                        const SizedBox(width: 6),
+                    const SizedBox(height: 24),
+                    _buildDetailRow(
+                      icon: Icons.description_outlined,
+                      label: "CAUSALE / NOTE",
+                      value: transazione.note.isNotEmpty ? transazione.note : "Nessuna nota",
+                    ),
+                    const SizedBox(height: 24),
+                    _buildDetailRow(
+                      icon: Icons.person_outline_rounded,
+                      label: "REGISTRATO DA",
+                      value: transazione.registratoDa,
+                    ),
+                  ],
+                ),
+              ),
+  
+              const SizedBox(height: 48),
+  
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: const [
+                        Icon(Icons.receipt_long_rounded, color: Color(0xFF000066)),
+                        SizedBox(width: 12),
                         Text(
-                          viewModel.tipoMovimento,
+                          "Foto dello Scontrino",
                           style: TextStyle(
-                            color: viewModel.colorePrincipale,
+                            fontSize: 18,
                             fontWeight: FontWeight.w900,
-                            fontSize: 12,
-                            letterSpacing: 1.0,
+                            color: Color(0xFF1E293B),
                             fontFamily: 'Lexend',
                           ),
                         ),
                       ],
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 24),
+                    _Ricevuta(viewModel),
+                  ],
+                ),
               ),
-            ),
-
-            const SizedBox(height: 32),
-
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Column(
-                children: [
-                  _buildDetailRow(
-                    icon: Icons.calendar_today_outlined,
-                    label: "DATA OPERAZIONE",
-                    value: dateFormat.format(transazione.data),
-                    trailing: timeFormat.format(transazione.data),
-                  ),
-                  const SizedBox(height: 24),
-                  _buildDetailRow(
-                    icon: Icons.build_outlined,
-                    label: "CATEGORIA",
-                    value: _getLabelForCategory(transazione.categoria),
-                  ),
-                  const SizedBox(height: 24),
-                  _buildDetailRow(
-                    icon: Icons.description_outlined,
-                    label: "CAUSALE / NOTE",
-                    value: transazione.note.isNotEmpty ? transazione.note : "Nessuna nota",
-                  ),
-                  const SizedBox(height: 24),
-                  _buildDetailRow(
-                    icon: Icons.person_outline_rounded,
-                    label: "REGISTRATO DA",
-                    value: transazione.registratoDa,
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 48),
-
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: const [
-                      Icon(Icons.receipt_long_rounded, color: Color(0xFF000066)),
-                      SizedBox(width: 12),
-                      Text(
-                        "Foto dello Scontrino",
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w900,
-                          color: Color(0xFF1E293B),
-                          fontFamily: 'Lexend',
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-                  _Ricevuta(viewModel),
-                ],
-              ),
-            ),
-            const SizedBox(height: 40),
-          ],
+              const SizedBox(height: 40),
+            ],
+          ),
         ),
       ),
     );

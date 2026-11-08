@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:jamb/core/categoria_evento_colori.dart';
+import 'package:jamb/ui/core/widgets/jamb_barra_azioni.dart';
 import 'package:jamb/ui/core/widgets/jamb_campo.dart';
 import 'package:jamb/ui/core/widgets/jamb_errore_in_linea.dart';
 import 'package:jamb/ui/core/widgets/jamb_feedback.dart';
@@ -201,46 +202,24 @@ class _FormEventoView extends StatelessWidget {
 
             // MODULISTICA: proposta solo creando un evento (come da mockup)
             if (!viewModel.isModifica) const ModulisticaSuggerita(),
-
-            const SizedBox(height: 16),
-
-            // TASTO SALVA
-            SizedBox(
-              width: double.infinity,
-              height: 56,
-              child: ElevatedButton(
-                onPressed: viewModel.isValid
-                    ? () async {
-                        Evento? evento;
-                        final salvato = await eseguiConFeedback(
-                          context,
-                          () async {
-                            evento = await viewModel.salvaEvento();
-                          },
-                        );
-                        if (salvato && context.mounted) {
-                          Navigator.pop(context, evento);
-                        }
-                      }
-                    : null,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF1D2660),
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  elevation: 0,
-                ),
-                child: const Text(
-                  'SALVA EVENTO',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                ),
-              ),
-            ),
           ],
         ),
       ),
+      // TASTO SALVA: fisso in fondo, sopra la barra di sistema di Android.
+      bottomNavigationBar: JambBarraInFondo(
+        etichetta: 'SALVA EVENTO',
+        icona: Icons.save_rounded,
+        onPressed: viewModel.isValid ? () => _salva(context, viewModel) : null,
+      ),
     );
+  }
+
+  Future<void> _salva(BuildContext context, FormEventoViewModel viewModel) async {
+    Evento? evento;
+    final salvato = await eseguiConFeedback(context, () async {
+      evento = await viewModel.salvaEvento();
+    });
+    if (salvato && context.mounted) Navigator.pop(context, evento);
   }
 
   /// Riquadri per scegliere la data e, se [mostraOra], l'orario di [valore].

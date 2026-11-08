@@ -93,34 +93,38 @@ class _DettaglioEventoView extends StatelessWidget {
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              width: 48,
-              height: 6,
-              decoration: BoxDecoration(
-                color: evento.colorePrincipale,
-                borderRadius: BorderRadius.circular(3),
+      // Il contenuto non finisce sotto la barra di sistema di Android.
+      body: SafeArea(
+        top: false,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 48,
+                height: 6,
+                decoration: BoxDecoration(
+                  color: evento.colorePrincipale,
+                  borderRadius: BorderRadius.circular(3),
+                ),
               ),
-            ),
-            const SizedBox(height: 16),
-            JambTitoloDettaglio(evento.titolo),
-            const SizedBox(height: 24),
-            JambRigaDettaglio(icona: Icons.schedule_rounded, testo: viewModel.quando),
-            if (evento.luogo.isNotEmpty)
-              JambRigaDettaglio(icona: Icons.location_on_outlined, testo: evento.luogo),
-            const SizedBox(height: 16),
-            EtichetteCategorie(categorie: evento.categorie),
-            const SizedBox(height: 32),
-            JambPulsanteSecondario(
-              icona: Icons.fact_check_outlined,
-              etichetta: "Fai l'appello",
-              onTap: () => AppelloScreen.apri(context, evento),
-            ),
-          ],
+              const SizedBox(height: 16),
+              JambTitoloDettaglio(evento.titolo),
+              const SizedBox(height: 24),
+              JambRigaDettaglio(icona: Icons.schedule_rounded, testo: viewModel.quando),
+              if (evento.luogo.isNotEmpty)
+                JambRigaDettaglio(icona: Icons.location_on_outlined, testo: evento.luogo),
+              const SizedBox(height: 16),
+              EtichetteCategorie(categorie: evento.categorie),
+              const SizedBox(height: 32),
+              JambPulsanteSecondario(
+                icona: Icons.fact_check_outlined,
+                etichetta: "Fai l'appello",
+                onTap: () => AppelloScreen.apri(context, evento),
+              ),
+            ],
+          ),
         ),
       ),
     );

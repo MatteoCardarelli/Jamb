@@ -77,3 +77,36 @@ class JambBarraAzioni extends StatelessWidget {
     );
   }
 }
+
+/// Pulsante principale fisso in fondo a una schermata con la barra in alto
+/// (es. salva evento, salva appello), da usare come `bottomNavigationBar`.
+///
+/// Sta sopra la barra di sistema di Android (i tre pulsanti o la linea dei
+/// gesti), che con l'app a tutto schermo altrimenti lo coprirebbe.
+class JambBarraInFondo extends StatelessWidget {
+  final String etichetta;
+  final IconData icona;
+  final VoidCallback? onPressed;
+
+  const JambBarraInFondo({
+    super.key,
+    required this.etichetta,
+    required this.icona,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(24, 8, 24, 16),
+        child: JambBarraAzioni(
+          mostraIndietro: false,
+          etichetta: etichetta,
+          icona: icona,
+          onPressed: onPressed,
+        ),
+      ),
+    );
+  }
+}
