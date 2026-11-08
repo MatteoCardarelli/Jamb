@@ -90,39 +90,43 @@ class _DettaglioAvvisoView extends StatelessWidget {
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            JambTitoloDettaglio(avviso.titolo),
-            const SizedBox(height: 24),
-            JambRigaDettaglio(
-              icona: avviso.perTuttaLUnita
-                  ? Icons.groups_rounded
-                  : Icons.shield_rounded,
-              testo: viewModel.destinatari,
-            ),
-            if (avviso.autore.isNotEmpty)
+      // Il contenuto non finisce sotto la barra di sistema di Android.
+      body: SafeArea(
+        top: false,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              JambTitoloDettaglio(avviso.titolo),
+              const SizedBox(height: 24),
               JambRigaDettaglio(
-                icona: Icons.person_outline_rounded,
-                testo: avviso.autore,
+                icona: avviso.perTuttaLUnita
+                    ? Icons.groups_rounded
+                    : Icons.shield_rounded,
+                testo: viewModel.destinatari,
               ),
-            JambRigaDettaglio(
-              icona: Icons.schedule_rounded,
-              testo: viewModel.pubblicato,
-            ),
-            const SizedBox(height: 16),
-            SelectableText(
-              avviso.contenuto,
-              style: const TextStyle(
-                fontSize: 16,
-                height: 1.5,
-                color: Color(0xFF1E293B),
-                fontFamily: 'Lexend',
+              if (avviso.autore.isNotEmpty)
+                JambRigaDettaglio(
+                  icona: Icons.person_outline_rounded,
+                  testo: avviso.autore,
+                ),
+              JambRigaDettaglio(
+                icona: Icons.schedule_rounded,
+                testo: viewModel.pubblicato,
               ),
-            ),
-          ],
+              const SizedBox(height: 16),
+              SelectableText(
+                avviso.contenuto,
+                style: const TextStyle(
+                  fontSize: 16,
+                  height: 1.5,
+                  color: Color(0xFF1E293B),
+                  fontFamily: 'Lexend',
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

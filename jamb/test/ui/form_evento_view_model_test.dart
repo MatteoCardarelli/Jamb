@@ -108,4 +108,85 @@ void main() {
       expect(vm.categorieDisponibili, ['Servizio', 'Vecchio dominio', categoriaAltro]);
     });
   });
+
+  group('FormEventoViewModel — si ripete', () {
+    FormEventoViewModel nuovo(FakeEventoRepository repo) => _vm(
+          repo,
+          giorno: DateTime(2026, 11, 7),
+          adesso: DateTime(2026, 11, 7, 15),
+        )..setTitolo('Riunione')..setLuogo('Sede')..toggleCategoria(categoriaAltro);
+
+    test('la fine proposta è il 31 agosto dell\'anno scout', () {
+      expect(nuovo(FakeEventoRepository()).finoAl, DateTime(2027, 8, 31));
+    });
+
+    test('l\'anteprima conta gli eventi che verranno creati', () {
+      final vm = nuovo(FakeEventoRepository())
+        ..setRipetizione(Ripetizione.ogniSettimana)
+        ..setFinoAl(DateTime(2026, 11, 28));
+      expect(vm.numeroEventi, 4);
+      expect(vm.anteprimaRipetizione, 'Verranno creati 4 eventi.');
+    });
+
+    test('l\'anteprima avverte quando si arriva al massimo di eventi', () {
+      final vm = nuovo(FakeEventoRepository())
+        ..setRipetizione(Ripetizione.ogniGiorno)
+        ..setFinoAl(DateTime(2028, 12, 31));
+      expect(vm.anteprimaRipetizione, 'Verranno creati $massimoRipetizioni eventi, il massimo consentito.');
+    });
+
+    test('salva la ripetizione e la data di fine scelte', () async {
+      final repo = FakeEventoRepository();
+      final vm = nuovo(repo)
+        ..setRipetizione(Ripetizione.ogniMese)
+        ..setFinoAl(DateTime(2027, 6, 30));
+
+      await vm.salvaEvento();
+
+      expect(repo.ripetizioni.single.ripetizione, Ripetizione.ogniMese);
+      expect(repo.ripetizioni.single.finoAl, DateTime(2027, 6, 30));
+    });
+
+    // Con la fine prima dell'inizio non nascerebbe nessun evento: il
+    // salvataggio non deve sembrare riuscito.
+    test('una fine prima dell\'inizio rende il form non valido', () async {
+      final repo = FakeEventoRepository();
+      final vm = nuovo(repo)
+        ..setRipetizione(Ripetizione.ogniGiorno)
+        ..setFinoAl(DateTime(2026, 11, 1));
+
+      expect(vm.isValid, isFalse);
+      expect(await vm.salvaEvento(), isNull);
+      expect(repo.creati, isEmpty);
+    });
+
+    test('spostando l\'inizio oltre la fine, la fine torna al 31 agosto', () {
+      final vm = nuovo(FakeEventoRepository())..setFinoAl(DateTime(2026, 11, 20));
+      vm.setDataInizio(DateTime(2026, 12, 5, 15));
+      expect(vm.finoAl, DateTime(2027, 8, 31));
+    });
+
+    test('modificando un evento della serie conserva la serie e passa la scelta', () async {
+      final repo = FakeEventoRepository();
+      final esistente = Evento(
+        id: 'e1',
+        titolo: 'Riunione',
+        dataInizio: DateTime(2026, 11, 14, 15),
+        dataFine: DateTime(2026, 11, 14, 17),
+        luogo: 'Sede',
+        categorie: const [categoriaAltro],
+        colorePrincipale: Colors.grey,
+        serieId: 'serie',
+        ripetizione: Ripetizione.ogniSettimana,
+      );
+      final vm = _vm(repo, eventoEsistente: esistente)..setLuogo('Bosco');
+
+      expect(vm.inSerie, isTrue);
+      await vm.salvaEvento(ambito: AmbitoSerie.questoESuccessivi);
+
+      expect(repo.aggiornati.single.serieId, 'serie');
+      expect(repo.aggiornati.single.luogo, 'Bosco');
+      expect(repo.ambitiAggiornamento.single, AmbitoSerie.questoESuccessivi);
+    });
+  });
 }

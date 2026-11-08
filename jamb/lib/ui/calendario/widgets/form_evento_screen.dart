@@ -2,10 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:jamb/core/categoria_evento_colori.dart';
+import 'package:jamb/ui/core/widgets/jamb_barra_azioni.dart';
 import 'package:jamb/ui/core/widgets/jamb_campo.dart';
 import 'package:jamb/ui/core/widgets/jamb_errore_in_linea.dart';
 import 'package:jamb/ui/core/widgets/jamb_feedback.dart';
 import 'package:jamb/ui/calendario/widgets/modulistica_suggerita.dart';
+import 'package:jamb/ui/calendario/widgets/ripetizione_ui.dart';
+import 'package:jamb/ui/core/widgets/jamb_chip_filtro.dart';
 import '../../../domain/entities/evento.dart';
 import '../../../domain/repositories/evento_repository.dart';
 import '../../../domain/repositories/obiettivo_repository.dart';
@@ -151,6 +154,48 @@ class _FormEventoView extends StatelessWidget {
             ),
             const SizedBox(height: 24),
 
+            // SI RIPETE: si sceglie creando l'evento; in modifica si chiede al salvataggio
+            if (!viewModel.isModifica) ...[
+              JambEtichettaCampo('Si ripete'),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  for (final r in Ripetizione.values)
+                    JambChipFiltro(
+                      etichetta: r.etichetta,
+                      selezionato: viewModel.ripetizione == r,
+                      onTap: () => viewModel.setRipetizione(r),
+                    ),
+                ],
+              ),
+              if (viewModel.ripetizione != Ripetizione.mai) ...[
+                const SizedBox(height: 16),
+                JambEtichettaCampo('Fino al'),
+                _buildDataOra(
+                  context,
+                  viewModel.finoAl,
+                  viewModel.setFinoAl,
+                  mostraOra: false,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  viewModel.anteprimaRipetizione,
+                  style: TextStyle(
+                    color: viewModel.numeroEventi == 0 ? const Color(0xFFB91C1C) : Colors.grey[600],
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+              const SizedBox(height: 24),
+            ] else if (viewModel.inSerie) ...[
+              Text(
+                'Fa parte di una ripetizione: salvando potrai scegliere se modificare anche gli eventi successivi.',
+                style: TextStyle(color: Colors.grey[600], fontSize: 12),
+              ),
+              const SizedBox(height: 24),
+            ],
+
             // CATEGORIE (domini degli obiettivi del Programma d'Unità + "Altro")
             JambEtichettaCampo('Categorie'),
             if (viewModel.isLoading)
@@ -201,46 +246,31 @@ class _FormEventoView extends StatelessWidget {
 
             // MODULISTICA: proposta solo creando un evento (come da mockup)
             if (!viewModel.isModifica) const ModulisticaSuggerita(),
-
-            const SizedBox(height: 16),
-
-            // TASTO SALVA
-            SizedBox(
-              width: double.infinity,
-              height: 56,
-              child: ElevatedButton(
-                onPressed: viewModel.isValid
-                    ? () async {
-                        Evento? evento;
-                        final salvato = await eseguiConFeedback(
-                          context,
-                          () async {
-                            evento = await viewModel.salvaEvento();
-                          },
-                        );
-                        if (salvato && context.mounted) {
-                          Navigator.pop(context, evento);
-                        }
-                      }
-                    : null,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF1D2660),
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  elevation: 0,
-                ),
-                child: const Text(
-                  'SALVA EVENTO',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                ),
-              ),
-            ),
           ],
         ),
       ),
+      // TASTO SALVA: fisso in fondo, sopra la barra di sistema di Android.
+      bottomNavigationBar: JambBarraInFondo(
+        etichetta: 'SALVA EVENTO',
+        icona: Icons.save_rounded,
+        onPressed: viewModel.isValid ? () => _salva(context, viewModel) : null,
+      ),
     );
+  }
+
+  Future<void> _salva(BuildContext context, FormEventoViewModel viewModel) async {
+    var ambito = AmbitoSerie.soloQuesto;
+    if (viewModel.inSerie) {
+      final scelto = await chiediAmbitoSerie(context, azione: 'Modifica');
+      if (scelto == null || !context.mounted) return;
+      ambito = scelto;
+    }
+
+    Evento? evento;
+    final salvato = await eseguiConFeedback(context, () async {
+      evento = await viewModel.salvaEvento(ambito: ambito);
+    });
+    if (salvato && context.mounted) Navigator.pop(context, evento);
   }
 
   /// Riquadri per scegliere la data e, se [mostraOra], l'orario di [valore].

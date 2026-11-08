@@ -41,6 +41,7 @@ void main() {
   });
 
   _testChiediNome();
+  _testScegli();
 }
 
 /// Apre il dialogo del nome con la validazione dei documenti.
@@ -91,6 +92,44 @@ void _testChiediNome() {
       await tester.pumpAndSettle();
 
       expect(risposte, ['Verbali']);
+    });
+  });
+}
+
+/// Apre il dialogo di scelta, tocca [pulsante] e restituisce la scelta.
+Future<int?> _scegli(WidgetTester tester, String pulsante) async {
+  int? scelta;
+  await tester.pumpWidget(MaterialApp(
+    home: Builder(
+      builder: (context) => TextButton(
+        onPressed: () async {
+          scelta = await JambDialogs.scegli<int>(
+            context,
+            titolo: 'Elimina evento ripetuto',
+            messaggio: 'Questo evento fa parte di una ripetizione.',
+            opzioni: const [('Solo questo evento', 1), ('Questo e i successivi', 2)],
+          );
+        },
+        child: const Text('apri'),
+      ),
+    ),
+  ));
+  await tester.tap(find.text('apri'));
+  await tester.pumpAndSettle();
+  await tester.tap(find.text(pulsante));
+  await tester.pumpAndSettle();
+  return scelta;
+}
+
+void _testScegli() {
+  // Usato per eliminare eventi ripetuti: annullare non deve scegliere nulla.
+  group('JambDialogs.scegli', () {
+    testWidgets('Annulla non sceglie nulla', (tester) async {
+      expect(await _scegli(tester, 'ANNULLA'), isNull);
+    });
+
+    testWidgets('restituisce il valore dell\'opzione toccata', (tester) async {
+      expect(await _scegli(tester, 'Questo e i successivi'), 2);
     });
   });
 }

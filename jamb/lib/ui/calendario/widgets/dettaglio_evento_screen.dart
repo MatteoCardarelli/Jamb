@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'etichette_categorie.dart';
+import 'ripetizione_ui.dart';
 import 'package:jamb/ui/core/widgets/jamb_app_bar.dart';
 import 'package:jamb/ui/core/widgets/jamb_dettaglio.dart';
 import 'package:jamb/ui/core/widgets/jamb_dialogs.dart';
@@ -54,15 +55,24 @@ class _DettaglioEventoView extends StatelessWidget {
     BuildContext context,
     DettaglioEventoViewModel viewModel,
   ) async {
-    final conferma = await JambDialogs.confermaEliminazione(
-      context,
-      titolo: "Elimina evento",
-      messaggio:
-          "Vuoi eliminare \"${viewModel.evento.titolo}\"? L'azione non è reversibile.",
-    );
-    if (!conferma || !context.mounted) return;
+    // Per un evento ripetuto la scelta tra questo e i successivi fa da conferma.
+    var ambito = AmbitoSerie.soloQuesto;
+    if (viewModel.evento.inSerie) {
+      final scelto = await chiediAmbitoSerie(context, azione: 'Elimina', pericolosa: true);
+      if (scelto == null) return;
+      ambito = scelto;
+    } else {
+      final conferma = await JambDialogs.confermaEliminazione(
+        context,
+        titolo: "Elimina evento",
+        messaggio:
+            "Vuoi eliminare \"${viewModel.evento.titolo}\"? L'azione non è reversibile.",
+      );
+      if (!conferma) return;
+    }
+    if (!context.mounted) return;
 
-    final eliminato = await eseguiConFeedback(context, viewModel.elimina);
+    final eliminato = await eseguiConFeedback(context, () => viewModel.elimina(ambito: ambito));
     if (eliminato && context.mounted) {
       Navigator.of(context).pop(); // Torna al calendario
     }
@@ -93,34 +103,40 @@ class _DettaglioEventoView extends StatelessWidget {
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              width: 48,
-              height: 6,
-              decoration: BoxDecoration(
-                color: evento.colorePrincipale,
-                borderRadius: BorderRadius.circular(3),
+      // Il contenuto non finisce sotto la barra di sistema di Android.
+      body: SafeArea(
+        top: false,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 48,
+                height: 6,
+                decoration: BoxDecoration(
+                  color: evento.colorePrincipale,
+                  borderRadius: BorderRadius.circular(3),
+                ),
               ),
-            ),
-            const SizedBox(height: 16),
-            JambTitoloDettaglio(evento.titolo),
-            const SizedBox(height: 24),
-            JambRigaDettaglio(icona: Icons.schedule_rounded, testo: viewModel.quando),
-            if (evento.luogo.isNotEmpty)
-              JambRigaDettaglio(icona: Icons.location_on_outlined, testo: evento.luogo),
-            const SizedBox(height: 16),
-            EtichetteCategorie(categorie: evento.categorie),
-            const SizedBox(height: 32),
-            JambPulsanteSecondario(
-              icona: Icons.fact_check_outlined,
-              etichetta: "Fai l'appello",
-              onTap: () => AppelloScreen.apri(context, evento),
-            ),
-          ],
+              const SizedBox(height: 16),
+              JambTitoloDettaglio(evento.titolo),
+              const SizedBox(height: 24),
+              JambRigaDettaglio(icona: Icons.schedule_rounded, testo: viewModel.quando),
+              if (evento.luogo.isNotEmpty)
+                JambRigaDettaglio(icona: Icons.location_on_outlined, testo: evento.luogo),
+              if (evento.inSerie)
+                JambRigaDettaglio(icona: Icons.repeat_rounded, testo: evento.ripetizione.descrizione),
+              const SizedBox(height: 16),
+              EtichetteCategorie(categorie: evento.categorie),
+              const SizedBox(height: 32),
+              JambPulsanteSecondario(
+                icona: Icons.fact_check_outlined,
+                etichetta: "Fai l'appello",
+                onTap: () => AppelloScreen.apri(context, evento),
+              ),
+            ],
+          ),
         ),
       ),
     );

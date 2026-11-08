@@ -42,5 +42,6 @@ class DettaglioEventoViewModel extends ChangeNotifier {
   }
 
   /// Elimina l'evento. Un errore viene propagato alla View.
-  Future<void> elimina() => _repository.eliminaEvento(_evento.id);
+  Future<void> elimina({AmbitoSerie ambito = AmbitoSerie.soloQuesto}) =>
+      _repository.eliminaEvento(_evento, ambito: ambito);
 }

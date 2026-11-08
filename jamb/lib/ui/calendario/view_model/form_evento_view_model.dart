@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:jamb/core/categoria_evento_colori.dart';
+import '../../../domain/entities/anno_scout.dart';
 import '../../../domain/entities/evento.dart';
 import '../../../domain/repositories/evento_repository.dart';
 import '../../../domain/repositories/obiettivo_repository.dart';
@@ -20,6 +21,8 @@ class FormEventoViewModel extends ChangeNotifier with StatoCaricamentoMixin {
   late bool _tuttoIlGiorno;
   late final List<String> _categorieSelezionate;
   List<String> _categorieDisponibili = const [categoriaAltro];
+  Ripetizione _ripetizione = Ripetizione.mai;
+  late DateTime _finoAl;
 
   /// Un nuovo evento parte da [giorno] (es. quello selezionato nel calendario)
   /// all'ora attuale, e dura un'ora. [adesso] serve solo ai test.
@@ -48,11 +51,46 @@ class FormEventoViewModel extends ChangeNotifier with StatoCaricamentoMixin {
       _tuttoIlGiorno = false;
       _categorieSelezionate = [];
     }
+    _finoAl = fineAnnoScout(_dataInizio);
     _caricaCategorie();
   }
 
   /// `true` se il form modifica un evento esistente.
   bool get isModifica => _eventoEsistente != null;
+
+  /// `true` se si modifica un evento che fa parte di una ripetizione: al
+  /// salvataggio si sceglie se cambiare anche i successivi.
+  bool get inSerie => _eventoEsistente?.inSerie ?? false;
+
+  /// Ogni quanto si ripete il nuovo evento (in modifica non si cambia).
+  Ripetizione get ripetizione => _ripetizione;
+
+  /// Ultimo giorno della ripetizione; proposto il 31 agosto dell'anno scout.
+  DateTime get finoAl => _finoAl;
+
+  void setRipetizione(Ripetizione value) {
+    _ripetizione = value;
+    notifyListeners();
+  }
+
+  void setFinoAl(DateTime value) {
+    _finoAl = DateTime(value.year, value.month, value.day);
+    notifyListeners();
+  }
+
+  /// Quanti eventi creerà il salvataggio (1 senza ripetizione).
+  int get numeroEventi => isModifica ? 1 : _serie().length;
+
+  /// `true` se la data di fine taglierebbe la ripetizione al massimo consentito.
+  bool get limiteRaggiunto => numeroEventi >= massimoRipetizioni;
+
+  /// Frase sotto «Fino al», es. "Verranno creati 12 eventi.".
+  String get anteprimaRipetizione {
+    final n = numeroEventi;
+    if (n == 0) return 'La data di fine è prima dell\'inizio.';
+    final eventi = n == 1 ? 'Verrà creato 1 evento' : 'Verranno creati $n eventi';
+    return limiteRaggiunto ? '$eventi, il massimo consentito.' : '$eventi.';
+  }
 
   String get titolo => _titolo;
   String get luogo => _luogo;
@@ -104,6 +142,10 @@ class FormEventoViewModel extends ChangeNotifier with StatoCaricamentoMixin {
           ? _dataInizio
           : _dataInizio.add(const Duration(hours: 1));
     }
+    // Lo stesso per la fine della ripetizione.
+    if (_finoAl.isBefore(DateTime(date.year, date.month, date.day))) {
+      _finoAl = fineAnnoScout(date);
+    }
     notifyListeners();
   }
 
@@ -136,31 +178,47 @@ class FormEventoViewModel extends ChangeNotifier with StatoCaricamentoMixin {
     return _titolo.trim().isNotEmpty &&
         _luogo.trim().isNotEmpty &&
         _categorieSelezionate.isNotEmpty &&
-        !_fineEffettiva.isBefore(_inizioEffettivo);
+        !_fineEffettiva.isBefore(_inizioEffettivo) &&
+        numeroEventi > 0;
   }
 
-  /// Crea o aggiorna l'evento e lo restituisce (`null` se il form non è valido).
-  /// Un errore di salvataggio viene propagato alla View.
-  Future<Evento?> salvaEvento() async {
-    if (!isValid) return null;
-
-    final evento = Evento(
-      id:
-          _eventoEsistente?.id ??
-          DateTime.now().millisecondsSinceEpoch.toString(),
+  /// L'evento come risulta dal form; in modifica conserva id e serie.
+  Evento _bozza() {
+    final esistente = _eventoEsistente;
+    return Evento(
+      id: esistente?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
       titolo: _titolo.trim(),
       dataInizio: _inizioEffettivo,
       dataFine: _fineEffettiva,
       luogo: _luogo.trim(),
       categorie: List.of(_categorieSelezionate),
-      colorePrincipale: coloreCategoria(_categorieSelezionate.first),
+      colorePrincipale: _categorieSelezionate.isEmpty
+          ? coloreCategoria(categoriaAltro)
+          : coloreCategoria(_categorieSelezionate.first),
       tuttoIlGiorno: _tuttoIlGiorno,
+      serieId: esistente?.serieId,
+      ripetizione: esistente?.ripetizione ?? Ripetizione.mai,
     );
+  }
 
+  /// Le date che verrebbero create, per l'anteprima.
+  List<Evento> _serie() => eventiDellaSerie(_bozza(), _ripetizione, _finoAl);
+
+  /// Crea o aggiorna l'evento e lo restituisce (`null` se il form non è valido).
+  /// Per un evento di una ripetizione, [ambito] dice se la modifica vale
+  /// anche per i successivi. Un errore di salvataggio viene propagato alla View.
+  Future<Evento?> salvaEvento({AmbitoSerie ambito = AmbitoSerie.soloQuesto}) async {
+    if (!isValid) return null;
+
+    final evento = _bozza();
     if (isModifica) {
-      await _eventoRepository.aggiornaEvento(evento);
+      await _eventoRepository.aggiornaEvento(evento, ambito: ambito);
     } else {
-      await _eventoRepository.creaEvento(evento);
+      await _eventoRepository.creaEvento(
+        evento,
+        ripetizione: _ripetizione,
+        finoAl: _ripetizione == Ripetizione.mai ? null : _finoAl,
+      );
     }
     return evento;
   }
