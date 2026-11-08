@@ -10,6 +10,10 @@ String dataBreve(DateTime data, {DateTime? adesso}) {
   return DateFormat(formato, 'it_IT').format(data);
 }
 
+/// Importo in [centesimi] alla maniera italiana, senza valuta: "1.234,50".
+String importoLeggibile(int centesimi) =>
+    NumberFormat('#,##0.00', 'it_IT').format(centesimi / 100);
+
 /// Dimensione di un file in forma leggibile, es. "820 KB", "2,4 MB".
 String dimensioneLeggibile(int byte) {
   if (byte < 1024) return '$byte B';
