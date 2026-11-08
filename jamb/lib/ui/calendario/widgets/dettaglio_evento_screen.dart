@@ -127,14 +127,22 @@ class _DettaglioEventoView extends StatelessWidget {
                 JambRigaDettaglio(icona: Icons.location_on_outlined, testo: evento.luogo),
               if (evento.inSerie)
                 JambRigaDettaglio(icona: Icons.repeat_rounded, testo: evento.ripetizione.descrizione),
+              if (evento.livello != LivelloEvento.unita)
+                JambRigaDettaglio(
+                  icona: Icons.groups_outlined,
+                  testo: "Evento: ${evento.livello.etichetta}",
+                ),
               const SizedBox(height: 16),
               EtichetteCategorie(categorie: evento.categorie),
-              const SizedBox(height: 32),
-              JambPulsanteSecondario(
-                icona: Icons.fact_check_outlined,
-                etichetta: "Fai l'appello",
-                onTap: () => AppelloScreen.apri(context, evento),
-              ),
+              // Agli eventi dei capi non ci sono ragazzi da chiamare.
+              if (evento.livello == LivelloEvento.unita) ...[
+                const SizedBox(height: 32),
+                JambPulsanteSecondario(
+                  icona: Icons.fact_check_outlined,
+                  etichetta: "Fai l'appello",
+                  onTap: () => AppelloScreen.apri(context, evento),
+                ),
+              ],
             ],
           ),
         ),

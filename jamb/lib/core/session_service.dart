@@ -36,6 +36,7 @@ class SessionService extends ChangeNotifier {
   List<SessionMembership> _memberships = const [];
   List<UnitaDisponibile> _unita = const [];
   String? _activeUnitId;
+  String? _unitaCocaId;
 
   StreamSubscription<AuthState>? _authSub;
 
@@ -78,6 +79,10 @@ class SessionService extends ChangeNotifier {
   /// Unità in cui l'utente sta operando: scelta dal selettore nel menu del
   /// profilo e ricordata sul dispositivo (vedi [impostaUnitaAttiva]).
   String? get activeUnitId => _activeUnitId;
+
+  /// Unità della Comunità Capi del gruppo (`null` se il gruppo non ne ha):
+  /// non è un'unità in cui operare, ma contiene il Drive e gli eventi Co.Ca.
+  String? get unitaCocaId => _unitaCocaId;
 
   /// Unità tra cui l'utente può scegliere, in ordine alfabetico: quelle delle
   /// sue membership e, per il Capo Gruppo, tutte quelle del gruppo.
@@ -180,6 +185,16 @@ class SessionService extends ChangeNotifier {
               ))
           .toList();
 
+      final coca = _groupId == null
+          ? null
+          : await supabase
+              .from('units')
+              .select('id')
+              .eq('group_id', _groupId!)
+              .eq('tipo_branca', 'COCA')
+              .maybeSingle();
+      _unitaCocaId = coca?['id'] as String?;
+
       // Il Capo Gruppo può operare in tutte le unità del gruppo.
       var delGruppo = <UnitaDisponibile>[];
       if (_capoGruppo && _groupId != null) {
@@ -231,6 +246,7 @@ class SessionService extends ChangeNotifier {
     _memberships = const [];
     _unita = const [];
     _activeUnitId = null;
+    _unitaCocaId = null;
     _status = SessionStatus.unauthenticated;
     notifyListeners();
   }

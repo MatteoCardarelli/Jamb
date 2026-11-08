@@ -13,8 +13,10 @@ const Duration finestraAppelloRecente = Duration(days: 7);
 /// 1. quello in corso (il più recente, se sono più d'uno);
 /// 2. altrimenti il primo che inizia entro [anticipoAppello];
 /// 3. altrimenti l'ultimo iniziato negli ultimi [finestraAppelloRecente].
+/// Contano solo gli eventi dell'unità: a quelli di Co.Ca. non ci sono ragazzi.
 /// `null` se non ce n'è nessuno: l'appello si apre allora dal calendario.
-Evento? eventoPerAppello(Iterable<Evento> eventi, DateTime adesso) {
+Evento? eventoPerAppello(Iterable<Evento> tutti, DateTime adesso) {
+  final eventi = tutti.where((e) => e.livello == LivelloEvento.unita);
   final iniziati = eventi.where((e) => !e.dataInizio.isAfter(adesso)).toList()
     ..sort((a, b) => b.dataInizio.compareTo(a.dataInizio));
 

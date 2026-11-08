@@ -23,9 +23,6 @@ class SupabaseDocumentoRepository extends IDocumentoRepository {
 
   static const String _table = 'documents';
 
-  /// Unità COCA del gruppo, letta alla prima apertura del Drive di Co.Ca.
-  String? _unitaCoca;
-
   /// Proprietario delle righe di un archivio: sezione, unità e gruppo.
   Future<({String sezione, String? unitId, String groupId})> _proprietario(
     ArchivioDocumenti archivio,
@@ -38,30 +35,14 @@ class SupabaseDocumentoRepository extends IDocumentoRepository {
         if (unitId == null) throw sessioneSenzaUnita;
         return (sezione: 'drive', unitId: unitId, groupId: groupId);
       case ArchivioDocumenti.driveCoca:
-        return (sezione: 'drive', unitId: await _idUnitaCoca(groupId), groupId: groupId);
+        final unitId = _session.unitaCocaId;
+        if (unitId == null) throw gruppoSenzaCoca;
+        return (sezione: 'drive', unitId: unitId, groupId: groupId);
       case ArchivioDocumenti.metodoStatuto:
         return (sezione: 'metodo_statuto', unitId: null, groupId: groupId);
       case ArchivioDocumenti.modulistica:
         return (sezione: 'modulistica', unitId: null, groupId: groupId);
     }
-  }
-
-  Future<String> _idUnitaCoca(String groupId) async {
-    final noto = _unitaCoca;
-    if (noto != null) return noto;
-    final row = await supabase
-        .from('units')
-        .select('id')
-        .eq('group_id', groupId)
-        .eq('tipo_branca', 'COCA')
-        .maybeSingle();
-    if (row == null) {
-      throw const JambException(
-        TipoErrore.datiNonValidi,
-        'Il gruppo non ha ancora una Comunità Capi.',
-      );
-    }
-    return _unitaCoca = row['id'] as String;
   }
 
   /// Righe di [archivio] (tutte, o solo quelle filtrate dal chiamante).

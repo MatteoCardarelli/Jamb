@@ -16,6 +16,12 @@ const sessioneSenzaUnita = JambException(
   'Nessuna unità attiva: impossibile salvare.',
 );
 
+/// Il gruppo non ha un'unità COCA (Drive ed eventi della Co.Ca. non disponibili).
+const gruppoSenzaCoca = JambException(
+  TipoErrore.datiNonValidi,
+  'Il gruppo non ha ancora una Comunità Capi.',
+);
+
 /// Esegue un'operazione verso Supabase traducendo ogni errore in una
 /// [JambException], senza perdere lo stack trace originale.
 Future<T> eseguiSupabase<T>(Future<T> Function() operazione) async {
