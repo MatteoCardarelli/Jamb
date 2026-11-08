@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:jamb/domain/entities/bilancio.dart';
 import 'package:jamb/domain/entities/transazione.dart';
 import 'package:jamb/ui/core/formato.dart';
-import 'package:jamb/ui/core/stile.dart';
+import 'package:jamb/ui/core/widgets/jamb_riquadro.dart';
 import 'package:jamb/ui/core/widgets/jamb_app_bar.dart';
 import 'package:jamb/ui/core/widgets/jamb_chip_filtro.dart';
 import 'package:jamb/ui/core/widgets/jamb_stati.dart';
@@ -96,43 +96,6 @@ class RigaImporto extends StatelessWidget {
   }
 }
 
-/// Riquadro bianco di un bilancio, con un [titolo] e le sue righe.
-class RiquadroBilancio extends StatelessWidget {
-  final String titolo;
-  final List<Widget> righe;
-
-  const RiquadroBilancio({super.key, required this.titolo, required this.righe});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: bordoRiquadro,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            titolo,
-            style: const TextStyle(
-              fontFamily: 'Lexend',
-              fontSize: 16,
-              fontWeight: FontWeight.w900,
-              color: Color(0xFF1D2660),
-            ),
-          ),
-          const SizedBox(height: 8),
-          ...righe,
-        ],
-      ),
-    );
-  }
-}
-
 /// Saldo iniziale, entrate e uscite per categoria e saldo finale.
 class RiepilogoBilancio extends StatelessWidget {
   final Bilancio bilancio;
@@ -151,23 +114,23 @@ class RiepilogoBilancio extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        RiquadroBilancio(
+        JambRiquadro(
           titolo: 'Saldo',
-          righe: [
+          children: [
             RigaImporto('Saldo iniziale', bilancio.saldoIniziale),
             RigaImporto('Saldo finale', bilancio.saldoFinale, forte: true),
           ],
         ),
         const SizedBox(height: 12),
-        RiquadroBilancio(
+        JambRiquadro(
           titolo: 'Entrate',
-          righe: _perCategoria(
+          children: _perCategoria(
               bilancio.entrate, "Nessuna entrata nell'anno.", 'Totale entrate', bilancio.totaleEntrate),
         ),
         const SizedBox(height: 12),
-        RiquadroBilancio(
+        JambRiquadro(
           titolo: 'Uscite',
-          righe: _perCategoria(
+          children: _perCategoria(
               bilancio.uscite, "Nessuna uscita nell'anno.", 'Totale uscite', bilancio.totaleUscite),
         ),
       ],

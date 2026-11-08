@@ -6,7 +6,7 @@ import 'package:jamb/ui/core/widgets/jamb_pulsante_secondario.dart';
 import 'package:jamb/ui/core/widgets/jamb_search_picker.dart';
 import 'package:jamb/domain/entities/progresso.dart';
 import 'package:jamb/ui/dettaglio_ragazzo/view_model/dettaglio_ragazzo_view_model.dart';
-import 'package:jamb/ui/dettaglio_ragazzo/widgets/riquadro_ragazzo.dart';
+import 'package:jamb/ui/core/widgets/jamb_riquadro.dart';
 
 /// Widget per la visualizzazione e gestione delle Specialità attive di uno scout.
 /// Ora completamente integrato con il ViewModel.
@@ -75,7 +75,7 @@ class SpecialitaWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final viewModel = context.watch<DettaglioRagazzoViewModel>();
 
-    return RiquadroRagazzo(
+    return JambRiquadro(
       titolo: "Specialità Attive",
       children: [
         ...List.generate(specialita.length, (i) {

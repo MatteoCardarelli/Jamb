@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:jamb/ui/core/widgets/jamb_stati.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:jamb/domain/entities/scout.dart'; // Importa entità di dominio
-import 'package:jamb/ui/dettaglio_ragazzo/widgets/riquadro_ragazzo.dart';
+import 'package:jamb/ui/core/widgets/jamb_riquadro.dart';
 
 /// Widget che visualizza la lista dei contatti di emergenza dello scout.
 /// Utilizza l'entità di dominio [ContattoEmergenza] (Shared Model).
@@ -25,7 +25,7 @@ class ContattiEmergenzaWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return RiquadroRagazzo(
+    return JambRiquadro(
       titolo: "Contatti di emergenza",
       children: [
         if (contatti.isEmpty)

@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 
-/// Riquadro bianco delle sezioni del dettaglio ragazzo (contatti, Sentiero,
-/// specialità, brevetti, presenze), con il [titolo] della sezione se presente.
-class RiquadroRagazzo extends StatelessWidget {
+/// Riquadro bianco delle sezioni di una schermata (dettaglio ragazzo, bilanci,
+/// sottogruppi), con il [titolo] della sezione se presente.
+class JambRiquadro extends StatelessWidget {
   final String? titolo;
   final List<Widget> children;
 
-  const RiquadroRagazzo({super.key, this.titolo, required this.children});
+  const JambRiquadro({super.key, this.titolo, required this.children});
 
   @override
   Widget build(BuildContext context) {

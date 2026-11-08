@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:jamb/domain/entities/progresso.dart'; // Importa entità di dominio
-import 'package:jamb/ui/dettaglio_ragazzo/widgets/riquadro_ragazzo.dart';
+import 'package:jamb/ui/core/widgets/jamb_riquadro.dart';
 
 /// Widget per la visualizzazione e gestione del Sentiero scout (E/G).
 /// Utilizza le entità di dominio [Tappa] e [Impegno] (Shared Model).
@@ -91,7 +91,7 @@ class _SentieroWidgetState extends State<SentieroWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return RiquadroRagazzo(
+    return JambRiquadro(
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
