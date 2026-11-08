@@ -7,7 +7,10 @@ class UnitaDisponibile {
   /// di cui non è membro (vede tutte le unità del gruppo).
   final String? ruolo;
 
-  const UnitaDisponibile({required this.id, required this.nome, this.ruolo});
+  /// Valore di `tipo_branca_enum` (`null` se sconosciuto).
+  final String? tipoBranca;
+
+  const UnitaDisponibile({required this.id, required this.nome, this.ruolo, this.tipoBranca});
 }
 
 /// Unità da attivare all'accesso: quella salvata l'ultima volta, se è

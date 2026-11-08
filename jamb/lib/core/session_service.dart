@@ -80,6 +80,14 @@ class SessionService extends ChangeNotifier {
   /// profilo e ricordata sul dispositivo (vedi [impostaUnitaAttiva]).
   String? get activeUnitId => _activeUnitId;
 
+  /// Tipo di branca dell'unità attiva (LC, EG, RS), o `null` se non determinabile.
+  String? get tipoBrancaAttiva {
+    for (final u in _unita) {
+      if (u.id == _activeUnitId) return u.tipoBranca;
+    }
+    return null;
+  }
+
   /// Unità della Comunità Capi del gruppo (`null` se il gruppo non ne ha):
   /// non è un'unità in cui operare, ma contiene il Drive e gli eventi Co.Ca.
   String? get unitaCocaId => _unitaCocaId;
@@ -169,7 +177,7 @@ class SessionService extends ChangeNotifier {
 
       final List<dynamic> rows = await supabase
           .from('memberships')
-          .select('unit_id, squad_id, ruolo, units ( nome )')
+          .select('unit_id, squad_id, ruolo, units ( nome, tipo_branca )')
           .eq('user_id', user.id)
           .eq('is_active', true);
 
@@ -200,13 +208,17 @@ class SessionService extends ChangeNotifier {
       if (_capoGruppo && _groupId != null) {
         final List<dynamic> unita = await supabase
             .from('units')
-            .select('id, nome')
+            .select('id, nome, tipo_branca')
             .eq('group_id', _groupId!)
             // La Co.Ca. non è un'unità in cui operare: ha solo un drive condiviso.
             .neq('tipo_branca', 'COCA');
         delGruppo = [
           for (final u in unita)
-            UnitaDisponibile(id: u['id'] as String, nome: (u['nome'] ?? '') as String),
+            UnitaDisponibile(
+              id: u['id'] as String,
+              nome: (u['nome'] ?? '') as String,
+              tipoBranca: u['tipo_branca'] as String?,
+            ),
         ];
       }
       _unita = componiUnitaDisponibili(
@@ -216,6 +228,7 @@ class SessionService extends ChangeNotifier {
               id: r['unit_id'] as String,
               nome: ((r['units'] as Map?)?['nome'] ?? '') as String,
               ruolo: r['ruolo'] as String,
+              tipoBranca: (r['units'] as Map?)?['tipo_branca'] as String?,
             ),
         ],
         delGruppo: delGruppo,

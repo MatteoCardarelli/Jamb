@@ -7,6 +7,7 @@ class JambDialogs {
   /// Chiede un nome (es. di una nuova cartella, o il nuovo nome di un file);
   /// restituisce il nome ripulito, o `null` se l'utente annulla. [valida]
   /// restituisce il motivo per cui un nome non va bene, mostrato sotto il campo.
+  /// [etichetta], [suggerimento] e [righe] adattano il campo ad altri testi brevi.
   static Future<String?> chiediNome(
     BuildContext context, {
     required String titolo,
@@ -14,6 +15,9 @@ class JambDialogs {
     required String conferma,
     String iniziale = '',
     String? Function(String nome)? valida,
+    String etichetta = 'Nome',
+    String suggerimento = 'Es. Verbali 2026',
+    int righe = 1,
   }) {
     return showDialog<String>(
       context: context,
@@ -23,6 +27,9 @@ class JambDialogs {
         conferma: conferma,
         iniziale: iniziale,
         valida: valida,
+        etichetta: etichetta,
+        suggerimento: suggerimento,
+        righe: righe,
       ),
     );
   }
@@ -163,6 +170,9 @@ class _DialogoNome extends StatefulWidget {
   final String conferma;
   final String iniziale;
   final String? Function(String nome)? valida;
+  final String etichetta;
+  final String suggerimento;
+  final int righe;
 
   const _DialogoNome({
     required this.titolo,
@@ -170,6 +180,9 @@ class _DialogoNome extends StatefulWidget {
     required this.conferma,
     required this.iniziale,
     this.valida,
+    required this.etichetta,
+    required this.suggerimento,
+    required this.righe,
   });
 
   @override
@@ -200,12 +213,14 @@ class _DialogoNomeState extends State<_DialogoNome> {
       onConfirm: errore == null ? () => Navigator.pop(context, _nome.text.trim()) : null,
       child: Column(
         children: [
-          const Align(alignment: Alignment.centerLeft, child: JambEtichettaCampo('Nome')),
+          Align(alignment: Alignment.centerLeft, child: JambEtichettaCampo(widget.etichetta)),
           TextField(
             controller: _nome,
             autofocus: true,
+            minLines: widget.righe,
+            maxLines: widget.righe,
             onChanged: (_) => setState(() => _modificato = true),
-            decoration: jambDecorazioneCampo('Es. Verbali 2026')
+            decoration: jambDecorazioneCampo(widget.suggerimento)
                 .copyWith(errorText: _modificato ? errore : null),
           ),
         ],
