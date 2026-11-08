@@ -124,6 +124,42 @@ class Documento {
   }
 }
 
+/// Una cartella in cui spostare dei documenti (`id` nullo per la radice),
+/// con la profondità a cui mostrarla.
+class VoceCartella {
+  final String? id;
+  final String nome;
+  final int livello;
+
+  const VoceCartella({required this.id, required this.nome, required this.livello});
+}
+
+/// Albero di [cartelle] in forma di elenco: ogni cartella seguita dalle sue
+/// sottocartelle, in ordine alfabetico. Le cartelle in [escluse] non compaiono
+/// e con loro il loro contenuto: una cartella non può finire dentro sé stessa.
+List<VoceCartella> alberoCartelle(
+  Iterable<Documento> cartelle, {
+  Set<String> escluse = const {},
+}) {
+  final perPadre = <String?, List<Documento>>{};
+  for (final c in cartelle) {
+    perPadre.putIfAbsent(c.parentId, () => []).add(c);
+  }
+  final elenco = <VoceCartella>[];
+  final visitate = <String>{};
+  void aggiungi(String? padre, int livello) {
+    for (final c in ordinaDocumenti(perPadre[padre] ?? const <Documento>[])) {
+      // Un ciclo nei dati non deve bloccare l'app.
+      if (escluse.contains(c.id) || !visitate.add(c.id)) continue;
+      elenco.add(VoceCartella(id: c.id, nome: c.nome, livello: livello));
+      aggiungi(c.id, livello + 1);
+    }
+  }
+
+  aggiungi(null, 1);
+  return elenco;
+}
+
 /// Ordine di un elenco di documenti: prima le cartelle, poi i file, ciascuno
 /// in ordine alfabetico senza distinguere maiuscole e minuscole.
 List<Documento> ordinaDocumenti(Iterable<Documento> documenti) => documenti.toList()

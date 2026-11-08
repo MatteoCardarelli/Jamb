@@ -27,6 +27,17 @@ abstract class IDocumentoRepository extends ChangeNotifier {
   /// Elimina [documento]; una cartella con tutto il suo contenuto.
   Future<void> elimina(ArchivioDocumenti archivio, Documento documento);
 
+  /// Elimina tutti i [documenti] in un'unica scrittura, le cartelle con il
+  /// loro contenuto.
+  Future<void> eliminaTutti(ArchivioDocumenti archivio, List<Documento> documenti);
+
+  /// Sposta i [documenti] nella cartella [destinazione] (la radice se `null`)
+  /// dello stesso archivio, in un'unica scrittura.
+  Future<void> sposta(List<Documento> documenti, String? destinazione);
+
+  /// Tutte le cartelle di [archivio], a qualunque profondità.
+  Future<List<Documento>> getCartelle(ArchivioDocumenti archivio);
+
   /// URL temporaneo per aprire il file [documento].
   Future<String> urlFile(Documento documento);
 }

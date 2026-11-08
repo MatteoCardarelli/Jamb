@@ -78,6 +78,41 @@ class FakeDocumentoRepository extends ChangeNotifier implements IDocumentoReposi
       });
 
   @override
+  Future<void> eliminaTutti(ArchivioDocumenti archivio, List<Documento> documenti) => _scrivi(() {
+        final via = {
+          for (final d in documenti) ...[d.id, ...discendenti(_di(archivio), d.id).map((x) => x.id)],
+        };
+        _di(archivio).removeWhere((d) => via.contains(d.id));
+      });
+
+  @override
+  Future<void> sposta(List<Documento> documenti, String? destinazione) => _scrivi(() {
+        final ids = {for (final d in documenti) d.id};
+        for (final lista in archivi.values) {
+          for (var i = 0; i < lista.length; i++) {
+            if (!ids.contains(lista[i].id)) continue;
+            final d = lista[i];
+            // Si ricrea il documento: copyWith non può azzerare la cartella.
+            lista[i] = Documento(
+              id: d.id,
+              nome: d.nome,
+              tipo: d.tipo,
+              parentId: destinazione,
+              ultimaModifica: d.ultimaModifica,
+              dimensioni: d.dimensioni,
+              percorsoFile: d.percorsoFile,
+            );
+          }
+        }
+      });
+
+  @override
+  Future<List<Documento>> getCartelle(ArchivioDocumenti archivio) async {
+    if (erroreLettura != null) throw erroreLettura!;
+    return _di(archivio).where((d) => d.isCartella).toList();
+  }
+
+  @override
   Future<String> urlFile(Documento documento) async {
     if (erroreLettura != null) throw erroreLettura!;
     return 'https://archivio.test/${documento.percorsoFile}';
