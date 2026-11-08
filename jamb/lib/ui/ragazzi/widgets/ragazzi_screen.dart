@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:jamb/ui/core/widgets/empty_background_screen.dart';
 import 'package:jamb/ui/core/widgets/jamb_search_bar.dart';
 import 'package:jamb/ui/core/widgets/jamb_stato_errore.dart';
+import 'package:jamb/ui/core/widgets/jamb_stati.dart';
 import 'package:jamb/ui/ragazzi/widgets/ragazzo_card.dart';
 import 'package:jamb/ui/ragazzi/widgets/ragazzi_filters.dart';
 import 'package:jamb/ui/ragazzi/view_model/ragazzi_view_model.dart';
@@ -60,7 +61,12 @@ class RagazziScreen extends StatelessWidget {
                       onRiprova: viewModel.refresh,
                     )
                   else if (risultati.isEmpty)
-                    _buildEmpty()
+                    const JambTestoVuoto(
+                      "Nessun ragazzo trovato",
+                      icona: Icons.search_off_rounded,
+                      suggerimento: "Prova a cambiare i filtri o la ricerca",
+                      centrato: true,
+                    )
                   else
                     ...risultati.map((r) => Padding(
                       padding: const EdgeInsets.only(bottom: 16),
@@ -71,39 +77,6 @@ class RagazziScreen extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  /// Messaggio visualizzato quando la ricerca non produce risultati
-  Widget _buildEmpty() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.only(top: 60),
-        child: Column(
-          children: [
-            Icon(Icons.search_off_rounded, size: 56, color: Colors.grey.shade300),
-            const SizedBox(height: 16),
-            const Text(
-              "Nessun ragazzo trovato",
-              style: TextStyle(
-                color: Color(0xFF94A3B8),
-                fontSize: 16,
-                fontFamily: 'Lexend',
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              "Prova a cambiare i filtri o la ricerca",
-              style: TextStyle(
-                color: Color(0xFFCBD5E1),
-                fontSize: 13,
-                fontFamily: 'Lexend',
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }

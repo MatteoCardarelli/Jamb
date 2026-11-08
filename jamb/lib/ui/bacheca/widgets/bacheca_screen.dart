@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:jamb/ui/core/widgets/jamb_stati.dart';
 import 'package:provider/provider.dart';
 import 'package:jamb/ui/bacheca/view_model/bacheca_view_model.dart';
 import 'package:jamb/ui/bacheca/widgets/avviso_card.dart';
@@ -73,17 +74,10 @@ class BachecaScreen extends StatelessWidget {
                 onRiprova: viewModel.ricarica,
               )
             else if (viewModel.avvisi.isEmpty)
-              const Padding(
-                padding: EdgeInsets.only(top: 40),
-                child: Text(
-                  'Nessun avviso in bacheca.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: Color(0xFF64748B),
-                    fontFamily: 'Lexend',
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
+              const JambTestoVuoto(
+                'Nessun avviso in bacheca.',
+                icona: Icons.campaign_outlined,
+                centrato: true,
               )
             else
               for (final avviso in viewModel.avvisi)

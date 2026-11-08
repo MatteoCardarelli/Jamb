@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:jamb/ui/core/widgets/jamb_stati.dart';
 import 'package:provider/provider.dart';
 import 'package:jamb/ui/core/widgets/empty_background_screen.dart';
 import 'package:jamb/ui/core/widgets/jamb_search_bar.dart';
@@ -120,10 +121,7 @@ class DocumentiScreen extends StatelessWidget {
                   onRiprova: viewModel.ricaricaRecenti,
                 )
               else if (!viewModel.isLoading && viewModel.recenti.isEmpty)
-                const Text(
-                  "Nessun file nel Drive di Branca.",
-                  style: TextStyle(color: Color(0xFF94A3B8), fontFamily: 'Lexend'),
-                )
+                const JambTestoVuoto("Nessun file nel Drive di Branca.")
               else
                 for (final doc in viewModel.recenti)
                   RecentDocumentCard(

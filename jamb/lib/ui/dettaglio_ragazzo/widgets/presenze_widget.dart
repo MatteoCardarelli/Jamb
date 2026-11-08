@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:jamb/ui/core/widgets/jamb_stati.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:jamb/domain/entities/presenza.dart';
@@ -36,21 +37,14 @@ class _PresenzeView extends StatelessWidget {
       titolo: "Presenze",
       children: [
         if (viewModel.isLoading && viewModel.ultime.isEmpty)
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 8),
-            child: SizedBox(
-              height: 20,
-              width: 20,
-              child: CircularProgressIndicator(strokeWidth: 2),
-            ),
-          )
+          const JambCaricamentoPiccolo()
         else if (viewModel.haErrore)
           JambErroreInLinea(
             messaggio: 'Presenze non disponibili: ${viewModel.errore}',
             onRiprova: viewModel.ricarica,
           )
         else if (viewModel.ultime.isEmpty)
-          const RiquadroRagazzoVuoto("Nessun appello registrato.")
+          const JambTestoVuoto("Nessun appello registrato.")
         else ...[
           if (viewModel.assenzeRipetute) _AvvisoAssenze(viewModel.serieAssenze),
           if (viewModel.riepilogo.isNotEmpty)

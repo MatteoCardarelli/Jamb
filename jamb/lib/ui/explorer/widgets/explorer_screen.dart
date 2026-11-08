@@ -1,5 +1,6 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:jamb/ui/core/widgets/jamb_stati.dart';
 import 'package:provider/provider.dart';
 import 'package:jamb/core/session_service.dart';
 import 'package:jamb/domain/entities/documento.dart';
@@ -238,7 +239,9 @@ class ExplorerScreen extends StatelessWidget {
                   onRiprova: viewModel.refresh,
                 )
               else if (viewModel.contenutoFiltrato.isEmpty)
-                _buildEmptyState(vuota: viewModel.searchController.text.trim().isEmpty)
+                viewModel.searchController.text.trim().isEmpty
+                    ? const JambTestoVuoto("Questa cartella è vuota", icona: Icons.folder_open_rounded, centrato: true)
+                    : const JambTestoVuoto("Nessun risultato trovato", icona: Icons.search_off_rounded, centrato: true)
               else
                 GridView.builder(
                   padding: EdgeInsets.zero,
@@ -263,23 +266,6 @@ class ExplorerScreen extends StatelessWidget {
                   },
                 ),
             ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  /// Stato visualizzato quando la cartella è vuota o la ricerca non trova nulla.
-  Widget _buildEmptyState({required bool vuota}) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.only(top: 40.0),
-        child: Text(
-          vuota ? "Questa cartella è vuota" : "Nessun risultato trovato",
-          style: const TextStyle(
-            color: Color(0xFF64748B),
-            fontFamily: 'Lexend',
-            fontWeight: FontWeight.w600,
           ),
         ),
       ),

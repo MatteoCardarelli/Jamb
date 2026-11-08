@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:jamb/ui/core/widgets/jamb_stati.dart';
 import 'package:jamb/domain/entities/transazione.dart';
 import 'package:jamb/ui/contabilita/view_model/dettaglio_transazione_view_model.dart';
 import 'package:intl/intl.dart';
@@ -269,12 +270,7 @@ class _Ricevuta extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (!viewModel.haRicevuta) {
-      return const Center(
-        child: Text(
-          "Nessuno scontrino allegato.",
-          style: TextStyle(color: Color(0xFF94A3B8), fontFamily: 'Lexend'),
-        ),
-      );
+      return const JambTestoVuoto("Nessuno scontrino allegato.");
     }
     if (viewModel.isLoading) {
       return const Center(child: CircularProgressIndicator());

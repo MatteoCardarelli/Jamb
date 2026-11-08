@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:jamb/ui/core/widgets/jamb_stati.dart';
 import 'package:provider/provider.dart';
 import 'package:jamb/ui/core/widgets/jamb_dialogs.dart';
 import 'package:jamb/ui/core/widgets/jamb_feedback.dart';
@@ -86,7 +87,7 @@ class BrevettiWidget extends StatelessWidget {
       titolo: "Brevetti",
       children: [
         if (brevetti.isEmpty)
-          const RiquadroRagazzoVuoto("Nessun brevetto in corso.")
+          const JambTestoVuoto("Nessun brevetto in corso.")
         else
           ...List.generate(brevetti.length, (i) {
             final b = brevetti[i];

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:jamb/ui/core/widgets/jamb_stati.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:jamb/domain/entities/scout.dart'; // Importa entità di dominio
 import 'package:jamb/ui/dettaglio_ragazzo/widgets/riquadro_ragazzo.dart';
@@ -28,7 +29,7 @@ class ContattiEmergenzaWidget extends StatelessWidget {
       titolo: "Contatti di emergenza",
       children: [
         if (contatti.isEmpty)
-          const RiquadroRagazzoVuoto("Nessun contatto registrato.")
+          const JambTestoVuoto("Nessun contatto registrato.")
         else
           ...List.generate(contatti.length, (index) {
             return Column(

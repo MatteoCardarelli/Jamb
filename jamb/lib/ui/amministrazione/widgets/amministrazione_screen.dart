@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:jamb/ui/core/widgets/jamb_stati.dart';
 import 'package:provider/provider.dart';
 import 'package:jamb/ui/core/widgets/empty_background_screen.dart';
 import 'package:jamb/ui/core/widgets/jamb_intestazione.dart';
@@ -151,14 +152,10 @@ class _AmministrazioneScreenState extends State<AmministrazioneScreen> {
 
                   // --- LISTA RAGAZZI ---
                   if (filteredData.isEmpty)
-                    const Center(
-                      child: Padding(
-                        padding: EdgeInsets.only(top: 40),
-                        child: Text(
-                          "Nessun dato corrispondente ai filtri",
-                          style: TextStyle(color: Color(0xFF94A3B8), fontFamily: 'Lexend'),
-                        ),
-                      ),
+                    const JambTestoVuoto(
+                      "Nessun dato corrispondente ai filtri",
+                      icona: Icons.search_off_rounded,
+                      centrato: true,
                     )
                   else
                     ...filteredData.map((ragazzo) => StatusRowCard(

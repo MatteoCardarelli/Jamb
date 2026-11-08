@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:jamb/ui/core/widgets/jamb_stati.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:jamb/core/categoria_evento_colori.dart';
+import 'package:jamb/ui/core/widgets/jamb_app_bar.dart';
 import 'package:jamb/ui/core/widgets/jamb_barra_azioni.dart';
 import 'package:jamb/ui/core/widgets/jamb_campo.dart';
 import 'package:jamb/ui/core/widgets/jamb_errore_in_linea.dart';
@@ -86,17 +88,8 @@ class _FormEventoView extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        title: Text(
-          viewModel.isModifica ? 'Modifica Evento' : 'Nuovo Evento',
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-            color: Color(0xFF1D2660),
-          ),
-        ),
-        backgroundColor: Colors.white,
-        elevation: 0,
-        iconTheme: const IconThemeData(color: Color(0xFF1D2660)),
+      appBar: JambAppBar(
+        titolo: viewModel.isModifica ? 'Modifica Evento' : 'Nuovo Evento',
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24.0),
@@ -199,14 +192,7 @@ class _FormEventoView extends StatelessWidget {
             // CATEGORIE (domini degli obiettivi del Programma d'Unità + "Altro")
             JambEtichettaCampo('Categorie'),
             if (viewModel.isLoading)
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 8),
-                child: SizedBox(
-                  height: 20,
-                  width: 20,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                ),
-              )
+              const JambCaricamentoPiccolo()
             else ...[
               // Senza obiettivi caricati il form resta utilizzabile con "Altro".
               if (viewModel.haErrore)

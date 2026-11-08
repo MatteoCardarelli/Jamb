@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:jamb/ui/core/widgets/jamb_stati.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../view_model/calendario_view_model.dart';
@@ -53,15 +54,7 @@ class EventiOggiWidget extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           if (viewModel.eventiDelGiorno.isEmpty)
-            const Center(
-              child: Padding(
-                padding: EdgeInsets.all(24.0),
-                child: Text(
-                  "Nessun evento in questa data.",
-                  style: TextStyle(color: Colors.grey),
-                ),
-              ),
-            )
+            const JambTestoVuoto("Nessun evento in questa data.")
           else
             ListView.separated(
               shrinkWrap: true,
