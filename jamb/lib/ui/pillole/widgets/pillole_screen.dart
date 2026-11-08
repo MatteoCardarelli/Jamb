@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:jamb/core/session_service.dart';
 import 'package:jamb/domain/entities/pillola.dart';
 import 'package:jamb/ui/core/widgets/jamb_app_bar.dart';
+import 'package:jamb/ui/core/widgets/jamb_chip_filtro.dart';
 import 'package:jamb/ui/core/widgets/jamb_dialogs.dart';
 import 'package:jamb/ui/core/widgets/jamb_feedback.dart';
 import 'package:jamb/ui/core/widgets/jamb_menu.dart';
@@ -12,31 +13,53 @@ import 'package:jamb/ui/core/widgets/jamb_stati.dart';
 import 'package:jamb/ui/core/widgets/jamb_stato_errore.dart';
 import 'package:jamb/ui/pillole/view_model/pillole_view_model.dart';
 
-/// Elenco delle pillole del metodo della branca (US8).
+/// Elenco delle pillole del metodo (US8) e degli spunti di spiritualità (US33).
 class PilloleScreen extends StatelessWidget {
-  const PilloleScreen({super.key});
+  final TipoPillola tipoIniziale;
 
-  /// Apre l'elenco; il ViewModel è quello della Home.
-  static Future<void> apri(BuildContext context) {
+  const PilloleScreen({super.key, this.tipoIniziale = TipoPillola.metodo});
+
+  /// Apre l'elenco su [tipo]; il ViewModel è quello della Home.
+  static Future<void> apri(BuildContext context, {TipoPillola tipo = TipoPillola.metodo}) {
     return Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => const PilloleScreen()),
+      MaterialPageRoute(builder: (_) => PilloleScreen(tipoIniziale: tipo)),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final permessi = context.read<SessionService>().permessi;
     return PilloleView(
-      puoModificare: context.read<SessionService>().permessi.puoGestireLibreria,
+      puoModificare: permessi.puoGestireLibreria,
+      puoModificareSpiritualita: permessi.assistenteEcclesiastico,
+      tipoIniziale: tipoIniziale,
     );
   }
 }
 
 /// Contenuto della schermata; le pillole comuni non si modificano mai, le
-/// altre solo se [puoModificare].
-class PilloleView extends StatelessWidget {
+/// altre solo da chi ne ha il permesso per quel tipo.
+class PilloleView extends StatefulWidget {
   final bool puoModificare;
+  final bool puoModificareSpiritualita;
+  final TipoPillola tipoIniziale;
 
-  const PilloleView({super.key, required this.puoModificare});
+  const PilloleView({
+    super.key,
+    required this.puoModificare,
+    this.puoModificareSpiritualita = false,
+    this.tipoIniziale = TipoPillola.metodo,
+  });
+
+  @override
+  State<PilloleView> createState() => _PilloleViewState();
+}
+
+class _PilloleViewState extends State<PilloleView> {
+  late TipoPillola _tipo = widget.tipoIniziale;
+
+  bool get _puoModificare =>
+      _tipo == TipoPillola.metodo ? widget.puoModificare : widget.puoModificareSpiritualita;
 
   Future<String?> _chiediTesto(BuildContext context, String titolo, {String iniziale = ''}) {
     return JambDialogs.chiediNome(
@@ -46,16 +69,19 @@ class PilloleView extends StatelessWidget {
       conferma: 'SALVA',
       iniziale: iniziale,
       etichetta: 'Testo',
-      suggerimento: 'Una breve nozione sul metodo',
+      suggerimento: _tipo == TipoPillola.metodo
+          ? 'Una breve nozione sul metodo'
+          : 'Uno spunto per la Comunità Capi',
       righe: 4,
       valida: errorePillola,
     );
   }
 
   Future<void> _nuova(BuildContext context, PilloleViewModel viewModel) async {
+    final tipo = _tipo;
     final testo = await _chiediTesto(context, 'Nuova pillola');
     if (testo != null && context.mounted) {
-      await eseguiConFeedback(context, () => viewModel.crea(testo));
+      await eseguiConFeedback(context, () => viewModel.crea(testo, tipo: tipo));
     }
   }
 
@@ -100,10 +126,12 @@ class PilloleView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final viewModel = context.watch<PilloleViewModel>();
+    final pillole = viewModel.pilloleDi(_tipo);
+    final puoModificare = _puoModificare;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
-      appBar: const JambAppBar(titolo: 'Pillole del metodo'),
+      appBar: const JambAppBar(titolo: 'Pillole'),
       body: SafeArea(
         top: false,
         child: viewModel.isLoading
@@ -113,6 +141,18 @@ class PilloleView extends StatelessWidget {
                 : ListView(
                     padding: const EdgeInsets.all(20),
                     children: [
+                      Wrap(
+                        spacing: 8,
+                        children: [
+                          for (final t in TipoPillola.values)
+                            JambChipFiltro(
+                              etichetta: t.etichetta,
+                              selezionato: _tipo == t,
+                              onTap: () => setState(() => _tipo = t),
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
                       if (puoModificare) ...[
                         JambPulsanteSecondario(
                           icona: Icons.add_rounded,
@@ -121,13 +161,15 @@ class PilloleView extends StatelessWidget {
                         ),
                         const SizedBox(height: 16),
                       ],
-                      if (viewModel.pillole.isEmpty)
-                        const JambTestoVuoto(
-                          'Nessuna pillola per questa branca.',
+                      if (pillole.isEmpty)
+                        JambTestoVuoto(
+                          _tipo == TipoPillola.metodo
+                              ? 'Nessuna pillola per questa branca.'
+                              : 'Nessuno spunto di spiritualità.',
                           icona: Icons.lightbulb_outline_rounded,
                           centrato: true,
                         ),
-                      for (final p in viewModel.pillole)
+                      for (final p in pillole)
                         Padding(
                           padding: const EdgeInsets.only(bottom: 12),
                           child: GestureDetector(

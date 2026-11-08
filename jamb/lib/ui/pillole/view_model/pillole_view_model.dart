@@ -9,6 +9,7 @@ class PilloleViewModel extends ChangeNotifier with StatoCaricamentoMixin {
   final DateTime Function() _oggi;
 
   List<Pillola> _pillole = const [];
+  List<Pillola> _spunti = const [];
 
   /// [oggi] serve solo ai test.
   PilloleViewModel(this._repository, {DateTime Function()? oggi})
@@ -25,19 +26,25 @@ class PilloleViewModel extends ChangeNotifier with StatoCaricamentoMixin {
 
   Future<void> _carica() => eseguiCaricamento(() async {
         _pillole = await _repository.getPillole();
+        _spunti = await _repository.getPillole(tipo: TipoPillola.spiritualita);
       });
 
   /// Rilegge le pillole (es. dopo un errore).
   Future<void> ricarica() => _carica();
 
-  /// Tutte le pillole della branca.
+  /// Tutte le pillole del metodo della branca.
   List<Pillola> get pillole => _pillole;
 
-  /// Pillola di oggi (`null` se la branca non ne ha).
+  /// Pillole di [tipo].
+  List<Pillola> pilloleDi(TipoPillola tipo) =>
+      tipo == TipoPillola.metodo ? _pillole : _spunti;
+
+  /// Pillola del metodo di oggi (`null` se la branca non ne ha).
   Pillola? get delGiorno => pillolaDelGiorno(_pillole, _oggi());
 
   /// Aggiunge una pillola. Gli errori vengono propagati alla View.
-  Future<void> crea(String testo) => _repository.crea(testo);
+  Future<void> crea(String testo, {TipoPillola tipo = TipoPillola.metodo}) =>
+      _repository.crea(testo, tipo: tipo);
 
   /// Cambia il testo di [pillola].
   Future<void> aggiorna(Pillola pillola, String testo) =>

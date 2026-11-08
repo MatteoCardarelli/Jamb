@@ -8,6 +8,8 @@ import 'package:jamb/ui/bacheca/view_model/bacheca_view_model.dart';
 import 'package:jamb/ui/bacheca/widgets/bacheca_screen.dart';
 import 'package:jamb/ui/core/widgets/jamb_feedback.dart';
 import 'package:jamb/ui/core/widgets/jamb_menu.dart';
+import 'package:jamb/domain/entities/pillola.dart';
+import 'package:jamb/ui/pillole/widgets/pillole_screen.dart';
 import 'package:jamb/ui/core/widgets/selettore_unita.dart';
 import 'package:jamb/ui/profilo/widgets/profilo_screen.dart';
 
@@ -214,6 +216,12 @@ class TopBar extends StatelessWidget implements PreferredSizeWidget {
           etichetta: 'Il mio profilo',
           onTap: () => ProfiloScreen.apri(context),
         ),
+        if (session.permessi.assistenteEcclesiastico && session.permessi.puoUsareAreaCapi)
+          JambVoceMenu(
+            icona: Icons.auto_awesome_outlined,
+            etichetta: 'Spunti di spiritualità',
+            onTap: () => PilloleScreen.apri(context, tipo: TipoPillola.spiritualita),
+          ),
         if (session.permessi.puoNominareAssistente)
           JambVoceMenu(
             icona: Icons.volunteer_activism_outlined,

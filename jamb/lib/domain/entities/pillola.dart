@@ -1,7 +1,18 @@
 /// Lunghezza massima di una pillola (come il vincolo su `pillole.testo`).
 const int lunghezzaMassimaPillola = 500;
 
-/// Breve nozione sul metodo di una branca (US8).
+/// Tipo di pillola: nozione sul metodo o spunto di spiritualità.
+enum TipoPillola {
+  metodo('metodo', 'Metodo'),
+  spiritualita('spiritualita', 'Spiritualità');
+
+  /// Valore della colonna `pillole.tipo`.
+  final String valoreDb;
+  final String etichetta;
+  const TipoPillola(this.valoreDb, this.etichetta);
+}
+
+/// Breve nozione sul metodo di una branca (US8) o spunto di spiritualità (US33).
 class Pillola {
   final String id;
   final String testo;
