@@ -24,6 +24,9 @@ class Evento {
   /// Ogni quanto si ripete la serie ([Ripetizione.mai] per un evento singolo).
   final Ripetizione ripetizione;
 
+  /// Calendario a cui appartiene: l'unità attiva, la Co.Ca. o il gruppo.
+  final LivelloEvento livello;
+
   const Evento({
     required this.id,
     required this.titolo,
@@ -35,6 +38,7 @@ class Evento {
     this.tuttoIlGiorno = false,
     this.serieId,
     this.ripetizione = Ripetizione.mai,
+    this.livello = LivelloEvento.unita,
   });
 
   /// `true` se l'evento fa parte di una ripetizione.
@@ -52,6 +56,7 @@ class Evento {
     bool? tuttoIlGiorno,
     String? serieId,
     Ripetizione? ripetizione,
+    LivelloEvento? livello,
   }) {
     return Evento(
       id: id ?? this.id,
@@ -64,8 +69,43 @@ class Evento {
       tuttoIlGiorno: tuttoIlGiorno ?? this.tuttoIlGiorno,
       serieId: serieId ?? this.serieId,
       ripetizione: ripetizione ?? this.ripetizione,
+      livello: livello ?? this.livello,
     );
   }
+}
+
+/// Calendario a cui appartiene un evento.
+enum LivelloEvento {
+  /// Dell'unità attiva.
+  unita(''),
+
+  /// Della Comunità Capi: lo vedono e lo modificano tutti i capi del gruppo.
+  coca('Co.Ca.'),
+
+  /// Di tutto il gruppo, senza unità.
+  gruppo('Gruppo');
+
+  /// Etichetta che distingue l'evento negli elenchi (vuota per l'unità).
+  final String etichetta;
+  const LivelloEvento(this.etichetta);
+}
+
+/// Quali eventi mostra il calendario.
+enum FiltroCalendario {
+  tutti('Tutti'),
+  unita('La mia unità'),
+  coca('Co.Ca.');
+
+  final String etichetta;
+  const FiltroCalendario(this.etichetta);
+
+  /// `true` se [evento] rientra nel filtro. Gli eventi di gruppo riguardano
+  /// i capi come quelli di Co.Ca.
+  bool include(Evento evento) => switch (this) {
+        FiltroCalendario.tutti => true,
+        FiltroCalendario.unita => evento.livello == LivelloEvento.unita,
+        FiltroCalendario.coca => evento.livello != LivelloEvento.unita,
+      };
 }
 
 /// Ogni quanto si ripete un evento.

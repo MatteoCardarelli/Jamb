@@ -21,12 +21,16 @@ class SupabaseEventoRepository extends IEventoRepository {
   Future<List<Evento>> getEventi() => eseguiSupabase(() async {
         final unitId = _session.activeUnitId;
         if (unitId == null) return [];
-        // Gli eventi dell'unità attiva e quelli di gruppo (senza unità): le RLS
-        // lasciano leggere a ogni capo tutti gli eventi del gruppo.
+        // Gli eventi dell'unità attiva, della Co.Ca. e di gruppo (senza unità).
+        final coca = _session.unitaCocaId;
         final List<dynamic> rows = await supabase
             .from(_table)
-            .select()
-            .or('unit_id.eq.$unitId,unit_id.is.null')
+            .select('*, units ( tipo_branca )')
+            .or([
+              'unit_id.eq.$unitId',
+              'unit_id.is.null',
+              if (coca != null) 'unit_id.eq.$coca',
+            ].join(','))
             .order('data_inizio', ascending: true);
         return rows.map((r) => _fromDb(r as Map<String, dynamic>)).toList();
       });
@@ -76,6 +80,8 @@ class SupabaseEventoRepository extends IEventoRepository {
     DateTime? finoAl,
   }) =>
       eseguiSupabase(() async {
+        final diCoca = evento.livello == LivelloEvento.coca;
+        if (diCoca && _session.unitaCocaId == null) throw gruppoSenzaCoca;
         final serie = ripetizione == Ripetizione.mai
             ? [evento]
             : eventiDellaSerie(evento, ripetizione, finoAl ?? evento.dataInizio);
@@ -85,7 +91,7 @@ class SupabaseEventoRepository extends IEventoRepository {
           for (final e in serie)
             {
               'group_id': _session.groupId,
-              'unit_id': _session.activeUnitId,
+              'unit_id': diCoca ? _session.unitaCocaId : _session.activeUnitId,
               'tipo_evento': 'RIUNIONE', // l'entità non modella il tipo: valore di default
               'serie_id': serieId,
               'ripetizione': valoreDbRipetizione(ripetizione),
@@ -166,7 +172,17 @@ class SupabaseEventoRepository extends IEventoRepository {
       tuttoIlGiorno: row['tutto_il_giorno'] == true,
       serieId: row['serie_id'] as String?,
       ripetizione: ripetizioneDaDb(row['ripetizione']),
+      livello: livelloDaDb(row['unit_id'], row['units']),
     );
+  }
+
+  /// Livello di un evento: senza unità è di gruppo; l'unità COCA è la Co.Ca.;
+  /// un tipo sconosciuto o assente vale come evento di unità.
+  @visibleForTesting
+  static LivelloEvento livelloDaDb(Object? unitId, Object? unita) {
+    if (unitId == null) return LivelloEvento.gruppo;
+    final tipo = unita is Map ? unita['tipo_branca'] : null;
+    return tipo == 'COCA' ? LivelloEvento.coca : LivelloEvento.unita;
   }
 
   /// Normalizza un valore JSONB in lista (vuota se non è una lista).
