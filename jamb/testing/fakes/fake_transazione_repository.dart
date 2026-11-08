@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:jamb/domain/entities/bilancio.dart';
 import 'package:jamb/domain/entities/file_da_caricare.dart';
 import 'package:jamb/domain/entities/transazione.dart';
 import 'package:jamb/domain/errori/jamb_exception.dart';
@@ -13,14 +14,21 @@ class FakeTransazioneRepository extends ChangeNotifier
   final List<Transazione> data;
   final List<FileDaCaricare?> ricevuteSalvate = [];
   final List<String> urlRichiesti = [];
+  final List<CassaDelGruppo> casse;
   JambException? erroreLettura;
 
-  FakeTransazioneRepository(this.data, {this.erroreLettura});
+  FakeTransazioneRepository(this.data, {this.erroreLettura, this.casse = const []});
 
   @override
   Future<List<Transazione>> getTransazioni() async {
     if (erroreLettura != null) throw erroreLettura!;
     return List.of(data);
+  }
+
+  @override
+  Future<List<CassaDelGruppo>> getCasseDelGruppo() async {
+    if (erroreLettura != null) throw erroreLettura!;
+    return List.of(casse);
   }
 
   @override

@@ -48,6 +48,10 @@ class Permessi {
   /// mostrarne una vietata.
   bool get puoGestireLibreria => _almeno('CAPO_UNITA');
 
+  /// Vedere il bilancio consolidato del gruppo: solo il Capo Gruppo legge le
+  /// transazioni di tutte le unità (`transactions_select`: `is_capo_gruppo()`).
+  bool get puoVedereBilancioGruppo => capoGruppo;
+
   /// Modificare l'archivio [archivio]: i drive come le altre scritture
   /// operative, le librerie solo da Capo Unità in su.
   bool puoModificare(ArchivioDocumenti archivio) =>

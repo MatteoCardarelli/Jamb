@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:jamb/ui/core/widgets/empty_background_screen.dart';
 import 'package:jamb/ui/contabilita/widgets/add_transaction_screen.dart';
 import 'package:jamb/ui/contabilita/widgets/balance_card.dart';
+import 'package:jamb/core/session_service.dart';
+import 'package:jamb/ui/contabilita/widgets/bilancio_gruppo_screen.dart';
 import 'package:jamb/ui/contabilita/widgets/bilancio_screen.dart';
 import 'package:jamb/ui/core/widgets/jamb_pulsante_secondario.dart';
 import 'package:jamb/ui/contabilita/widgets/expenses_distribution_card.dart';
@@ -60,6 +62,15 @@ class ContabilitaScreen extends StatelessWidget {
                   etichetta: "Bilancio dell'anno",
                   onTap: () => BilancioScreen.apri(context),
                 ),
+
+                if (context.read<SessionService>().permessi.puoVedereBilancioGruppo) ...[
+                  const SizedBox(height: 8),
+                  JambPulsanteSecondario(
+                    icona: Icons.groups_outlined,
+                    etichetta: "Bilancio di Gruppo",
+                    onTap: () => BilancioGruppoScreen.apri(context),
+                  ),
+                ],
 
                 const SizedBox(height: 32),
 

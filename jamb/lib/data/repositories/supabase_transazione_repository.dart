@@ -4,6 +4,7 @@ import 'package:jamb/core/session_service.dart';
 import 'package:jamb/data/errori_supabase.dart';
 import 'package:jamb/data/services/file_archiviati.dart';
 import 'package:jamb/data/services/storage_service.dart';
+import '../../domain/entities/bilancio.dart';
 import '../../domain/entities/file_da_caricare.dart';
 import '../../domain/entities/transazione.dart';
 import '../../domain/repositories/transazione_repository.dart';
@@ -37,6 +38,46 @@ class SupabaseTransazioneRepository extends ITransazioneRepository {
             .eq('unit_id', unitId)
             .order('data', ascending: false);
         return rows.map((row) => _fromDb(row as Map<String, dynamic>)).toList();
+      });
+
+  @override
+  Future<List<CassaDelGruppo>> getCasseDelGruppo() => eseguiSupabase(() async {
+        final groupId = _session.groupId;
+        if (groupId == null) return [];
+        final List<dynamic> unita = await supabase
+            .from('units')
+            .select('id, nome')
+            .eq('group_id', groupId)
+            .neq('tipo_branca', 'COCA')
+            .order('nome');
+        final ids = [for (final u in unita) u['id'] as String];
+
+        final List<dynamic> righe = await supabase
+            .from(_table)
+            .select()
+            .or([
+              'group_id.eq.$groupId',
+              if (ids.isNotEmpty) 'unit_id.in.(${ids.join(',')})',
+            ].join(','));
+
+        final perUnita = <String, List<Transazione>>{};
+        final delGruppo = <Transazione>[];
+        for (final r in righe.cast<Map<String, dynamic>>()) {
+          final unitId = r['unit_id'] as String?;
+          if (unitId == null) {
+            delGruppo.add(_fromDb(r));
+          } else {
+            perUnita.putIfAbsent(unitId, () => []).add(_fromDb(r));
+          }
+        }
+        return [
+          for (final u in unita)
+            CassaDelGruppo(
+              nome: (u['nome'] ?? '') as String,
+              transazioni: perUnita[u['id']] ?? const [],
+            ),
+          if (delGruppo.isNotEmpty) CassaDelGruppo(nome: 'Cassa di Gruppo', transazioni: delGruppo),
+        ];
       });
 
   @override
