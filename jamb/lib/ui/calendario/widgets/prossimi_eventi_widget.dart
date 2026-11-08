@@ -72,6 +72,7 @@ class _ProssimoEventoRow extends StatelessWidget {
     // Calculate duration in days (approximate for the subtitle)
     final durationDays = evento.dataFine.difference(evento.dataInizio).inDays;
     final durationStr = durationDays > 0 ? " • ${durationDays + 1} Giorni" : "";
+    final livelloStr = evento.livello.etichetta.isNotEmpty ? " • ${evento.livello.etichetta}" : "";
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
@@ -132,7 +133,7 @@ class _ProssimoEventoRow extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  "${evento.luogo}$durationStr",
+                  "${evento.luogo}$durationStr$livelloStr",
                   style: const TextStyle(
                     fontSize: 12,
                     color: Color(0xFF64748B),

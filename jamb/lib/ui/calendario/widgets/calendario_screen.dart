@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:jamb/domain/entities/evento.dart';
 import 'package:jamb/ui/calendario/view_model/calendario_view_model.dart';
+import 'package:jamb/ui/core/widgets/jamb_chip_filtro.dart';
 import 'package:jamb/ui/core/widgets/empty_background_screen.dart';
 import 'package:jamb/ui/core/widgets/jamb_fab.dart';
 import 'package:jamb/ui/core/widgets/jamb_stato_errore.dart';
@@ -46,12 +48,41 @@ class CalendarioScreen extends StatelessWidget {
                   onRiprova: viewModel.refresh,
                 )
               else ...const [
+                _FiltriCalendario(),
                 EventiOggiWidget(),
                 ProssimiEventiWidget(),
               ],
               const SizedBox(height: 80), // Padding below for the bottom navbar
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Scelta di quali eventi mostrare: tutti, della mia unità o della Co.Ca.
+class _FiltriCalendario extends StatelessWidget {
+  const _FiltriCalendario();
+
+  @override
+  Widget build(BuildContext context) {
+    final viewModel = context.watch<CalendarioViewModel>();
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+      child: Align(
+        alignment: Alignment.centerLeft,
+        child: Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            for (final filtro in FiltroCalendario.values)
+              JambChipFiltro(
+                etichetta: filtro.etichetta,
+                selezionato: viewModel.filtro == filtro,
+                onTap: () => viewModel.setFiltro(filtro),
+              ),
+          ],
         ),
       ),
     );

@@ -23,6 +23,7 @@ class FormEventoViewModel extends ChangeNotifier with StatoCaricamentoMixin {
   List<String> _categorieDisponibili = const [categoriaAltro];
   Ripetizione _ripetizione = Ripetizione.mai;
   late DateTime _finoAl;
+  LivelloEvento _livello = LivelloEvento.unita;
 
   /// Un nuovo evento parte da [giorno] (es. quello selezionato nel calendario)
   /// all'ora attuale, e dura un'ora. [adesso] serve solo ai test.
@@ -41,6 +42,7 @@ class FormEventoViewModel extends ChangeNotifier with StatoCaricamentoMixin {
       _dataFine = evento.dataFine;
       _tuttoIlGiorno = evento.tuttoIlGiorno;
       _categorieSelezionate = List.of(evento.categorie);
+      _livello = evento.livello;
     } else {
       final ora = adesso ?? DateTime.now();
       final g = giorno ?? ora;
@@ -67,6 +69,14 @@ class FormEventoViewModel extends ChangeNotifier with StatoCaricamentoMixin {
 
   /// Ultimo giorno della ripetizione; proposto il 31 agosto dell'anno scout.
   DateTime get finoAl => _finoAl;
+
+  /// Calendario del nuovo evento (in modifica non si cambia).
+  LivelloEvento get livello => _livello;
+
+  void setLivello(LivelloEvento value) {
+    _livello = value;
+    notifyListeners();
+  }
 
   void setRipetizione(Ripetizione value) {
     _ripetizione = value;
@@ -198,6 +208,7 @@ class FormEventoViewModel extends ChangeNotifier with StatoCaricamentoMixin {
       tuttoIlGiorno: _tuttoIlGiorno,
       serieId: esistente?.serieId,
       ripetizione: esistente?.ripetizione ?? Ripetizione.mai,
+      livello: _livello,
     );
   }
 

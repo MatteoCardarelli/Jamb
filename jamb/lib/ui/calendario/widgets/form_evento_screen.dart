@@ -96,6 +96,28 @@ class _FormEventoView extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // CALENDARIO: si sceglie creando l'evento e poi non cambia
+            if (!viewModel.isModifica) ...[
+              JambEtichettaCampo('Calendario'),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  JambChipFiltro(
+                    etichetta: 'La mia unità',
+                    selezionato: viewModel.livello == LivelloEvento.unita,
+                    onTap: () => viewModel.setLivello(LivelloEvento.unita),
+                  ),
+                  JambChipFiltro(
+                    etichetta: 'Co.Ca.',
+                    selezionato: viewModel.livello == LivelloEvento.coca,
+                    onTap: () => viewModel.setLivello(LivelloEvento.coca),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+            ],
+
             // TITOLO
             JambEtichettaCampo('Titolo Evento'),
             TextFormField(
