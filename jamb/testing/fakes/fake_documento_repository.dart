@@ -46,18 +46,22 @@ class FakeDocumentoRepository extends ChangeNotifier implements IDocumentoReposi
           )));
 
   @override
-  Future<void> caricaFile(ArchivioDocumenti archivio, FileDaCaricare file, String? parentId) =>
-      _scrivi(() {
-        caricati.add(file);
-        _di(archivio).add(Documento(
-          id: 'file-${_prossimoId++}',
-          nome: file.nome,
-          tipo: TipoDocumento.pdf,
-          parentId: parentId,
-          ultimaModifica: DateTime(2026, 11, 7),
-          percorsoFile: 'archivio/${file.nome}',
-        ));
-      });
+  Future<Documento> caricaFile(ArchivioDocumenti archivio, FileDaCaricare file, String? parentId) async {
+    late Documento creato;
+    await _scrivi(() {
+      caricati.add(file);
+      creato = Documento(
+        id: 'file-${_prossimoId++}',
+        nome: file.nome,
+        tipo: TipoDocumento.pdf,
+        parentId: parentId,
+        ultimaModifica: DateTime(2026, 11, 7),
+        percorsoFile: 'archivio/${file.nome}',
+      );
+      _di(archivio).add(creato);
+    });
+    return creato;
+  }
 
   @override
   Future<void> rinomina(Documento documento, String nome) => _scrivi(() {

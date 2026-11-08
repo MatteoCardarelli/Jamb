@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:jamb/core/session_service.dart';
+import 'package:jamb/domain/entities/documento.dart';
 import 'package:jamb/domain/repositories/documento_repository.dart';
 import 'package:jamb/domain/repositories/transazione_repository.dart';
 import 'package:jamb/ui/contabilita/view_model/bilancio_view_model.dart';
 import 'package:jamb/ui/contabilita/widgets/riquadro_bilancio.dart';
+import 'package:jamb/ui/core/widgets/jamb_apri_file.dart';
 import 'package:jamb/ui/core/widgets/jamb_feedback.dart';
 import 'package:jamb/ui/core/widgets/jamb_pulsante_secondario.dart';
 
@@ -34,19 +36,24 @@ class BilancioScreen extends StatelessWidget {
 class _BilancioView extends StatelessWidget {
   const _BilancioView();
 
-  /// Archivia con [archivia] e conferma all'utente dove trovare il file.
+  /// Archivia con [archivia], conferma dove trovare il file e lo apre subito.
   Future<void> _archivia(
     BuildContext context,
-    Future<void> Function({required String unita}) archivia,
+    Future<Documento> Function({required String unita}) archivia,
   ) async {
+    final viewModel = context.read<BilancioViewModel>();
     final unita = context.read<SessionService>().nomeUnitaAttiva;
     final messenger = ScaffoldMessenger.of(context);
-    final fatto = await eseguiConFeedback(context, () => archivia(unita: unita));
-    if (fatto) {
-      messenger.showSnackBar(const SnackBar(
-        content: Text('Bilancio archiviato nel Drive di Branca.'),
-      ));
-    }
+    Documento? archiviato;
+    await eseguiConFeedback(context, () async {
+      archiviato = await archivia(unita: unita);
+    });
+    final documento = archiviato;
+    if (documento == null || !context.mounted) return;
+    messenger.showSnackBar(const SnackBar(
+      content: Text('Bilancio archiviato nel Drive di Branca.'),
+    ));
+    await apriFile(context, () => viewModel.urlFile(documento));
   }
 
   @override

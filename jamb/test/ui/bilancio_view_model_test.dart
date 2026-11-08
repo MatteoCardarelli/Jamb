@@ -66,6 +66,18 @@ void main() {
       expect(documenti.archivi[ArchivioDocumenti.driveBranca]!.single.parentId, isNull);
     });
 
+    // La schermata lo apre subito dopo averlo archiviato.
+    test('il documento archiviato si può aprire', () async {
+      final documenti = FakeDocumentoRepository();
+      final vm = crea(FakeTransazioneRepository(transazioni), documenti);
+      await pumpEventQueue();
+
+      final documento = await vm.archiviaCsv(unita: 'Reparto');
+
+      expect(documento.apribile, isTrue);
+      expect(await vm.urlFile(documento), contains(documento.nome));
+    });
+
     test('il PDF si genera anche per un anno senza movimenti', () async {
       final documenti = FakeDocumentoRepository();
       final vm = crea(FakeTransazioneRepository(const []), documenti);

@@ -17,8 +17,9 @@ abstract class IDocumentoRepository extends ChangeNotifier {
   /// Crea la cartella [nome] in [archivio], dentro [parentId] (o alla radice).
   Future<void> creaCartella(ArchivioDocumenti archivio, String nome, String? parentId);
 
-  /// Archivia [file] in [archivio], dentro [parentId] (o alla radice).
-  Future<void> caricaFile(ArchivioDocumenti archivio, FileDaCaricare file, String? parentId);
+  /// Archivia [file] in [archivio], dentro [parentId] (o alla radice), e
+  /// restituisce il documento creato.
+  Future<Documento> caricaFile(ArchivioDocumenti archivio, FileDaCaricare file, String? parentId);
 
   /// Cambia il nome di [documento].
   Future<void> rinomina(Documento documento, String nome);

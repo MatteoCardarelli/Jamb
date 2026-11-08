@@ -94,7 +94,7 @@ class SupabaseDocumentoRepository extends IDocumentoRepository {
       });
 
   @override
-  Future<void> caricaFile(ArchivioDocumenti archivio, FileDaCaricare file, String? parentId) =>
+  Future<Documento> caricaFile(ArchivioDocumenti archivio, FileDaCaricare file, String? parentId) =>
       eseguiSupabase(() async {
         final p = await _proprietario(archivio);
         final mime = verificaFile(file.nome, file.dimensione,
@@ -124,6 +124,15 @@ class SupabaseDocumentoRepository extends IDocumentoRepository {
           eliminaFile: () => _storage.elimina(bucketDocumenti, [percorso]),
         );
         notifyListeners();
+        return Documento(
+          id: id,
+          nome: file.nome.trim(),
+          tipo: TipoDocumento.daEstensione(estensione),
+          parentId: parentId,
+          ultimaModifica: DateTime.now(),
+          dimensioni: file.dimensione,
+          percorsoFile: percorso,
+        );
       });
 
   @override
