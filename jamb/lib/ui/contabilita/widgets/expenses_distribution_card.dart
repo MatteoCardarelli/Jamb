@@ -19,17 +19,6 @@ class ExpensesDistributionCard extends StatelessWidget {
     }
   }
 
-  String _getLabelForCategory(Categoria cat) {
-    switch (cat) {
-      case Categoria.attivita: return "Attività";
-      case Categoria.materiale: return "Materiale";
-      case Categoria.trasporto: return "Trasporto";
-      case Categoria.sede: return "Sede";
-      case Categoria.quote: return "Quote";
-      case Categoria.altro: return "Altro";
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final viewModel = context.watch<ContabilitaViewModel>();
@@ -59,7 +48,7 @@ class ExpensesDistributionCard extends StatelessWidget {
     // Convertiamo la mappa in una lista di dati per il painter e la legenda
     final List<Map<String, dynamic>> dati = ripartizione.entries.map((e) {
       return {
-        "label": _getLabelForCategory(e.key),
+        "label": e.key.etichetta,
         "valore": e.value,
         "colore": _getColorForCategory(e.key),
       };

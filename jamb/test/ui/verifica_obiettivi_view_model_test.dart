@@ -6,7 +6,7 @@ import 'package:jamb/data/services/file_archiviati.dart';
 import 'package:jamb/domain/entities/anno_scout.dart';
 import 'package:jamb/domain/entities/documento.dart';
 import 'package:jamb/domain/entities/obiettivo.dart';
-import 'package:jamb/ui/verifica_obiettivi/programma_pdf.dart';
+import 'package:jamb/ui/core/pdf_jamb.dart';
 import 'package:jamb/ui/verifica_obiettivi/view_model/verifica_obiettivi_view_model.dart';
 import '../../testing/fakes/fake_documento_repository.dart';
 

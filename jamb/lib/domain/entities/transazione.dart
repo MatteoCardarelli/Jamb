@@ -1,11 +1,15 @@
 /// Categoria contabile di una transazione di cassa.
 enum Categoria {
-  materiale,
-  attivita,
-  trasporto,
-  sede,
-  quote,
-  altro;
+  materiale('Materiale'),
+  attivita('Attività'),
+  trasporto('Trasporto'),
+  sede('Sede'),
+  quote('Quote'),
+  altro('Altro');
+
+  /// Nome da mostrare all'utente.
+  final String etichetta;
+  const Categoria(this.etichetta);
 }
 
 /// Movimento di cassa (entrata o uscita) di un'unità o gruppo.
