@@ -4,7 +4,6 @@ import 'package:provider/provider.dart';
 import 'package:jamb/domain/entities/campo.dart';
 import 'package:jamb/domain/repositories/campo_repository.dart';
 import 'package:jamb/ui/campo/view_model/campo_view_model.dart';
-import 'package:jamb/ui/core/widgets/jamb_app_bar.dart';
 import 'package:jamb/ui/core/widgets/jamb_dialogs.dart';
 import 'package:jamb/ui/core/widgets/jamb_feedback.dart';
 import 'package:jamb/ui/core/widgets/jamb_menu.dart';
