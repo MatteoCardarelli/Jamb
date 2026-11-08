@@ -11,6 +11,9 @@ class Obiettivo {
   final IconData icona;
   final String diarioDiBordo;
 
+  /// Obiettivo del Progetto Educativo di Gruppo a cui è collegato, se c'è.
+  final String? pegObiettivoId;
+
   const Obiettivo({
     required this.id,
     required this.dominio,
@@ -19,9 +22,13 @@ class Obiettivo {
     required this.colore,
     required this.icona,
     this.diarioDiBordo = "",
+    this.pegObiettivoId,
   });
 
+  static const Object _invariato = Object();
+
   /// Restituisce una copia dell'obiettivo con i campi indicati sostituiti.
+  /// [pegObiettivoId] si può azzerare passando `null`.
   Obiettivo copyWith({
     String? id,
     String? dominio,
@@ -30,6 +37,7 @@ class Obiettivo {
     Color? colore,
     IconData? icona,
     String? diarioDiBordo,
+    Object? pegObiettivoId = _invariato,
   }) {
     return Obiettivo(
       id: id ?? this.id,
@@ -39,6 +47,9 @@ class Obiettivo {
       colore: colore ?? this.colore,
       icona: icona ?? this.icona,
       diarioDiBordo: diarioDiBordo ?? this.diarioDiBordo,
+      pegObiettivoId: identical(pegObiettivoId, _invariato)
+          ? this.pegObiettivoId
+          : pegObiettivoId as String?,
     );
   }
 

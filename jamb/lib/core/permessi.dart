@@ -78,6 +78,9 @@ class Permessi {
   /// (`iter_select`, `progetti_select`: `sono_capo_gruppo_di`).
   bool get puoVedereFormazioneCoca => capoGruppo;
 
+  /// Scrivere il Progetto Educativo di Gruppo (`peg_*`: `is_capo_gruppo()`).
+  bool get puoScriverePeg => capoGruppo;
+
   /// Nominare l'Assistente Ecclesiastico (`incarichi_insert`: `is_capo_gruppo()`).
   bool get puoNominareAssistente => capoGruppo;
 

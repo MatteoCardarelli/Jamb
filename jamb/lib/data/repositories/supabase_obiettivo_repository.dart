@@ -40,6 +40,7 @@ class SupabaseObiettivoRepository implements IObiettivoRepository {
           'diario_di_bordo': o.diarioDiBordo,
           'colore': o.colore.toARGB32(),
           'icona': o.icona.codePoint,
+          'peg_obiettivo_id': o.pegObiettivoId,
         };
 
         // id non-UUID → nuovo (INSERT, id generato dal DB); id UUID → esistente (UPDATE).
@@ -75,6 +76,7 @@ class SupabaseObiettivoRepository implements IObiettivoRepository {
         (row['icona'] as num?)?.toInt() ?? Icons.star_rounded.codePoint,
         fontFamily: 'MaterialIcons',
       ),
+      pegObiettivoId: row['peg_obiettivo_id'] as String?,
     );
   }
 

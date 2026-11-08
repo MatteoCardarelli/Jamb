@@ -36,6 +36,8 @@ import 'package:jamb/data/repositories/supabase_incarichi_repository.dart';
 import 'package:jamb/ui/assistente/widgets/area_assistente_screen.dart';
 import 'package:jamb/domain/repositories/formazione_repository.dart';
 import 'package:jamb/data/repositories/supabase_formazione_repository.dart';
+import 'package:jamb/domain/repositories/peg_repository.dart';
+import 'package:jamb/data/repositories/supabase_peg_repository.dart';
 import 'package:jamb/data/services/storage_service.dart';
 import 'package:jamb/data/services/supabase_storage_service.dart';
 
@@ -87,6 +89,7 @@ class _AppPerUtente extends StatelessWidget {
         ChangeNotifierProvider<IPillolaRepository>(create: (ctx) => SupabasePillolaRepository(ctx.read<SessionService>())),
         ChangeNotifierProvider<IIncarichiRepository>(create: (ctx) => SupabaseIncarichiRepository(ctx.read<SessionService>())),
         ChangeNotifierProvider<IFormazioneRepository>(create: (ctx) => SupabaseFormazioneRepository(ctx.read<SessionService>())),
+        ChangeNotifierProvider<IPegRepository>(create: (ctx) => SupabasePegRepository(ctx.read<SessionService>())),
 
         // ViewModels
         ChangeNotifierProvider(create: (context) => AmministrazioneViewModel(context.read<IScoutRepository>())),
