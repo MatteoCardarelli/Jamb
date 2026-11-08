@@ -4,7 +4,6 @@ import 'package:jamb/core/ruolo_display.dart';
 import 'package:jamb/core/session_service.dart';
 import 'package:jamb/domain/entities/sottogruppi.dart';
 import 'package:jamb/domain/repositories/sottogruppo_repository.dart';
-import 'package:jamb/ui/core/widgets/jamb_app_bar.dart';
 import 'package:jamb/ui/core/widgets/jamb_dialogs.dart';
 import 'package:jamb/ui/core/widgets/jamb_feedback.dart';
 import 'package:jamb/ui/core/widgets/jamb_menu.dart';

@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import 'package:jamb/core/session_service.dart';
 import 'package:jamb/domain/entities/formazione.dart';
 import 'package:jamb/domain/repositories/formazione_repository.dart';
-import 'package:jamb/ui/core/widgets/jamb_app_bar.dart';
 import 'package:jamb/ui/core/widgets/jamb_dialogs.dart';
 import 'package:jamb/ui/core/widgets/jamb_feedback.dart';
 import 'package:jamb/ui/core/widgets/jamb_menu.dart';
