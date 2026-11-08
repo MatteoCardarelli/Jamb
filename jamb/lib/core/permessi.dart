@@ -29,7 +29,11 @@ class Permessi {
   /// nel database: vale su tutte le unità del gruppo.
   final bool capoGruppo;
 
-  const Permessi({this.ruolo, this.capoGruppo = false});
+  /// Incarico trasversale, indipendente dal ruolo nelle unità (come
+  /// `is_assistente_ecclesiastico()` nel database).
+  final bool assistenteEcclesiastico;
+
+  const Permessi({this.ruolo, this.capoGruppo = false, this.assistenteEcclesiastico = false});
 
   /// Nessun permesso: utente non autenticato o senza ruolo.
   static const nessuno = Permessi();
@@ -64,8 +68,14 @@ class Permessi {
 
   /// Modificare l'archivio [archivio]: i drive come le altre scritture
   /// operative, le librerie solo da Capo Unità in su.
-  bool puoModificare(ArchivioDocumenti archivio) =>
-      archivio.isLibreria ? puoGestireLibreria : puoUsareAreaCapi;
+  bool puoModificare(ArchivioDocumenti archivio) {
+    if (archivio.isLibreria) return puoGestireLibreria;
+    return puoUsareAreaCapi ||
+        (archivio == ArchivioDocumenti.driveCoca && assistenteEcclesiastico);
+  }
+
+  /// Nominare l'Assistente Ecclesiastico (`incarichi_insert`: `is_capo_gruppo()`).
+  bool get puoNominareAssistente => capoGruppo;
 
   bool _almeno(String minimo) =>
       capoGruppo || _livello(ruolo) >= _livello(minimo);

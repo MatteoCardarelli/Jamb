@@ -3,6 +3,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import 'package:jamb/core/ruolo_display.dart';
 import 'package:jamb/core/session_service.dart';
+import 'package:jamb/ui/assistente/widgets/assistenti_screen.dart';
 import 'package:jamb/ui/bacheca/view_model/bacheca_view_model.dart';
 import 'package:jamb/ui/bacheca/widgets/bacheca_screen.dart';
 import 'package:jamb/ui/core/widgets/jamb_feedback.dart';
@@ -127,7 +128,8 @@ class TopBar extends StatelessWidget implements PreferredSizeWidget {
                   ),
                   const SizedBox(width: 24),
                   // Campanella: apre la bacheca e conta gli avvisi non letti.
-                  GestureDetector(
+                  // La bacheca è dell'unità: senza unità non c'è.
+                  if (session.permessi.puoUsareAreaCapi) GestureDetector(
                     behavior: HitTestBehavior.opaque,
                     onTap: () => BachecaScreen.apri(context),
                     child: Semantics(
@@ -198,6 +200,12 @@ class TopBar extends StatelessWidget implements PreferredSizeWidget {
           ),
           const Divider(height: 24),
         ],
+        if (session.permessi.puoNominareAssistente)
+          JambVoceMenu(
+            icona: Icons.volunteer_activism_outlined,
+            etichetta: 'Assistente Ecclesiastico',
+            onTap: () => AssistentiScreen.apri(context),
+          ),
         JambVoceMenu(
           icona: Icons.logout_rounded,
           etichetta: 'Esci',

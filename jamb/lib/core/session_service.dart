@@ -37,6 +37,7 @@ class SessionService extends ChangeNotifier {
   List<UnitaDisponibile> _unita = const [];
   String? _activeUnitId;
   String? _unitaCocaId;
+  bool _assistenteEcclesiastico = false;
 
   StreamSubscription<AuthState>? _authSub;
 
@@ -123,7 +124,11 @@ class SessionService extends ChangeNotifier {
   }
 
   /// Cosa l'utente può fare nell'unità attiva.
-  Permessi get permessi => Permessi(ruolo: activeRole, capoGruppo: _capoGruppo);
+  Permessi get permessi => Permessi(
+        ruolo: activeRole,
+        capoGruppo: _capoGruppo,
+        assistenteEcclesiastico: _assistenteEcclesiastico,
+      );
 
   /// Chiave della preferenza con l'ultima unità scelta, per utente: sullo
   /// stesso dispositivo possono accedere capi diversi.
@@ -203,6 +208,13 @@ class SessionService extends ChangeNotifier {
               .maybeSingle();
       _unitaCocaId = coca?['id'] as String?;
 
+      final List<dynamic> incarichi = await supabase
+          .from('incarichi_trasversali')
+          .select('tipo')
+          .eq('user_id', user.id);
+      _assistenteEcclesiastico =
+          incarichi.any((i) => i['tipo'] == 'assistente_ecclesiastico');
+
       // Il Capo Gruppo può operare in tutte le unità del gruppo.
       var delGruppo = <UnitaDisponibile>[];
       if (_capoGruppo && _groupId != null) {
@@ -235,7 +247,8 @@ class SessionService extends ChangeNotifier {
       );
 
       _activeUnitId = scegliUnitaIniziale(_unita, await _unitaSalvata(user.id));
-      _status = _activeUnitId == null
+      // L'Assistente Ecclesiastico può entrare anche senza alcuna unità.
+      _status = _activeUnitId == null && !_assistenteEcclesiastico
           ? SessionStatus.noMembership
           : SessionStatus.ready;
     } catch (e) {
@@ -260,6 +273,7 @@ class SessionService extends ChangeNotifier {
     _unita = const [];
     _activeUnitId = null;
     _unitaCocaId = null;
+    _assistenteEcclesiastico = false;
     _status = SessionStatus.unauthenticated;
     notifyListeners();
   }

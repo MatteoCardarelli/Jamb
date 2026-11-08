@@ -31,6 +31,9 @@ import 'package:jamb/data/repositories/supabase_sottogruppo_repository.dart';
 import 'package:jamb/domain/repositories/pillola_repository.dart';
 import 'package:jamb/data/repositories/supabase_pillola_repository.dart';
 import 'package:jamb/ui/pillole/view_model/pillole_view_model.dart';
+import 'package:jamb/domain/repositories/incarichi_repository.dart';
+import 'package:jamb/data/repositories/supabase_incarichi_repository.dart';
+import 'package:jamb/ui/assistente/widgets/area_assistente_screen.dart';
 import 'package:jamb/data/services/storage_service.dart';
 import 'package:jamb/data/services/supabase_storage_service.dart';
 
@@ -80,6 +83,7 @@ class _AppPerUtente extends StatelessWidget {
         ChangeNotifierProvider<IPresenzaRepository>(create: (_) => SupabasePresenzaRepository()),
         ChangeNotifierProvider<ISottogruppoRepository>(create: (ctx) => SupabaseSottogruppoRepository(ctx.read<SessionService>())),
         ChangeNotifierProvider<IPillolaRepository>(create: (ctx) => SupabasePillolaRepository(ctx.read<SessionService>())),
+        ChangeNotifierProvider<IIncarichiRepository>(create: (ctx) => SupabaseIncarichiRepository(ctx.read<SessionService>())),
 
         // ViewModels
         ChangeNotifierProvider(create: (context) => AmministrazioneViewModel(context.read<IScoutRepository>())),
@@ -157,6 +161,7 @@ class AuthGate extends StatelessWidget {
         // Le policy RLS non mostrano dati ai ruoli da ragazzo: invece di
         // schermate vuote, un avviso esplicito.
         if (!session.permessi.puoUsareAreaCapi) {
+          if (session.permessi.assistenteEcclesiastico) return const AreaAssistenteScreen();
           return const _AvvisoAccesso(
             "L'area dedicata ai ragazzi non è ancora disponibile.\n"
             "Per ora Jamb è riservata ai capi.",
