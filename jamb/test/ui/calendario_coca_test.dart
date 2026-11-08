@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:jamb/core/permessi.dart';
 import 'package:jamb/data/repositories/supabase_evento_repository.dart';
 import 'package:jamb/domain/entities/evento.dart';
 import 'package:jamb/domain/entities/presenza.dart';
@@ -14,18 +15,56 @@ void main() {
   final unita = eventoDiTest('unita', giorno);
   final coca = eventoDiTest('coca', giorno, livello: LivelloEvento.coca);
   final gruppo = eventoDiTest('gruppo', giorno, livello: LivelloEvento.gruppo);
+  final altra = eventoDiTest('altra', giorno, livello: LivelloEvento.altraUnita);
 
   group('FiltroCalendario', () {
-    test('«Tutti» include ogni livello', () {
-      expect([unita, coca, gruppo].where(FiltroCalendario.tutti.include), hasLength(3));
+    // La scelta dell'utente: ogni capo vede gli eventi di ogni branca.
+    test('«Tutti» include anche le altre unità', () {
+      expect([unita, coca, gruppo, altra].where(FiltroCalendario.tutti.include), hasLength(4));
     });
 
-    test('«La mia unità» esclude Co.Ca. e gruppo', () {
-      expect([unita, coca, gruppo].where(FiltroCalendario.unita.include), [unita]);
+    test('«La mia unità» esclude Co.Ca., gruppo e altre unità', () {
+      expect([unita, coca, gruppo, altra].where(FiltroCalendario.unita.include), [unita]);
     });
 
-    test('«Co.Ca.» comprende anche gli eventi di gruppo', () {
-      expect([unita, coca, gruppo].where(FiltroCalendario.coca.include), [coca, gruppo]);
+    test('«Co.Ca.» comprende gli eventi di gruppo ma non le altre unità', () {
+      expect([unita, coca, gruppo, altra].where(FiltroCalendario.coca.include), [coca, gruppo]);
+    });
+  });
+
+  group('Evento.etichettaLivello', () {
+    test('un evento della propria unità non ha etichetta', () {
+      expect(unita.etichettaLivello, isEmpty);
+    });
+
+    test('un evento di un\'altra unità mostra il nome dell\'unità', () {
+      expect(altra.copyWith(nomeUnita: 'Amici del Velino').etichettaLivello, 'Amici del Velino');
+    });
+
+    test('senza nome dell\'unità resta riconoscibile', () {
+      expect(altra.etichettaLivello, 'Altra unità');
+    });
+  });
+
+  group('Permessi.puoModificareEvento', () {
+    const aiutoCapo = Permessi(ruolo: 'AIUTO_CAPO');
+    const capoGruppo = Permessi(ruolo: 'CAPO_UNITA', capoGruppo: true);
+
+    test('un capo modifica gli eventi della sua unità e della Co.Ca.', () {
+      expect(aiutoCapo.puoModificareEvento(LivelloEvento.unita), isTrue);
+      expect(aiutoCapo.puoModificareEvento(LivelloEvento.coca), isTrue);
+    });
+
+    // La policy toccherebbe zero righe senza dare errore: l'azione non si offre.
+    test('un capo non modifica gli eventi di un\'altra unità o di gruppo', () {
+      expect(aiutoCapo.puoModificareEvento(LivelloEvento.altraUnita), isFalse);
+      expect(aiutoCapo.puoModificareEvento(LivelloEvento.gruppo), isFalse);
+    });
+
+    test('il Capo Gruppo li modifica tutti', () {
+      for (final livello in LivelloEvento.values) {
+        expect(capoGruppo.puoModificareEvento(livello), isTrue);
+      }
     });
   });
 
@@ -56,6 +95,12 @@ void main() {
       final inCorsoCoca = eventoDiTest('coca', DateTime(2026, 11, 8, 10), livello: LivelloEvento.coca);
       final imminente = eventoDiTest('unita', DateTime(2026, 11, 8, 11));
       expect(eventoPerAppello([inCorsoCoca, imminente], adesso)?.id, 'unita');
+    });
+
+    test('ignora un evento in corso di un\'altra unità', () {
+      final adesso = DateTime(2026, 11, 8, 10, 30);
+      final inCorso = eventoDiTest('altra', DateTime(2026, 11, 8, 10), livello: LivelloEvento.altraUnita);
+      expect(eventoPerAppello([inCorso], adesso), isNull);
     });
 
     test('con i soli eventi di Co.Ca. non propone nessun appello', () {
@@ -100,19 +145,29 @@ void main() {
 
   group('SupabaseEventoRepository.livelloDaDb', () {
     test('senza unità è di gruppo', () {
-      expect(SupabaseEventoRepository.livelloDaDb(null, null), LivelloEvento.gruppo);
+      expect(SupabaseEventoRepository.livelloDaDb(null, null, 'attiva'), LivelloEvento.gruppo);
     });
 
     test('l\'unità COCA è la Co.Ca.', () {
       expect(
-        SupabaseEventoRepository.livelloDaDb('u', {'tipo_branca': 'COCA'}),
+        SupabaseEventoRepository.livelloDaDb('u', {'tipo_branca': 'COCA'}, 'attiva'),
         LivelloEvento.coca,
       );
     });
 
-    test('un tipo sconosciuto degrada a evento di unità', () {
-      expect(SupabaseEventoRepository.livelloDaDb('u', {'tipo_branca': 'NUOVO'}), LivelloEvento.unita);
-      expect(SupabaseEventoRepository.livelloDaDb('u', null), LivelloEvento.unita);
+    test('l\'unità attiva è la propria, qualunque sia la branca', () {
+      expect(
+        SupabaseEventoRepository.livelloDaDb('attiva', {'tipo_branca': 'NUOVO'}, 'attiva'),
+        LivelloEvento.unita,
+      );
+    });
+
+    test('un\'altra unità resta in sola lettura', () {
+      expect(
+        SupabaseEventoRepository.livelloDaDb('u', {'tipo_branca': 'RS'}, 'attiva'),
+        LivelloEvento.altraUnita,
+      );
+      expect(SupabaseEventoRepository.livelloDaDb('u', null, 'attiva'), LivelloEvento.altraUnita);
     });
   });
 }

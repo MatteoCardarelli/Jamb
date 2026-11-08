@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:jamb/core/session_service.dart';
 import 'etichette_categorie.dart';
 import 'ripetizione_ui.dart';
 import 'package:jamb/ui/core/widgets/jamb_app_bar.dart';
@@ -87,20 +88,24 @@ class _DettaglioEventoView extends StatelessWidget {
       backgroundColor: Colors.white,
       appBar: JambAppBar(
         titolo: "Dettaglio Evento",
+        // Gli eventi di altre unità si leggono soltanto: il database
+        // ignorerebbe la modifica senza segnalare errori.
         azioni: [
-          IconButton(
-            tooltip: 'Modifica',
-            icon: const Icon(Icons.edit_outlined, color: Color(0xFF1D2660)),
-            onPressed: () => _modifica(context, viewModel),
-          ),
-          IconButton(
-            tooltip: 'Elimina',
-            icon: const Icon(
-              Icons.delete_outline_rounded,
-              color: Color(0xFFB91C1C),
+          if (context.read<SessionService>().permessi.puoModificareEvento(evento.livello)) ...[
+            IconButton(
+              tooltip: 'Modifica',
+              icon: const Icon(Icons.edit_outlined, color: Color(0xFF1D2660)),
+              onPressed: () => _modifica(context, viewModel),
             ),
-            onPressed: () => _confermaEliminazione(context, viewModel),
-          ),
+            IconButton(
+              tooltip: 'Elimina',
+              icon: const Icon(
+                Icons.delete_outline_rounded,
+                color: Color(0xFFB91C1C),
+              ),
+              onPressed: () => _confermaEliminazione(context, viewModel),
+            ),
+          ],
         ],
       ),
       // Il contenuto non finisce sotto la barra di sistema di Android.
@@ -130,7 +135,7 @@ class _DettaglioEventoView extends StatelessWidget {
               if (evento.livello != LivelloEvento.unita)
                 JambRigaDettaglio(
                   icona: Icons.groups_outlined,
-                  testo: "Evento: ${evento.livello.etichetta}",
+                  testo: "Evento: ${evento.etichettaLivello}",
                 ),
               const SizedBox(height: 16),
               EtichetteCategorie(categorie: evento.categorie),

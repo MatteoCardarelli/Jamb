@@ -72,7 +72,7 @@ class _ProssimoEventoRow extends StatelessWidget {
     // Calculate duration in days (approximate for the subtitle)
     final durationDays = evento.dataFine.difference(evento.dataInizio).inDays;
     final durationStr = durationDays > 0 ? " • ${durationDays + 1} Giorni" : "";
-    final livelloStr = evento.livello.etichetta.isNotEmpty ? " • ${evento.livello.etichetta}" : "";
+    final livelloStr = evento.etichettaLivello.isNotEmpty ? " • ${evento.etichettaLivello}" : "";
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,

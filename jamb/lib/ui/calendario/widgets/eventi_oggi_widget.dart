@@ -82,7 +82,7 @@ class _EventoCard extends StatelessWidget {
     final orario = evento.tuttoIlGiorno
         ? "Tutto il giorno"
         : "${timeFormat.format(evento.dataInizio)} - ${timeFormat.format(evento.dataFine)}";
-    final timeStr = [orario, if (evento.livello.etichetta.isNotEmpty) evento.livello.etichetta].join(" • ");
+    final timeStr = [orario, if (evento.etichettaLivello.isNotEmpty) evento.etichettaLivello].join(" • ");
 
     return GestureDetector(
       onTap: () => DettaglioEventoScreen.apri(context, evento),
