@@ -26,6 +26,8 @@ import 'package:jamb/data/repositories/supabase_avviso_repository.dart';
 import 'package:jamb/ui/bacheca/view_model/bacheca_view_model.dart';
 import 'package:jamb/domain/repositories/presenza_repository.dart';
 import 'package:jamb/data/repositories/supabase_presenza_repository.dart';
+import 'package:jamb/domain/repositories/sottogruppo_repository.dart';
+import 'package:jamb/data/repositories/supabase_sottogruppo_repository.dart';
 import 'package:jamb/data/services/storage_service.dart';
 import 'package:jamb/data/services/supabase_storage_service.dart';
 
@@ -73,6 +75,7 @@ class _AppPerUtente extends StatelessWidget {
         ChangeNotifierProvider<IDocumentoRepository>(create: (ctx) => SupabaseDocumentoRepository(ctx.read<SessionService>(), ctx.read<IStorageService>())),
         ChangeNotifierProvider<IAvvisoRepository>(create: (ctx) => SupabaseAvvisoRepository(ctx.read<SessionService>())),
         ChangeNotifierProvider<IPresenzaRepository>(create: (_) => SupabasePresenzaRepository()),
+        ChangeNotifierProvider<ISottogruppoRepository>(create: (ctx) => SupabaseSottogruppoRepository(ctx.read<SessionService>())),
 
         // ViewModels
         ChangeNotifierProvider(create: (context) => AmministrazioneViewModel(context.read<IScoutRepository>())),

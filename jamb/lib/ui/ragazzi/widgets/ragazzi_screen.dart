@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:jamb/core/session_service.dart';
+import 'package:jamb/domain/entities/sottogruppi.dart';
 import 'package:jamb/ui/core/widgets/empty_background_screen.dart';
+import 'package:jamb/ui/core/widgets/jamb_pulsante_secondario.dart';
+import 'package:jamb/ui/sottogruppi/widgets/sottogruppi_screen.dart';
 import 'package:jamb/ui/core/widgets/jamb_search_bar.dart';
 import 'package:jamb/ui/core/widgets/jamb_stato_errore.dart';
 import 'package:jamb/ui/core/widgets/jamb_stati.dart';
@@ -45,7 +49,17 @@ class RagazziScreen extends StatelessWidget {
                     onSquadrigliaChanged: viewModel.setSquadrigliaFiltro,
                     onAlertChanged: viewModel.setAlertFiltro,
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 16),
+
+                  // SOTTOGRUPPI, per le branche che ne hanno
+                  if (!SottogruppiBranca.di(context.read<SessionService>().tipoBrancaAttiva).vuota) ...[
+                    JambPulsanteSecondario(
+                      icona: Icons.groups_outlined,
+                      etichetta: "Sottogruppi",
+                      onTap: () => SottogruppiScreen.apri(context),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
 
                   // LISTA RISULTATI
                   if (viewModel.isLoading)
