@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:jamb/ui/core/widgets/empty_background_screen.dart';
 import 'package:jamb/ui/contabilita/widgets/add_transaction_screen.dart';
 import 'package:jamb/ui/contabilita/widgets/balance_card.dart';
+import 'package:jamb/ui/contabilita/widgets/bilancio_screen.dart';
+import 'package:jamb/ui/core/widgets/jamb_pulsante_secondario.dart';
 import 'package:jamb/ui/contabilita/widgets/expenses_distribution_card.dart';
 import 'package:jamb/ui/contabilita/widgets/recent_transactions_list.dart';
 import 'package:provider/provider.dart';
@@ -50,6 +52,14 @@ class ContabilitaScreen extends StatelessWidget {
 
                 // IL WIDGET RIPARTIZIONE SPESE
                 const ExpensesDistributionCard(),
+
+                const SizedBox(height: 16),
+
+                JambPulsanteSecondario(
+                  icona: Icons.account_balance_outlined,
+                  etichetta: "Bilancio dell'anno",
+                  onTap: () => BilancioScreen.apri(context),
+                ),
 
                 const SizedBox(height: 32),
 
