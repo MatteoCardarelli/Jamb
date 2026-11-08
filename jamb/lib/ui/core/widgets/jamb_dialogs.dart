@@ -57,33 +57,36 @@ class JambDialogs {
             color: Color(0xFF1D2660),
           ),
         ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              messaggio,
-              style: const TextStyle(fontFamily: 'Lexend', color: Color(0xFF475569)),
-            ),
-            const SizedBox(height: 16),
-            for (final (etichetta, valore) in opzioni)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: OutlinedButton(
-                  onPressed: () => Navigator.of(dialogContext).pop(valore),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: colore,
-                    side: BorderSide(color: colore.withValues(alpha: 0.4)),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                  ),
-                  child: Text(
-                    etichetta,
-                    style: const TextStyle(fontFamily: 'Lexend', fontWeight: FontWeight.bold),
+        // Le opzioni possono essere molte (es. tutte le cartelle di un drive).
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                messaggio,
+                style: const TextStyle(fontFamily: 'Lexend', color: Color(0xFF475569)),
+              ),
+              const SizedBox(height: 16),
+              for (final (etichetta, valore) in opzioni)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: OutlinedButton(
+                    onPressed: () => Navigator.of(dialogContext).pop(valore),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: colore,
+                      side: BorderSide(color: colore.withValues(alpha: 0.4)),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                    ),
+                    child: Text(
+                      etichetta,
+                      style: const TextStyle(fontFamily: 'Lexend', fontWeight: FontWeight.bold),
+                    ),
                   ),
                 ),
-              ),
-          ],
+            ],
+          ),
         ),
         actions: [
           TextButton(

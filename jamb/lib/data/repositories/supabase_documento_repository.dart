@@ -94,7 +94,7 @@ class SupabaseDocumentoRepository extends IDocumentoRepository {
       });
 
   @override
-  Future<void> caricaFile(ArchivioDocumenti archivio, FileDaCaricare file, String? parentId) =>
+  Future<Documento> caricaFile(ArchivioDocumenti archivio, FileDaCaricare file, String? parentId) =>
       eseguiSupabase(() async {
         final p = await _proprietario(archivio);
         final mime = verificaFile(file.nome, file.dimensione,
@@ -124,6 +124,15 @@ class SupabaseDocumentoRepository extends IDocumentoRepository {
           eliminaFile: () => _storage.elimina(bucketDocumenti, [percorso]),
         );
         notifyListeners();
+        return Documento(
+          id: id,
+          nome: file.nome.trim(),
+          tipo: TipoDocumento.daEstensione(estensione),
+          parentId: parentId,
+          ultimaModifica: DateTime.now(),
+          dimensioni: file.dimensione,
+          percorsoFile: percorso,
+        );
       });
 
   @override
@@ -137,30 +146,65 @@ class SupabaseDocumentoRepository extends IDocumentoRepository {
 
   @override
   Future<void> elimina(ArchivioDocumenti archivio, Documento documento) =>
+      eliminaTutti(archivio, [documento]);
+
+  @override
+  Future<void> eliminaTutti(ArchivioDocumenti archivio, List<Documento> documenti) =>
       eseguiSupabase(() async {
-        // I file da togliere dallo storage: quello del documento e, per una
-        // cartella, quelli di tutto il suo contenuto.
-        var daTogliere = [documento];
-        if (documento.isCartella) {
+        if (documenti.isEmpty) return;
+        // I file da togliere dallo storage: quelli dei documenti e, per le
+        // cartelle, quelli di tutto il loro contenuto.
+        final daTogliere = [...documenti];
+        if (documenti.any((d) => d.isCartella)) {
           final List<dynamic> rows = await _righe(await _proprietario(archivio));
-          final tutti = rows.map((r) => _fromDb(r as Map<String, dynamic>));
-          daTogliere = discendenti(tutti, documento.id);
+          final tutti = rows.map((r) => _fromDb(r as Map<String, dynamic>)).toList();
+          for (final d in documenti.where((d) => d.isCartella)) {
+            daTogliere.addAll(discendenti(tutti, d.id));
+          }
         }
-        final percorsi = [
+        final percorsi = {
           for (final d in daTogliere)
             if (d.percorsoFile case final String percorso) percorso,
-        ];
+        }.toList();
 
         // Prima le righe (il contenuto di una cartella va a cascata), poi i
         // file: se lo storage fallisce restano file orfani, privati e
         // invisibili, mai righe che puntano a file inesistenti.
-        await supabase.from(_table).delete().eq('id', documento.id);
+        await supabase.from(_table).delete().inFilter('id', [for (final d in documenti) d.id]);
         notifyListeners();
         try {
           await _storage.elimina(bucketDocumenti, percorsi);
         } catch (e) {
-          debugPrint('File orfani dopo l\'eliminazione di ${documento.id}: $e');
+          debugPrint('File orfani dopo un\'eliminazione: $e');
         }
+      });
+
+  @override
+  Future<void> sposta(List<Documento> documenti, String? destinazione) =>
+      eseguiSupabase(() async {
+        if (documenti.isEmpty) return;
+        final ids = [for (final d in documenti) d.id];
+        // Il file resta dov'è nello storage: cambia solo la cartella nell'albero.
+        final List<dynamic> spostati = await supabase
+            .from(_table)
+            .update({'parent_id': destinazione})
+            .inFilter('id', ids)
+            .select('id');
+        // Sotto RLS un aggiornamento non autorizzato non dà errore.
+        if (spostati.length != ids.length) {
+          throw const JambException(
+            TipoErrore.permessoNegato,
+            'Non hai il permesso di spostare questi documenti.',
+          );
+        }
+        notifyListeners();
+      });
+
+  @override
+  Future<List<Documento>> getCartelle(ArchivioDocumenti archivio) => eseguiSupabase(() async {
+        final List<dynamic> rows =
+            await _righe(await _proprietario(archivio)).eq('is_cartella', true);
+        return rows.map((r) => _fromDb(r as Map<String, dynamic>)).toList();
       });
 
   @override

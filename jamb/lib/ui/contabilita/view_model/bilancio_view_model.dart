@@ -60,19 +60,22 @@ class BilancioViewModel extends ChangeNotifier with StatoCaricamentoMixin {
   static String nomeFile(String annoScout, DateTime data, String estensione) =>
       'Bilancio $annoScout - ${DateFormat('dd-MM-yyyy').format(data)}.$estensione';
 
-  /// Archivia il bilancio selezionato in PDF nel Drive di Branca. Un errore
-  /// viene propagato alla View.
-  Future<void> archiviaPdf({required String unita}) async {
+  /// Archivia il bilancio selezionato in PDF nel Drive di Branca e restituisce
+  /// il documento creato, da aprire. Un errore viene propagato alla View.
+  Future<Documento> archiviaPdf({required String unita}) async {
     final pdf = await generaBilancioPdf(unita: unita, bilancio: bilancio, data: _oggi);
-    await _archivia(pdf, 'pdf');
+    return _archivia(pdf, 'pdf');
   }
 
-  /// Archivia il bilancio selezionato in CSV nel Drive di Branca, da dove si
-  /// può aprire con un foglio di calcolo. Un errore viene propagato alla View.
-  Future<void> archiviaCsv({required String unita}) =>
+  /// Archivia il bilancio selezionato in CSV nel Drive di Branca e restituisce
+  /// il documento creato, da aprire. Un errore viene propagato alla View.
+  Future<Documento> archiviaCsv({required String unita}) =>
       _archivia(generaBilancioCsv(unita: unita, bilancio: bilancio), 'csv');
 
-  Future<void> _archivia(Uint8List byte, String estensione) => _documenti.caricaFile(
+  /// URL temporaneo per aprire il [documento] archiviato.
+  Future<String> urlFile(Documento documento) => _documenti.urlFile(documento);
+
+  Future<Documento> _archivia(Uint8List byte, String estensione) => _documenti.caricaFile(
         ArchivioDocumenti.driveBranca,
         FileDaCaricare(nome: nomeFile(_annoScout, _oggi, estensione), byte: byte),
         null,

@@ -46,18 +46,22 @@ class FakeDocumentoRepository extends ChangeNotifier implements IDocumentoReposi
           )));
 
   @override
-  Future<void> caricaFile(ArchivioDocumenti archivio, FileDaCaricare file, String? parentId) =>
-      _scrivi(() {
-        caricati.add(file);
-        _di(archivio).add(Documento(
-          id: 'file-${_prossimoId++}',
-          nome: file.nome,
-          tipo: TipoDocumento.pdf,
-          parentId: parentId,
-          ultimaModifica: DateTime(2026, 11, 7),
-          percorsoFile: 'archivio/${file.nome}',
-        ));
-      });
+  Future<Documento> caricaFile(ArchivioDocumenti archivio, FileDaCaricare file, String? parentId) async {
+    late Documento creato;
+    await _scrivi(() {
+      caricati.add(file);
+      creato = Documento(
+        id: 'file-${_prossimoId++}',
+        nome: file.nome,
+        tipo: TipoDocumento.pdf,
+        parentId: parentId,
+        ultimaModifica: DateTime(2026, 11, 7),
+        percorsoFile: 'archivio/${file.nome}',
+      );
+      _di(archivio).add(creato);
+    });
+    return creato;
+  }
 
   @override
   Future<void> rinomina(Documento documento, String nome) => _scrivi(() {
@@ -72,6 +76,41 @@ class FakeDocumentoRepository extends ChangeNotifier implements IDocumentoReposi
         final via = {documento.id, ...discendenti(_di(archivio), documento.id).map((d) => d.id)};
         _di(archivio).removeWhere((d) => via.contains(d.id));
       });
+
+  @override
+  Future<void> eliminaTutti(ArchivioDocumenti archivio, List<Documento> documenti) => _scrivi(() {
+        final via = {
+          for (final d in documenti) ...[d.id, ...discendenti(_di(archivio), d.id).map((x) => x.id)],
+        };
+        _di(archivio).removeWhere((d) => via.contains(d.id));
+      });
+
+  @override
+  Future<void> sposta(List<Documento> documenti, String? destinazione) => _scrivi(() {
+        final ids = {for (final d in documenti) d.id};
+        for (final lista in archivi.values) {
+          for (var i = 0; i < lista.length; i++) {
+            if (!ids.contains(lista[i].id)) continue;
+            final d = lista[i];
+            // Si ricrea il documento: copyWith non può azzerare la cartella.
+            lista[i] = Documento(
+              id: d.id,
+              nome: d.nome,
+              tipo: d.tipo,
+              parentId: destinazione,
+              ultimaModifica: d.ultimaModifica,
+              dimensioni: d.dimensioni,
+              percorsoFile: d.percorsoFile,
+            );
+          }
+        }
+      });
+
+  @override
+  Future<List<Documento>> getCartelle(ArchivioDocumenti archivio) async {
+    if (erroreLettura != null) throw erroreLettura!;
+    return _di(archivio).where((d) => d.isCartella).toList();
+  }
 
   @override
   Future<String> urlFile(Documento documento) async {

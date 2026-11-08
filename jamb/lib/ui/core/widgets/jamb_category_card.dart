@@ -17,6 +17,10 @@ class JambCategoryCard extends StatelessWidget {
   final VoidCallback? onTap;
   /// Callback invocata alla pressione prolungata (es. menu di un file)
   final VoidCallback? onLongPress;
+  /// `true` se l'elemento fa parte di una selezione multipla
+  final bool selezionata;
+  /// `true` mentre vi si trascina sopra qualcosa che può ricevere
+  final bool evidenziata;
 
   const JambCategoryCard({
     super.key,
@@ -27,6 +31,8 @@ class JambCategoryCard extends StatelessWidget {
     this.progressoTesto,
     this.onTap,
     this.onLongPress,
+    this.selezionata = false,
+    this.evidenziata = false,
   });
 
   @override
@@ -37,9 +43,14 @@ class JambCategoryCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: const Color(0xFFF1F5F9).withValues(alpha: 0.5), // Sfondo slate semitrasparente
+          color: selezionata || evidenziata
+              ? const Color(0xFFE8EAF6)
+              : const Color(0xFFF1F5F9).withValues(alpha: 0.5), // Sfondo slate semitrasparente
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: const Color(0xFFE2E8F0)),
+          border: Border.all(
+            color: selezionata || evidenziata ? const Color(0xFF1D2660) : const Color(0xFFE2E8F0),
+            width: selezionata || evidenziata ? 2 : 1,
+          ),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -48,14 +59,21 @@ class JambCategoryCard extends StatelessWidget {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // ICONA
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF1D2660),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Icon(icona, color: Colors.white, size: 16),
+                // ICONA (con il segno di spunta se selezionata)
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1D2660),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Icon(icona, color: Colors.white, size: 16),
+                    ),
+                    if (selezionata)
+                      const Icon(Icons.check_circle_rounded, color: Color(0xFF1D2660), size: 20),
+                  ],
                 ),
                 const SizedBox(height: 10),
                 
