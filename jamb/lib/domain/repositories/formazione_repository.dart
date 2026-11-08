@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import '../entities/badge.dart';
 import '../entities/formazione.dart';
 
 /// Contratto per iter formativo e Progetto del Capo.
@@ -19,6 +20,9 @@ abstract class IFormazioneRepository extends ChangeNotifier {
 
   /// Salva il Progetto del Capo dell'utente connesso.
   Future<void> salvaMioProgetto(ProgettoCapo progetto);
+
+  /// Storico delle appartenenze dell'utente connesso, da cui derivano i badge.
+  Future<List<IncaricoStorico>> getMioStorico();
 
   /// Capi del gruppo con il loro iter (per il Capo Gruppo).
   Future<List<CapoFormazione>> getCapiDelGruppo();

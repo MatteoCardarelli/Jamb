@@ -2,6 +2,8 @@ import 'package:jamb/core/permessi.dart';
 import 'package:jamb/core/session_service.dart';
 import 'package:jamb/core/supabase_client.dart';
 import 'package:jamb/data/errori_supabase.dart';
+import 'package:jamb/data/nome_completo.dart';
+import '../../domain/entities/badge.dart';
 import '../../domain/entities/formazione.dart';
 import '../../domain/repositories/formazione_repository.dart';
 
@@ -93,6 +95,22 @@ class SupabaseFormazioneRepository extends IFormazioneRepository {
       });
 
   @override
+  Future<List<IncaricoStorico>> getMioStorico() => eseguiSupabase(() async {
+        final List<dynamic> righe = await supabase
+            .from('memberships')
+            .select('ruolo, anno_scout, units ( tipo_branca )')
+            .eq('user_id', _utente);
+        return [
+          for (final r in righe)
+            IncaricoStorico(
+              ruolo: (r['ruolo'] ?? '') as String,
+              annoScout: (r['anno_scout'] ?? '') as String,
+              tipoBranca: (r['units'] as Map?)?['tipo_branca'] as String?,
+            ),
+        ];
+      });
+
+  @override
   Future<List<CapoFormazione>> getCapiDelGruppo() => eseguiSupabase(() async {
         final groupId = _session.groupId;
         if (groupId == null) return [];
@@ -130,19 +148,11 @@ class SupabaseFormazioneRepository extends IFormazioneRepository {
           for (final e in perUtente.entries)
             CapoFormazione(
               id: e.key,
-              nome: _nomeCompleto(e.value['users']),
+              nome: nomeCompletoDa(e.value['users']),
               ruolo: e.value['ruolo'] as String,
               tappe: tappe[e.key] ?? const [],
             ),
         ];
       });
 
-  String _nomeCompleto(Object? utente) {
-    final u = utente is Map ? utente : const {};
-    final nome = [u['nome'], u['cognome']]
-        .whereType<String>()
-        .where((e) => e.trim().isNotEmpty)
-        .join(' ');
-    return nome.isEmpty ? 'Senza nome' : nome;
-  }
 }

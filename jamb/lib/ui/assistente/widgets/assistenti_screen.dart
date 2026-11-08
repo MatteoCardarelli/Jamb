@@ -9,7 +9,7 @@ import 'package:jamb/ui/core/widgets/jamb_feedback.dart';
 import 'package:jamb/ui/core/widgets/jamb_pulsante_secondario.dart';
 import 'package:jamb/ui/core/widgets/jamb_riquadro.dart';
 import 'package:jamb/ui/core/widgets/jamb_stati.dart';
-import 'package:jamb/ui/core/widgets/jamb_stato_errore.dart';
+import 'package:jamb/ui/core/widgets/jamb_schermata_elenco.dart';
 
 /// Nomina dell'Assistente Ecclesiastico, per il Capo Gruppo.
 class AssistentiScreen extends StatelessWidget {
@@ -17,15 +17,16 @@ class AssistentiScreen extends StatelessWidget {
 
   /// Apre la schermata delle nomine.
   static Future<void> apri(BuildContext context) {
-    return Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => const AssistentiScreen()),
-    );
+    return Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => const AssistentiScreen()));
   }
 
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (context) => AssistentiViewModel(context.read<IIncarichiRepository>()),
+      create: (context) =>
+          AssistentiViewModel(context.read<IIncarichiRepository>()),
       child: const AssistentiView(),
     );
   }
@@ -35,7 +36,10 @@ class AssistentiScreen extends StatelessWidget {
 class AssistentiView extends StatelessWidget {
   const AssistentiView({super.key});
 
-  Future<void> _nomina(BuildContext context, AssistentiViewModel viewModel) async {
+  Future<void> _nomina(
+    BuildContext context,
+    AssistentiViewModel viewModel,
+  ) async {
     final scelta = await JambDialogs.scegli<PersonaGruppo>(
       context,
       titolo: 'Nomina',
@@ -47,11 +51,16 @@ class AssistentiView extends StatelessWidget {
     }
   }
 
-  Future<void> _revoca(BuildContext context, AssistentiViewModel viewModel, PersonaGruppo p) async {
+  Future<void> _revoca(
+    BuildContext context,
+    AssistentiViewModel viewModel,
+    PersonaGruppo p,
+  ) async {
     final conferma = await JambDialogs.conferma(
       context,
       titolo: 'Togli incarico',
-      messaggio: 'Vuoi togliere a ${p.nome} l\'incarico di Assistente Ecclesiastico?',
+      messaggio:
+          'Vuoi togliere a ${p.nome} l\'incarico di Assistente Ecclesiastico?',
       etichetta: 'TOGLI',
     );
     if (conferma && context.mounted) {
@@ -63,46 +72,44 @@ class AssistentiView extends StatelessWidget {
   Widget build(BuildContext context) {
     final viewModel = context.watch<AssistentiViewModel>();
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
-      appBar: const JambAppBar(titolo: 'Assistente Ecclesiastico'),
-      body: SafeArea(
-        top: false,
-        child: viewModel.isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : viewModel.haErrore
-                ? JambStatoErrore(messaggio: viewModel.errore!, onRiprova: viewModel.ricarica)
-                : ListView(
-                    padding: const EdgeInsets.all(20),
-                    children: [
-                      JambRiquadro(
-                        titolo: 'Nominati',
-                        children: [
-                          if (viewModel.assistenti.isEmpty)
-                            const JambTestoVuoto('Nessun Assistente nominato.'),
-                          for (final p in viewModel.assistenti)
-                            ListTile(
-                              contentPadding: EdgeInsets.zero,
-                              title: Text(p.nome, style: const TextStyle(fontFamily: 'Lexend')),
-                              trailing: IconButton(
-                                tooltip: 'Togli incarico',
-                                icon: const Icon(Icons.person_remove_outlined, color: Color(0xFFB91C1C)),
-                                onPressed: () => _revoca(context, viewModel, p),
-                              ),
-                            ),
-                          if (viewModel.candidati.isNotEmpty) ...[
-                            const SizedBox(height: 8),
-                            JambPulsanteSecondario(
-                              icona: Icons.person_add_alt_outlined,
-                              etichetta: 'Nomina',
-                              onTap: () => _nomina(context, viewModel),
-                            ),
-                          ],
-                        ],
-                      ),
-                    ],
+    return JambSchermataElenco(
+      titolo: 'Assistente Ecclesiastico',
+      caricamento: viewModel.isLoading,
+      errore: viewModel.errore,
+      onRiprova: viewModel.ricarica,
+      children: [
+        JambRiquadro(
+          titolo: 'Nominati',
+          children: [
+            if (viewModel.assistenti.isEmpty)
+              const JambTestoVuoto('Nessun Assistente nominato.'),
+            for (final p in viewModel.assistenti)
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                title: Text(
+                  p.nome,
+                  style: const TextStyle(fontFamily: 'Lexend'),
+                ),
+                trailing: IconButton(
+                  tooltip: 'Togli incarico',
+                  icon: const Icon(
+                    Icons.person_remove_outlined,
+                    color: Color(0xFFB91C1C),
                   ),
-      ),
+                  onPressed: () => _revoca(context, viewModel, p),
+                ),
+              ),
+            if (viewModel.candidati.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              JambPulsanteSecondario(
+                icona: Icons.person_add_alt_outlined,
+                etichetta: 'Nomina',
+                onTap: () => _nomina(context, viewModel),
+              ),
+            ],
+          ],
+        ),
+      ],
     );
   }
 }

@@ -11,7 +11,7 @@ import 'package:jamb/ui/core/widgets/jamb_menu.dart';
 import 'package:jamb/ui/core/widgets/jamb_pulsante_secondario.dart';
 import 'package:jamb/ui/core/widgets/jamb_riquadro.dart';
 import 'package:jamb/ui/core/widgets/jamb_stati.dart';
-import 'package:jamb/ui/core/widgets/jamb_stato_errore.dart';
+import 'package:jamb/ui/core/widgets/jamb_schermata_elenco.dart';
 import 'package:jamb/ui/ragazzi/view_model/ragazzi_view_model.dart';
 import 'package:jamb/ui/sottogruppi/view_model/sottogruppi_view_model.dart';
 
@@ -24,9 +24,9 @@ class SottogruppiScreen extends StatelessWidget {
   /// della loro squadriglia.
   static Future<void> apri(BuildContext context) async {
     final ragazzi = context.read<RagazziViewModel>();
-    await Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => const SottogruppiScreen()),
-    );
+    await Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => const SottogruppiScreen()));
     ragazzi.refresh();
   }
 
@@ -38,7 +38,9 @@ class SottogruppiScreen extends StatelessWidget {
         context.read<ISottogruppoRepository>(),
         SottogruppiBranca.di(session.tipoBrancaAttiva),
       ),
-      child: SottogruppiView(puoModificare: session.permessi.puoCambiareRuoloESquadriglia),
+      child: SottogruppiView(
+        puoModificare: session.permessi.puoCambiareRuoloESquadriglia,
+      ),
     );
   }
 }
@@ -49,7 +51,10 @@ class SottogruppiView extends StatelessWidget {
 
   const SottogruppiView({super.key, required this.puoModificare});
 
-  Future<void> _nuova(BuildContext context, SottogruppiViewModel viewModel) async {
+  Future<void> _nuova(
+    BuildContext context,
+    SottogruppiViewModel viewModel,
+  ) async {
     final nome = await JambDialogs.chiediNome(
       context,
       titolo: 'Nuova ${viewModel.branca.gruppo}',
@@ -63,7 +68,11 @@ class SottogruppiView extends StatelessWidget {
     }
   }
 
-  Future<void> _rinomina(BuildContext context, SottogruppiViewModel viewModel, Squadriglia s) async {
+  Future<void> _rinomina(
+    BuildContext context,
+    SottogruppiViewModel viewModel,
+    Squadriglia s,
+  ) async {
     final nome = await JambDialogs.chiediNome(
       context,
       titolo: 'Rinomina',
@@ -77,7 +86,11 @@ class SottogruppiView extends StatelessWidget {
     }
   }
 
-  Future<void> _urlo(BuildContext context, SottogruppiViewModel viewModel, Squadriglia s) async {
+  Future<void> _urlo(
+    BuildContext context,
+    SottogruppiViewModel viewModel,
+    Squadriglia s,
+  ) async {
     final urlo = await JambDialogs.chiediNome(
       context,
       titolo: 'Urlo',
@@ -92,7 +105,11 @@ class SottogruppiView extends StatelessWidget {
     }
   }
 
-  void _menu(BuildContext context, SottogruppiViewModel viewModel, Squadriglia s) {
+  void _menu(
+    BuildContext context,
+    SottogruppiViewModel viewModel,
+    Squadriglia s,
+  ) {
     mostraMenuJamb(
       context,
       titolo: s.nome,
@@ -112,13 +129,15 @@ class SottogruppiView extends StatelessWidget {
             icona: Icons.visibility_off_outlined,
             etichetta: 'Disattiva',
             pericolosa: true,
-            onTap: () => eseguiConFeedback(context, () => viewModel.disattiva(s)),
+            onTap: () =>
+                eseguiConFeedback(context, () => viewModel.disattiva(s)),
           )
         else
           JambVoceMenu(
             icona: Icons.visibility_outlined,
             etichetta: 'Riattiva',
-            onTap: () => eseguiConFeedback(context, () => viewModel.riattiva(s)),
+            onTap: () =>
+                eseguiConFeedback(context, () => viewModel.riattiva(s)),
           ),
       ],
     );
@@ -138,7 +157,10 @@ class SottogruppiView extends StatelessWidget {
       ),
     );
     if (scelti != null && context.mounted) {
-      await eseguiConFeedback(context, () => viewModel.salvaMembri(tipo, scelti));
+      await eseguiConFeedback(
+        context,
+        () => viewModel.salvaMembri(tipo, scelti),
+      );
     }
   }
 
@@ -147,84 +169,81 @@ class SottogruppiView extends StatelessWidget {
     final viewModel = context.watch<SottogruppiViewModel>();
     final branca = viewModel.branca;
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
-      appBar: const JambAppBar(titolo: 'Sottogruppi'),
-      body: SafeArea(
-        top: false,
-        child: viewModel.isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : viewModel.haErrore
-                ? JambStatoErrore(messaggio: viewModel.errore!, onRiprova: viewModel.ricarica)
-                : ListView(
-                    padding: const EdgeInsets.all(20),
-                    children: [
-                      if (branca.vuota)
-                        const JambTestoVuoto(
-                          'Nessun sottogruppo per questa branca.',
-                          icona: Icons.groups_outlined,
-                          centrato: true,
-                        ),
-                      if (branca.gruppi != null)
-                        JambRiquadro(
-                          titolo: branca.gruppi,
-                          children: [
-                            if (viewModel.attive.isEmpty)
-                              JambTestoVuoto('Ancora nessuna ${branca.gruppo}.'),
-                            for (final s in viewModel.attive)
-                              _RigaSquadriglia(
-                                squadriglia: s,
-                                membri: viewModel.membriDella(s),
-                                onTap: puoModificare ? () => _menu(context, viewModel, s) : null,
-                              ),
-                            for (final s in viewModel.disattivate)
-                              _RigaSquadriglia(
-                                squadriglia: s,
-                                membri: const [],
-                                onTap: puoModificare ? () => _menu(context, viewModel, s) : null,
-                              ),
-                            if (puoModificare) ...[
-                              const SizedBox(height: 8),
-                              JambPulsanteSecondario(
-                                icona: Icons.add_rounded,
-                                etichetta: 'Nuova ${branca.gruppo}',
-                                onTap: () => _nuova(context, viewModel),
-                              ),
-                            ],
-                          ],
-                        ),
-                      if (branca.consiglioCapi) ...[
-                        const SizedBox(height: 16),
-                        JambRiquadro(
-                          titolo: 'Consiglio Capi',
-                          children: [
-                            if (viewModel.consiglio.isEmpty) const JambTestoVuoto('Nessun componente.'),
-                            for (final m in viewModel.consiglio) _RigaMembro(m),
-                          ],
-                        ),
-                      ],
-                      for (final tipo in branca.scelti) ...[
-                        const SizedBox(height: 16),
-                        JambRiquadro(
-                          titolo: tipo.etichetta,
-                          children: [
-                            if (viewModel.membriSottogruppo(tipo).isEmpty)
-                              const JambTestoVuoto('Nessun componente.'),
-                            for (final m in viewModel.membriSottogruppo(tipo)) _RigaMembro(m),
-                            if (puoModificare) ...[
-                              const SizedBox(height: 8),
-                              JambPulsanteSecondario(
-                                icona: Icons.group_add_outlined,
-                                etichetta: 'Scegli i componenti',
-                                onTap: () => _modificaMembri(context, viewModel, tipo),
-                              ),
-                            ],
-                          ],
-                        ),
-                      ],
-                    ],
-                  ),
-      ),
+    return JambSchermataElenco(
+      titolo: 'Sottogruppi',
+      caricamento: viewModel.isLoading,
+      errore: viewModel.errore,
+      onRiprova: viewModel.ricarica,
+      children: [
+        if (branca.vuota)
+          const JambTestoVuoto(
+            'Nessun sottogruppo per questa branca.',
+            icona: Icons.groups_outlined,
+            centrato: true,
+          ),
+        if (branca.gruppi != null)
+          JambRiquadro(
+            titolo: branca.gruppi,
+            children: [
+              if (viewModel.attive.isEmpty)
+                JambTestoVuoto('Ancora nessuna ${branca.gruppo}.'),
+              for (final s in viewModel.attive)
+                _RigaSquadriglia(
+                  squadriglia: s,
+                  membri: viewModel.membriDella(s),
+                  onTap: puoModificare
+                      ? () => _menu(context, viewModel, s)
+                      : null,
+                ),
+              for (final s in viewModel.disattivate)
+                _RigaSquadriglia(
+                  squadriglia: s,
+                  membri: const [],
+                  onTap: puoModificare
+                      ? () => _menu(context, viewModel, s)
+                      : null,
+                ),
+              if (puoModificare) ...[
+                const SizedBox(height: 8),
+                JambPulsanteSecondario(
+                  icona: Icons.add_rounded,
+                  etichetta: 'Nuova ${branca.gruppo}',
+                  onTap: () => _nuova(context, viewModel),
+                ),
+              ],
+            ],
+          ),
+        if (branca.consiglioCapi) ...[
+          const SizedBox(height: 16),
+          JambRiquadro(
+            titolo: 'Consiglio Capi',
+            children: [
+              if (viewModel.consiglio.isEmpty)
+                const JambTestoVuoto('Nessun componente.'),
+              for (final m in viewModel.consiglio) _RigaMembro(m),
+            ],
+          ),
+        ],
+        for (final tipo in branca.scelti) ...[
+          const SizedBox(height: 16),
+          JambRiquadro(
+            titolo: tipo.etichetta,
+            children: [
+              if (viewModel.membriSottogruppo(tipo).isEmpty)
+                const JambTestoVuoto('Nessun componente.'),
+              for (final m in viewModel.membriSottogruppo(tipo)) _RigaMembro(m),
+              if (puoModificare) ...[
+                const SizedBox(height: 8),
+                JambPulsanteSecondario(
+                  icona: Icons.group_add_outlined,
+                  etichetta: 'Scegli i componenti',
+                  onTap: () => _modificaMembri(context, viewModel, tipo),
+                ),
+              ],
+            ],
+          ),
+        ],
+      ],
     );
   }
 }
@@ -235,7 +254,11 @@ class _RigaSquadriglia extends StatelessWidget {
   final List<MembroUnita> membri;
   final VoidCallback? onTap;
 
-  const _RigaSquadriglia({required this.squadriglia, required this.membri, this.onTap});
+  const _RigaSquadriglia({
+    required this.squadriglia,
+    required this.membri,
+    this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -243,7 +266,9 @@ class _RigaSquadriglia extends StatelessWidget {
       if (squadriglia.urlo.isNotEmpty) '«${squadriglia.urlo}»',
       if (!squadriglia.attiva) 'Disattivata',
       if (squadriglia.attiva)
-        membri.isEmpty ? 'Nessun ragazzo' : membri.map((m) => m.nome).join(', '),
+        membri.isEmpty
+            ? 'Nessun ragazzo'
+            : membri.map((m) => m.nome).join(', '),
     ].join('\n');
 
     return ListTile(
@@ -254,14 +279,22 @@ class _RigaSquadriglia extends StatelessWidget {
         style: TextStyle(
           fontFamily: 'Lexend',
           fontWeight: FontWeight.w800,
-          color: squadriglia.attiva ? const Color(0xFF1E293B) : const Color(0xFF94A3B8),
+          color: squadriglia.attiva
+              ? const Color(0xFF1E293B)
+              : const Color(0xFF94A3B8),
         ),
       ),
       subtitle: Text(
         dettagli,
-        style: const TextStyle(fontFamily: 'Lexend', fontSize: 13, color: Color(0xFF64748B)),
+        style: const TextStyle(
+          fontFamily: 'Lexend',
+          fontSize: 13,
+          color: Color(0xFF64748B),
+        ),
       ),
-      trailing: onTap == null ? null : const Icon(Icons.more_vert_rounded, color: Color(0xFF94A3B8)),
+      trailing: onTap == null
+          ? null
+          : const Icon(Icons.more_vert_rounded, color: Color(0xFF94A3B8)),
     );
   }
 }
@@ -281,12 +314,20 @@ class _RigaMembro extends StatelessWidget {
           Expanded(
             child: Text(
               membro.nome,
-              style: const TextStyle(fontFamily: 'Lexend', fontSize: 15, color: Color(0xFF1E293B)),
+              style: const TextStyle(
+                fontFamily: 'Lexend',
+                fontSize: 15,
+                color: Color(0xFF1E293B),
+              ),
             ),
           ),
           Text(
             ruoloLabel(membro.ruolo),
-            style: const TextStyle(fontFamily: 'Lexend', fontSize: 12, color: Color(0xFF64748B)),
+            style: const TextStyle(
+              fontFamily: 'Lexend',
+              fontSize: 12,
+              color: Color(0xFF64748B),
+            ),
           ),
         ],
       ),
@@ -301,7 +342,11 @@ class _DialogoMembri extends StatefulWidget {
   final List<MembroUnita> candidati;
   final Set<String> iniziali;
 
-  const _DialogoMembri({required this.titolo, required this.candidati, required this.iniziali});
+  const _DialogoMembri({
+    required this.titolo,
+    required this.candidati,
+    required this.iniziali,
+  });
 
   @override
   State<_DialogoMembri> createState() => _DialogoMembriState();
@@ -316,7 +361,11 @@ class _DialogoMembriState extends State<_DialogoMembri> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       title: Text(
         widget.titolo,
-        style: const TextStyle(fontFamily: 'Lexend', fontWeight: FontWeight.w900, color: Color(0xFF1D2660)),
+        style: const TextStyle(
+          fontFamily: 'Lexend',
+          fontWeight: FontWeight.w900,
+          color: Color(0xFF1D2660),
+        ),
       ),
       content: SizedBox(
         width: double.maxFinite,
@@ -329,7 +378,10 @@ class _DialogoMembriState extends State<_DialogoMembri> {
                     CheckboxListTile(
                       contentPadding: EdgeInsets.zero,
                       value: _scelti.contains(m.id),
-                      title: Text(m.nome, style: const TextStyle(fontFamily: 'Lexend')),
+                      title: Text(
+                        m.nome,
+                        style: const TextStyle(fontFamily: 'Lexend'),
+                      ),
                       onChanged: (v) => setState(() {
                         if (v == true) {
                           _scelti.add(m.id);
@@ -342,8 +394,14 @@ class _DialogoMembriState extends State<_DialogoMembri> {
               ),
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('ANNULLA')),
-        TextButton(onPressed: () => Navigator.of(context).pop(_scelti), child: const Text('SALVA')),
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('ANNULLA'),
+        ),
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(_scelti),
+          child: const Text('SALVA'),
+        ),
       ],
     );
   }

@@ -42,6 +42,8 @@ import 'package:jamb/domain/repositories/veglia_repository.dart';
 import 'package:jamb/data/repositories/supabase_veglia_repository.dart';
 import 'package:jamb/domain/repositories/campo_repository.dart';
 import 'package:jamb/data/repositories/supabase_campo_repository.dart';
+import 'package:jamb/data/repositories/locale_preferenze_repository.dart';
+import 'package:jamb/ui/profilo/view_model/preferenze_view_model.dart';
 import 'package:jamb/data/services/storage_service.dart';
 import 'package:jamb/data/services/supabase_storage_service.dart';
 
@@ -107,6 +109,7 @@ class _AppPerUtente extends StatelessWidget {
         // Unico per l'app: la campanella della TopBar ne legge i non letti.
         ChangeNotifierProvider(create: (context) => BachecaViewModel(context.read<IAvvisoRepository>())),
         ChangeNotifierProvider(create: (context) => PilloleViewModel(context.read<IPillolaRepository>())),
+        ChangeNotifierProvider(create: (context) => PreferenzeViewModel(LocalePreferenzeRepository(context.read<SessionService>()))),
       ],
       child: MaterialApp(
         title: 'Jamb MVP',

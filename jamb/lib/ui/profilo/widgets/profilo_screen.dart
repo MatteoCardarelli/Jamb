@@ -8,7 +8,8 @@ import 'package:jamb/ui/core/widgets/jamb_dialogs.dart';
 import 'package:jamb/ui/core/widgets/jamb_feedback.dart';
 import 'package:jamb/ui/core/widgets/jamb_menu.dart';
 import 'package:jamb/ui/core/widgets/jamb_pulsante_secondario.dart';
-import 'package:jamb/ui/core/widgets/jamb_stato_errore.dart';
+import 'package:jamb/ui/core/widgets/jamb_schermata_elenco.dart';
+import 'package:jamb/ui/profilo/view_model/preferenze_view_model.dart';
 import 'package:jamb/ui/profilo/view_model/profilo_view_model.dart';
 import 'package:jamb/ui/profilo/widgets/formazione_coca_screen.dart';
 import 'package:jamb/ui/profilo/widgets/sezioni_formazione.dart';
@@ -19,27 +20,37 @@ class ProfiloScreen extends StatelessWidget {
 
   /// Apre il profilo dell'utente connesso.
   static Future<void> apri(BuildContext context) {
-    return Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => const ProfiloScreen()),
-    );
+    return Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => const ProfiloScreen()));
   }
 
   @override
   Widget build(BuildContext context) {
     final session = context.read<SessionService>();
     return ChangeNotifierProvider(
-      create: (context) => ProfiloViewModel(context.read<IFormazioneRepository>()),
-      child: ProfiloView(puoVedereCoca: session.permessi.puoVedereFormazioneCoca),
+      create: (context) =>
+          ProfiloViewModel(context.read<IFormazioneRepository>()),
+      child: ProfiloView(
+        puoVedereCoca: session.permessi.puoVedereFormazioneCoca,
+        conPreferenze: session.permessi.puoUsareAreaCapi,
+      ),
     );
   }
 }
 
 /// Contenuto del profilo; [puoVedereCoca] mostra l'accesso alla formazione di
-/// tutta la Co.Ca.
+/// tutta la Co.Ca., [conPreferenze] le opzioni della Home (chi non ha un'unità
+/// non ha la Home).
 class ProfiloView extends StatelessWidget {
   final bool puoVedereCoca;
+  final bool conPreferenze;
 
-  const ProfiloView({super.key, required this.puoVedereCoca});
+  const ProfiloView({
+    super.key,
+    required this.puoVedereCoca,
+    this.conPreferenze = true,
+  });
 
   Future<void> _scegliData(
     BuildContext context,
@@ -59,7 +70,11 @@ class ProfiloView extends StatelessWidget {
     }
   }
 
-  void _tappa(BuildContext context, ProfiloViewModel viewModel, TappaFormativa tappa) {
+  void _tappa(
+    BuildContext context,
+    ProfiloViewModel viewModel,
+    TappaFormativa tappa,
+  ) {
     TappaCompiuta? compiuta;
     for (final t in viewModel.tappe) {
       if (t.tappa == tappa) compiuta = t;
@@ -82,13 +97,17 @@ class ProfiloView extends StatelessWidget {
           icona: Icons.undo_rounded,
           etichetta: 'Segna come da fare',
           pericolosa: true,
-          onTap: () => eseguiConFeedback(context, () => viewModel.rimuoviTappa(tappa)),
+          onTap: () =>
+              eseguiConFeedback(context, () => viewModel.rimuoviTappa(tappa)),
         ),
       ],
     );
   }
 
-  Future<void> _modificaTesto(BuildContext context, ProfiloViewModel viewModel) async {
+  Future<void> _modificaTesto(
+    BuildContext context,
+    ProfiloViewModel viewModel,
+  ) async {
     final testo = await JambDialogs.chiediNome(
       context,
       titolo: 'Progetto del Capo',
@@ -104,7 +123,10 @@ class ProfiloView extends StatelessWidget {
     }
   }
 
-  Future<void> _nuovoPasso(BuildContext context, ProfiloViewModel viewModel) async {
+  Future<void> _nuovoPasso(
+    BuildContext context,
+    ProfiloViewModel viewModel,
+  ) async {
     final titolo = await JambDialogs.chiediNome(
       context,
       titolo: 'Nuovo passo',
@@ -122,52 +144,61 @@ class ProfiloView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final viewModel = context.watch<ProfiloViewModel>();
+    final preferenze = context.watch<PreferenzeViewModel>();
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
-      appBar: const JambAppBar(titolo: 'Il mio profilo'),
-      body: SafeArea(
-        top: false,
-        child: viewModel.isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : viewModel.haErrore
-                ? JambStatoErrore(messaggio: viewModel.errore!, onRiprova: viewModel.ricarica)
-                : ListView(
-                    padding: const EdgeInsets.all(20),
-                    children: [
-                      RiquadroIter(
-                        tappe: viewModel.tappe,
-                        onTappa: (t) => _tappa(context, viewModel, t),
-                      ),
-                      const SizedBox(height: 16),
-                      RiquadroProgetto(
-                        progetto: viewModel.progetto,
-                        nota: 'Lo leggete solo tu e il Capo Gruppo. Tocca il testo per modificarlo.',
-                        onModificaTesto: () => _modificaTesto(context, viewModel),
-                        onInvertiPasso: (i) =>
-                            eseguiConFeedback(context, () => viewModel.invertiPasso(i)),
-                        onRimuoviPasso: (i) =>
-                            eseguiConFeedback(context, () => viewModel.rimuoviPasso(i)),
-                        azioni: [
-                          const SizedBox(height: 8),
-                          JambPulsanteSecondario(
-                            icona: Icons.add_rounded,
-                            etichetta: 'Aggiungi un passo',
-                            onTap: () => _nuovoPasso(context, viewModel),
-                          ),
-                        ],
-                      ),
-                      if (puoVedereCoca) ...[
-                        const SizedBox(height: 16),
-                        JambPulsanteSecondario(
-                          icona: Icons.school_outlined,
-                          etichetta: 'Formazione della Co.Ca.',
-                          onTap: () => FormazioneCocaScreen.apri(context),
-                        ),
-                      ],
-                    ],
-                  ),
-      ),
+    return JambSchermataElenco(
+      titolo: 'Il mio profilo',
+      caricamento: viewModel.isLoading,
+      errore: viewModel.errore,
+      onRiprova: viewModel.ricarica,
+      children: [
+        RiquadroBadge(badge: viewModel.badge),
+        const SizedBox(height: 16),
+        RiquadroIter(
+          tappe: viewModel.tappe,
+          onTappa: (t) => _tappa(context, viewModel, t),
+        ),
+        const SizedBox(height: 16),
+        RiquadroProgetto(
+          progetto: viewModel.progetto,
+          nota:
+              'Lo leggete solo tu e il Capo Gruppo. Tocca il testo per modificarlo.',
+          onModificaTesto: () => _modificaTesto(context, viewModel),
+          onInvertiPasso: (i) =>
+              eseguiConFeedback(context, () => viewModel.invertiPasso(i)),
+          onRimuoviPasso: (i) =>
+              eseguiConFeedback(context, () => viewModel.rimuoviPasso(i)),
+          azioni: [
+            const SizedBox(height: 8),
+            JambPulsanteSecondario(
+              icona: Icons.add_rounded,
+              etichetta: 'Aggiungi un passo',
+              onTap: () => _nuovoPasso(context, viewModel),
+            ),
+          ],
+        ),
+        if (conPreferenze) ...[
+          const SizedBox(height: 16),
+          RiquadroPreferenze(
+            mostraPillole: preferenze.mostraPillole,
+            mostraCassa: preferenze.mostraCassa,
+            onPillole: (v) => eseguiConFeedback(
+              context,
+              () => preferenze.setMostraPillole(v),
+            ),
+            onCassa: (v) =>
+                eseguiConFeedback(context, () => preferenze.setMostraCassa(v)),
+          ),
+        ],
+        if (puoVedereCoca) ...[
+          const SizedBox(height: 16),
+          JambPulsanteSecondario(
+            icona: Icons.school_outlined,
+            etichetta: 'Formazione della Co.Ca.',
+            onTap: () => FormazioneCocaScreen.apri(context),
+          ),
+        ],
+      ],
     );
   }
 }

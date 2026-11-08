@@ -11,7 +11,7 @@ import 'package:jamb/ui/core/widgets/jamb_menu.dart';
 import 'package:jamb/ui/core/widgets/jamb_pulsante_secondario.dart';
 import 'package:jamb/ui/core/widgets/jamb_riquadro.dart';
 import 'package:jamb/ui/core/widgets/jamb_stati.dart';
-import 'package:jamb/ui/core/widgets/jamb_stato_errore.dart';
+import 'package:jamb/ui/core/widgets/jamb_schermata_elenco.dart';
 
 /// Programmazione del campo dell'unità attiva (US18).
 class CampoScreen extends StatelessWidget {
@@ -19,9 +19,9 @@ class CampoScreen extends StatelessWidget {
 
   /// Apre la programmazione del campo.
   static Future<void> apri(BuildContext context) {
-    return Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => const CampoScreen()),
-    );
+    return Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => const CampoScreen()));
   }
 
   @override
@@ -61,7 +61,10 @@ class CampoView extends StatelessWidget {
     }
   }
 
-  Future<void> _scegliDate(BuildContext context, CampoViewModel viewModel) async {
+  Future<void> _scegliDate(
+    BuildContext context,
+    CampoViewModel viewModel,
+  ) async {
     final periodo = await showDateRangePicker(
       context: context,
       firstDate: DateTime(2020),
@@ -69,11 +72,18 @@ class CampoView extends StatelessWidget {
       locale: const Locale('it', 'IT'),
     );
     if (periodo != null && context.mounted) {
-      await eseguiConFeedback(context, () => viewModel.impostaDate(periodo.start, periodo.end));
+      await eseguiConFeedback(
+        context,
+        () => viewModel.impostaDate(periodo.start, periodo.end),
+      );
     }
   }
 
-  void _menuPattuglia(BuildContext context, CampoViewModel viewModel, Pattuglia p) {
+  void _menuPattuglia(
+    BuildContext context,
+    CampoViewModel viewModel,
+    Pattuglia p,
+  ) {
     mostraMenuJamb(
       context,
       titolo: p.nome,
@@ -100,7 +110,11 @@ class CampoView extends StatelessWidget {
     );
   }
 
-  Future<void> _eliminaPattuglia(BuildContext context, CampoViewModel viewModel, Pattuglia p) async {
+  Future<void> _eliminaPattuglia(
+    BuildContext context,
+    CampoViewModel viewModel,
+    Pattuglia p,
+  ) async {
     final conferma = await JambDialogs.confermaEliminazione(
       context,
       titolo: 'Elimina pattuglia',
@@ -124,111 +138,120 @@ class CampoView extends StatelessWidget {
     final viewModel = context.watch<CampoViewModel>();
     final campo = viewModel.campo;
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
-      appBar: const JambAppBar(titolo: 'Campo'),
-      body: SafeArea(
-        top: false,
-        child: viewModel.isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : viewModel.haErrore
-                ? JambStatoErrore(messaggio: viewModel.errore!, onRiprova: viewModel.ricarica)
-                : ListView(
-                    padding: const EdgeInsets.all(20),
-                    children: campo == null
-                        ? [
-                            const JambTestoVuoto(
-                              'Nessun campo per quest\'anno scout.',
-                              icona: Icons.park_outlined,
-                              centrato: true,
-                            ),
-                            JambPulsanteSecondario(
-                              icona: Icons.add_rounded,
-                              etichetta: 'Prepara il campo',
-                              onTap: () => _chiedi(
-                                context,
-                                titolo: 'Nuovo campo',
-                                etichetta: 'Titolo',
-                                suggerimento: 'Es. Campo estivo 2027',
-                                salva: viewModel.creaCampo,
-                              ),
-                            ),
-                          ]
-                        : [
-                            JambRiquadro(
-                              titolo: campo.titolo,
-                              children: [
-                                Text(
-                                  campo.luogo.isEmpty ? 'Luogo da definire' : campo.luogo,
-                                  style: const TextStyle(fontFamily: 'Lexend', fontSize: 15),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(_periodo(campo), style: const TextStyle(fontFamily: 'Lexend', fontSize: 14, color: Color(0xFF64748B))),
-                                const SizedBox(height: 12),
-                                LinearProgressIndicator(
-                                  value: viewModel.avanzamento.frazione,
-                                  color: const Color(0xFF1B5E20),
-                                  backgroundColor: const Color(0xFFE2E8F0),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  '${viewModel.avanzamento.fatti} compiti fatti su ${viewModel.avanzamento.totali}',
-                                  style: const TextStyle(fontFamily: 'Lexend', fontSize: 13, color: Color(0xFF64748B)),
-                                ),
-                                const SizedBox(height: 12),
-                                JambPulsanteSecondario(
-                                  icona: Icons.location_on_outlined,
-                                  etichetta: 'Luogo',
-                                  onTap: () => _chiedi(
-                                    context,
-                                    titolo: 'Luogo',
-                                    etichetta: 'Luogo',
-                                    suggerimento: 'Es. Val di Fassa',
-                                    iniziale: campo.luogo,
-                                    obbligatorio: false,
-                                    salva: viewModel.impostaLuogo,
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                JambPulsanteSecondario(
-                                  icona: Icons.date_range_outlined,
-                                  etichetta: 'Date',
-                                  onTap: () => _scegliDate(context, viewModel),
-                                ),
-                              ],
-                            ),
-                            for (final p in viewModel.pattuglie) ...[
-                              const SizedBox(height: 16),
-                              _RiquadroPattuglia(
-                                pattuglia: p,
-                                compiti: viewModel.compitiDi(p),
-                                onMenu: () => _menuPattuglia(context, viewModel, p),
-                                onAvanza: (c) => eseguiConFeedback(context, () => viewModel.avanzaStato(c)),
-                                onElimina: (c) => eseguiConFeedback(context, () => viewModel.eliminaCompito(c)),
-                                onNuovo: () => _chiedi(
-                                  context,
-                                  titolo: 'Nuovo compito',
-                                  etichetta: 'Compito',
-                                  suggerimento: 'Es. Preparare il menu',
-                                  salva: (t) => viewModel.creaCompito(p, t),
-                                ),
-                              ),
-                            ],
-                            const SizedBox(height: 16),
-                            JambPulsanteSecondario(
-                              icona: Icons.group_add_outlined,
-                              etichetta: 'Nuova pattuglia',
-                              onTap: () => _chiedi(
-                                context,
-                                titolo: 'Nuova pattuglia',
-                                etichetta: 'Nome',
-                                suggerimento: 'Es. Cucina',
-                                salva: viewModel.creaPattuglia,
-                              ),
-                            ),
-                          ],
+    return JambSchermataElenco(
+      titolo: 'Campo',
+      caricamento: viewModel.isLoading,
+      errore: viewModel.errore,
+      onRiprova: viewModel.ricarica,
+      children: campo == null
+          ? [
+              const JambTestoVuoto(
+                'Nessun campo per quest\'anno scout.',
+                icona: Icons.park_outlined,
+                centrato: true,
+              ),
+              JambPulsanteSecondario(
+                icona: Icons.add_rounded,
+                etichetta: 'Prepara il campo',
+                onTap: () => _chiedi(
+                  context,
+                  titolo: 'Nuovo campo',
+                  etichetta: 'Titolo',
+                  suggerimento: 'Es. Campo estivo 2027',
+                  salva: viewModel.creaCampo,
+                ),
+              ),
+            ]
+          : [
+              JambRiquadro(
+                titolo: campo.titolo,
+                children: [
+                  Text(
+                    campo.luogo.isEmpty ? 'Luogo da definire' : campo.luogo,
+                    style: const TextStyle(fontFamily: 'Lexend', fontSize: 15),
                   ),
-      ),
+                  const SizedBox(height: 4),
+                  Text(
+                    _periodo(campo),
+                    style: const TextStyle(
+                      fontFamily: 'Lexend',
+                      fontSize: 14,
+                      color: Color(0xFF64748B),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  LinearProgressIndicator(
+                    value: viewModel.avanzamento.frazione,
+                    color: const Color(0xFF1B5E20),
+                    backgroundColor: const Color(0xFFE2E8F0),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '${viewModel.avanzamento.fatti} compiti fatti su ${viewModel.avanzamento.totali}',
+                    style: const TextStyle(
+                      fontFamily: 'Lexend',
+                      fontSize: 13,
+                      color: Color(0xFF64748B),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  JambPulsanteSecondario(
+                    icona: Icons.location_on_outlined,
+                    etichetta: 'Luogo',
+                    onTap: () => _chiedi(
+                      context,
+                      titolo: 'Luogo',
+                      etichetta: 'Luogo',
+                      suggerimento: 'Es. Val di Fassa',
+                      iniziale: campo.luogo,
+                      obbligatorio: false,
+                      salva: viewModel.impostaLuogo,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  JambPulsanteSecondario(
+                    icona: Icons.date_range_outlined,
+                    etichetta: 'Date',
+                    onTap: () => _scegliDate(context, viewModel),
+                  ),
+                ],
+              ),
+              for (final p in viewModel.pattuglie) ...[
+                const SizedBox(height: 16),
+                _RiquadroPattuglia(
+                  pattuglia: p,
+                  compiti: viewModel.compitiDi(p),
+                  onMenu: () => _menuPattuglia(context, viewModel, p),
+                  onAvanza: (c) => eseguiConFeedback(
+                    context,
+                    () => viewModel.avanzaStato(c),
+                  ),
+                  onElimina: (c) => eseguiConFeedback(
+                    context,
+                    () => viewModel.eliminaCompito(c),
+                  ),
+                  onNuovo: () => _chiedi(
+                    context,
+                    titolo: 'Nuovo compito',
+                    etichetta: 'Compito',
+                    suggerimento: 'Es. Preparare il menu',
+                    salva: (t) => viewModel.creaCompito(p, t),
+                  ),
+                ),
+              ],
+              const SizedBox(height: 16),
+              JambPulsanteSecondario(
+                icona: Icons.group_add_outlined,
+                etichetta: 'Nuova pattuglia',
+                onTap: () => _chiedi(
+                  context,
+                  titolo: 'Nuova pattuglia',
+                  etichetta: 'Nome',
+                  suggerimento: 'Es. Cucina',
+                  salva: viewModel.creaPattuglia,
+                ),
+              ),
+            ],
     );
   }
 }
@@ -252,10 +275,13 @@ class _RiquadroPattuglia extends StatelessWidget {
   });
 
   (IconData, Color) _aspetto(StatoCompito stato) => switch (stato) {
-        StatoCompito.daFare => (Icons.radio_button_unchecked, const Color(0xFF94A3B8)),
-        StatoCompito.inCorso => (Icons.timelapse_rounded, const Color(0xFFE96A25)),
-        StatoCompito.fatto => (Icons.check_circle_rounded, const Color(0xFF1B5E20)),
-      };
+    StatoCompito.daFare => (
+      Icons.radio_button_unchecked,
+      const Color(0xFF94A3B8),
+    ),
+    StatoCompito.inCorso => (Icons.timelapse_rounded, const Color(0xFFE96A25)),
+    StatoCompito.fatto => (Icons.check_circle_rounded, const Color(0xFF1B5E20)),
+  };
 
   @override
   Widget build(BuildContext context) {
@@ -274,8 +300,14 @@ class _RiquadroPattuglia extends StatelessWidget {
                 icon: Icon(_aspetto(c.stato).$1, color: _aspetto(c.stato).$2),
                 onPressed: () => onAvanza(c),
               ),
-              title: Text(c.titolo, style: const TextStyle(fontFamily: 'Lexend', fontSize: 15)),
-              subtitle: Text(c.stato.etichetta, style: const TextStyle(fontFamily: 'Lexend', fontSize: 12)),
+              title: Text(
+                c.titolo,
+                style: const TextStyle(fontFamily: 'Lexend', fontSize: 15),
+              ),
+              subtitle: Text(
+                c.stato.etichetta,
+                style: const TextStyle(fontFamily: 'Lexend', fontSize: 12),
+              ),
               trailing: IconButton(
                 tooltip: 'Elimina compito',
                 icon: const Icon(Icons.close_rounded, color: Color(0xFF94A3B8)),

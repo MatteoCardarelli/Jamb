@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:jamb/domain/entities/badge.dart';
 import 'package:jamb/domain/entities/formazione.dart';
 import 'package:jamb/domain/repositories/formazione_repository.dart';
 import 'package:jamb/ui/core/view_model/stato_caricamento.dart';
@@ -9,6 +10,7 @@ class ProfiloViewModel extends ChangeNotifier with StatoCaricamentoMixin {
 
   List<TappaCompiuta> _tappe = const [];
   ProgettoCapo _progetto = const ProgettoCapo();
+  List<BadgeJamb> _badge = const [];
 
   ProfiloViewModel(this._repository) {
     _repository.addListener(_carica);
@@ -24,6 +26,7 @@ class ProfiloViewModel extends ChangeNotifier with StatoCaricamentoMixin {
   Future<void> _carica() => eseguiCaricamento(() async {
         _tappe = await _repository.getMieTappe();
         _progetto = await _repository.getMioProgetto();
+        _badge = badgeDaStorico(await _repository.getMioStorico());
       });
 
   /// Rilegge i dati (es. dopo un errore).
@@ -31,6 +34,9 @@ class ProfiloViewModel extends ChangeNotifier with StatoCaricamentoMixin {
 
   List<TappaCompiuta> get tappe => _tappe;
   ProgettoCapo get progetto => _progetto;
+
+  /// Badge ricavati dallo storico associativo (US2).
+  List<BadgeJamb> get badge => _badge;
 
   /// Segna [tappa] come compiuta il giorno [data], o ne corregge la data.
   Future<void> compiTappa(TappaFormativa tappa, DateTime data) =>
