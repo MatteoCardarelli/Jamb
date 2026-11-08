@@ -46,25 +46,3 @@ class RiquadroRagazzo extends StatelessWidget {
     );
   }
 }
-
-/// Testo di una sezione del dettaglio ragazzo senza dati (es. nessun brevetto).
-class RiquadroRagazzoVuoto extends StatelessWidget {
-  final String testo;
-
-  const RiquadroRagazzoVuoto(this.testo, {super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Text(
-        testo,
-        style: const TextStyle(
-          color: Color(0xFF94A3B8),
-          fontFamily: 'Lexend',
-          fontSize: 14,
-        ),
-      ),
-    );
-  }
-}

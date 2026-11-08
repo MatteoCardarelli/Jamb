@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:jamb/ui/core/widgets/jamb_stati.dart';
 import 'package:jamb/ui/core/stile.dart';
 import 'package:provider/provider.dart';
 import 'package:jamb/ui/contabilita/view_model/contabilita_view_model.dart';
@@ -114,18 +115,10 @@ class CassaBrancaWidget extends StatelessWidget {
 
           // LISTA TRANSAZIONI RECENTI (Ultime 2, già ordinate per data nel ViewModel)
           if (financeProvider.haErrore || financeProvider.transactions.isEmpty)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              child: Text(
-                financeProvider.haErrore
-                    ? "Dati della cassa non disponibili."
-                    : "Nessuna transazione recente.",
-                style: const TextStyle(
-                  color: Color(0xFF94A3B8),
-                  fontSize: 13,
-                  fontFamily: 'Lexend',
-                ),
-              ),
+            JambTestoVuoto(
+              financeProvider.haErrore
+                  ? "Dati della cassa non disponibili."
+                  : "Nessuna transazione recente.",
             )
           else
             ...financeProvider.transactions

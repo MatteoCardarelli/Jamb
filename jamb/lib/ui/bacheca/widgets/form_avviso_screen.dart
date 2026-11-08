@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:jamb/ui/core/widgets/jamb_stati.dart';
 import 'package:provider/provider.dart';
 import 'package:jamb/domain/entities/avviso.dart';
 import 'package:jamb/domain/repositories/avviso_repository.dart';
@@ -112,14 +113,7 @@ class _FormAvvisoView extends StatelessWidget {
                   ],
                 ),
                 if (viewModel.isLoading)
-                  const Padding(
-                    padding: EdgeInsets.only(top: 12),
-                    child: SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    ),
-                  ),
+                  const JambCaricamentoPiccolo()
               ],
             ),
           ),

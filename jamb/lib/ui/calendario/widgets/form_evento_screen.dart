@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:jamb/ui/core/widgets/jamb_stati.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:jamb/core/categoria_evento_colori.dart';
@@ -199,14 +200,7 @@ class _FormEventoView extends StatelessWidget {
             // CATEGORIE (domini degli obiettivi del Programma d'Unità + "Altro")
             JambEtichettaCampo('Categorie'),
             if (viewModel.isLoading)
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 8),
-                child: SizedBox(
-                  height: 20,
-                  width: 20,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                ),
-              )
+              const JambCaricamentoPiccolo()
             else ...[
               // Senza obiettivi caricati il form resta utilizzabile con "Altro".
               if (viewModel.haErrore)

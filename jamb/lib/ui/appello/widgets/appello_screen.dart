@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:jamb/ui/core/widgets/jamb_stati.dart';
 import 'package:provider/provider.dart';
 import 'package:jamb/domain/entities/evento.dart';
 import 'package:jamb/domain/entities/presenza.dart';
@@ -139,10 +140,7 @@ class _AppelloView extends StatelessWidget {
         ),
         const SizedBox(height: 24),
         if (gruppi.isEmpty)
-          const Text(
-            "Nessun ragazzo nell'unità.",
-            style: TextStyle(color: Color(0xFF94A3B8), fontFamily: 'Lexend'),
-          ),
+          const JambTestoVuoto("Nessun ragazzo nell'unità."),
         for (final gruppo in gruppi.entries) ...[
           JambEtichettaCampo(gruppo.key),
           for (final ragazzo in gruppo.value)
