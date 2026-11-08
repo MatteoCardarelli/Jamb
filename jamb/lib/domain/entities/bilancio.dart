@@ -73,3 +73,31 @@ List<String> anniDiBilancio(Iterable<Transazione> transazioni, DateTime oggi) {
   final anni = {annoScoutDi(oggi), for (final t in transazioni) annoScoutDi(t.data)};
   return anni.toList()..sort((a, b) => b.compareTo(a));
 }
+
+/// Una cassa del gruppo (un'unità o la cassa di gruppo) con tutti i suoi movimenti.
+class CassaDelGruppo {
+  final String nome;
+  final List<Transazione> transazioni;
+
+  const CassaDelGruppo({required this.nome, required this.transazioni});
+}
+
+/// Bilancio consolidato del gruppo in un anno scout (US31): il bilancio di
+/// ogni cassa e il loro totale.
+class BilancioGruppo {
+  final List<({String nome, Bilancio bilancio})> casse;
+  final Bilancio totale;
+
+  const BilancioGruppo({required this.casse, required this.totale});
+
+  /// Calcola il consolidato di [annoScout] sommando i movimenti di [casse].
+  factory BilancioGruppo.daCasse(Iterable<CassaDelGruppo> casse, String annoScout) {
+    return BilancioGruppo(
+      casse: [
+        for (final c in casse)
+          (nome: c.nome, bilancio: Bilancio.daTransazioni(c.transazioni, annoScout)),
+      ],
+      totale: Bilancio.daTransazioni(casse.expand((c) => c.transazioni), annoScout),
+    );
+  }
+}
