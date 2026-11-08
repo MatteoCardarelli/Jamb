@@ -21,16 +21,13 @@ class SupabaseEventoRepository extends IEventoRepository {
   Future<List<Evento>> getEventi() => eseguiSupabase(() async {
         final unitId = _session.activeUnitId;
         if (unitId == null) return [];
-        // Gli eventi dell'unità attiva, della Co.Ca. e di gruppo (senza unità).
-        final coca = _session.unitaCocaId;
+        final groupId = _session.groupId;
+        if (groupId == null) return [];
+        // Tutti gli eventi del gruppo: ogni capo vede quelli di ogni branca.
         final List<dynamic> rows = await supabase
             .from(_table)
-            .select('*, units ( tipo_branca )')
-            .or([
-              'unit_id.eq.$unitId',
-              'unit_id.is.null',
-              if (coca != null) 'unit_id.eq.$coca',
-            ].join(','))
+            .select('*, units ( tipo_branca, nome )')
+            .eq('group_id', groupId)
             .order('data_inizio', ascending: true);
         return rows.map((r) => _fromDb(r as Map<String, dynamic>)).toList();
       });
@@ -172,17 +169,19 @@ class SupabaseEventoRepository extends IEventoRepository {
       tuttoIlGiorno: row['tutto_il_giorno'] == true,
       serieId: row['serie_id'] as String?,
       ripetizione: ripetizioneDaDb(row['ripetizione']),
-      livello: livelloDaDb(row['unit_id'], row['units']),
+      livello: livelloDaDb(row['unit_id'], row['units'], _session.activeUnitId),
+      nomeUnita: (row['units'] as Map?)?['nome'] as String?,
     );
   }
 
   /// Livello di un evento: senza unità è di gruppo; l'unità COCA è la Co.Ca.;
-  /// un tipo sconosciuto o assente vale come evento di unità.
+  /// altrimenti è dell'unità attiva o di un'altra unità, che resta in sola
+  /// lettura anche se il suo tipo è sconosciuto.
   @visibleForTesting
-  static LivelloEvento livelloDaDb(Object? unitId, Object? unita) {
+  static LivelloEvento livelloDaDb(Object? unitId, Object? unita, String? unitaAttiva) {
     if (unitId == null) return LivelloEvento.gruppo;
-    final tipo = unita is Map ? unita['tipo_branca'] : null;
-    return tipo == 'COCA' ? LivelloEvento.coca : LivelloEvento.unita;
+    if (unita is Map && unita['tipo_branca'] == 'COCA') return LivelloEvento.coca;
+    return unitId == unitaAttiva ? LivelloEvento.unita : LivelloEvento.altraUnita;
   }
 
   /// Normalizza un valore JSONB in lista (vuota se non è una lista).

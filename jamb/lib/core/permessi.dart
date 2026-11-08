@@ -1,4 +1,5 @@
 import 'package:jamb/domain/entities/documento.dart';
+import 'package:jamb/domain/entities/evento.dart';
 
 /// Ruoli in ordine crescente di autorità, nello stesso ordine di `ruolo_enum`
 /// nel database: le policy RLS li confrontano con `>=`.
@@ -47,6 +48,15 @@ class Permessi {
   /// qui solo l'unità attiva: la UI può nascondere un'azione permessa, mai
   /// mostrarne una vietata.
   bool get puoGestireLibreria => _almeno('CAPO_UNITA');
+
+  /// Modificare o eliminare un evento di [livello]: tutti i capi vedono gli
+  /// eventi del gruppo, ma scrivono solo su quelli della propria unità e della
+  /// Co.Ca. (`events_update`/`events_delete`: `posso_usare_unita`); il Capo
+  /// Gruppo su tutti.
+  bool puoModificareEvento(LivelloEvento livello) => switch (livello) {
+        LivelloEvento.unita || LivelloEvento.coca => puoUsareAreaCapi,
+        LivelloEvento.altraUnita || LivelloEvento.gruppo => capoGruppo,
+      };
 
   /// Vedere il bilancio consolidato del gruppo: solo il Capo Gruppo legge le
   /// transazioni di tutte le unità (`transactions_select`: `is_capo_gruppo()`).

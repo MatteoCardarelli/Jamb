@@ -24,8 +24,12 @@ class Evento {
   /// Ogni quanto si ripete la serie ([Ripetizione.mai] per un evento singolo).
   final Ripetizione ripetizione;
 
-  /// Calendario a cui appartiene: l'unità attiva, la Co.Ca. o il gruppo.
+  /// Calendario a cui appartiene: l'unità attiva, la Co.Ca., il gruppo o
+  /// un'altra unità.
   final LivelloEvento livello;
+
+  /// Nome dell'unità dell'evento, per riconoscere quelli di altre unità.
+  final String? nomeUnita;
 
   const Evento({
     required this.id,
@@ -39,7 +43,17 @@ class Evento {
     this.serieId,
     this.ripetizione = Ripetizione.mai,
     this.livello = LivelloEvento.unita,
+    this.nomeUnita,
   });
+
+  /// Testo che distingue l'evento negli elenchi (vuoto per la propria unità):
+  /// per un'altra unità il suo nome, se è noto.
+  String get etichettaLivello {
+    final nome = nomeUnita;
+    return livello == LivelloEvento.altraUnita && nome != null && nome.isNotEmpty
+        ? nome
+        : livello.etichetta;
+  }
 
   /// `true` se l'evento fa parte di una ripetizione.
   bool get inSerie => serieId != null;
@@ -57,6 +71,7 @@ class Evento {
     String? serieId,
     Ripetizione? ripetizione,
     LivelloEvento? livello,
+    String? nomeUnita,
   }) {
     return Evento(
       id: id ?? this.id,
@@ -70,6 +85,7 @@ class Evento {
       serieId: serieId ?? this.serieId,
       ripetizione: ripetizione ?? this.ripetizione,
       livello: livello ?? this.livello,
+      nomeUnita: nomeUnita ?? this.nomeUnita,
     );
   }
 }
@@ -83,7 +99,10 @@ enum LivelloEvento {
   coca('Co.Ca.'),
 
   /// Di tutto il gruppo, senza unità.
-  gruppo('Gruppo');
+  gruppo('Gruppo'),
+
+  /// Di un'altra unità del gruppo: si legge, la modificano i suoi capi.
+  altraUnita('Altra unità');
 
   /// Etichetta che distingue l'evento negli elenchi (vuota per l'unità).
   final String etichetta;
@@ -104,7 +123,8 @@ enum FiltroCalendario {
   bool include(Evento evento) => switch (this) {
         FiltroCalendario.tutti => true,
         FiltroCalendario.unita => evento.livello == LivelloEvento.unita,
-        FiltroCalendario.coca => evento.livello != LivelloEvento.unita,
+        FiltroCalendario.coca =>
+          evento.livello == LivelloEvento.coca || evento.livello == LivelloEvento.gruppo,
       };
 }
 
