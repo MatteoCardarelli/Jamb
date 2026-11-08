@@ -5,14 +5,15 @@ Transazione transazioneDiTest(
   String id,
   double importo,
   bool isUscita,
-  Categoria categoria,
-) {
+  Categoria categoria, {
+  DateTime? data,
+}) {
   return Transazione(
     id: id,
     titolo: id,
     importo: importo,
     isUscita: isUscita,
     categoria: categoria,
-    data: DateTime(2026, 1, 1),
+    data: data ?? DateTime(2026, 1, 1),
   );
 }
