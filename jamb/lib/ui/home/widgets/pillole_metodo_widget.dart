@@ -1,13 +1,27 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:jamb/ui/pillole/view_model/pillole_view_model.dart';
+import 'package:jamb/ui/pillole/widgets/pillole_screen.dart';
 
-/// Widget decorativo che mostra citazioni o pillole metodologiche scout.
+/// Pillola del giorno per la branca dell'unità attiva; un tocco apre l'elenco.
 /// Caratterizzato da uno sfondo verde foresta e un layout con icone in filigrana.
 class PilloleMetodoWidget extends StatelessWidget {
   const PilloleMetodoWidget({super.key});
 
+  /// Il testo della pillola, o il motivo per cui non c'è: mai una frase finta.
+  String _testo(PilloleViewModel viewModel) {
+    if (viewModel.isLoading) return '';
+    if (viewModel.haErrore) return 'Pillola non disponibile. Tocca per riprovare.';
+    final pillola = viewModel.delGiorno;
+    return pillola == null ? 'Nessuna pillola per questa branca.' : '"${pillola.testo}"';
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Container(
+    final viewModel = context.watch<PilloleViewModel>();
+    return GestureDetector(
+      onTap: () => PilloleScreen.apri(context),
+      child: Container(
       width: double.infinity,
       margin: const EdgeInsets.only(top: 24),
       decoration: BoxDecoration(
@@ -70,7 +84,7 @@ class PilloleMetodoWidget extends StatelessWidget {
                 
                 // Testo della citazione/consiglio
                 Text(
-                  "\"L'importanza del Consiglio della Legge: Non è solo un momento di verifica, ma il cuore della democrazia in Squadriglia.\"",
+                  _testo(viewModel),
                   style: TextStyle(
                     color: Colors.white.withValues(alpha: 0.85),
                     fontSize: 14,
@@ -83,6 +97,7 @@ class PilloleMetodoWidget extends StatelessWidget {
             ),
           ),
         ],
+      ),
       ),
     );
   }

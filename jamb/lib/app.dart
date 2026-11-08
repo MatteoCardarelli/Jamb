@@ -28,6 +28,9 @@ import 'package:jamb/domain/repositories/presenza_repository.dart';
 import 'package:jamb/data/repositories/supabase_presenza_repository.dart';
 import 'package:jamb/domain/repositories/sottogruppo_repository.dart';
 import 'package:jamb/data/repositories/supabase_sottogruppo_repository.dart';
+import 'package:jamb/domain/repositories/pillola_repository.dart';
+import 'package:jamb/data/repositories/supabase_pillola_repository.dart';
+import 'package:jamb/ui/pillole/view_model/pillole_view_model.dart';
 import 'package:jamb/data/services/storage_service.dart';
 import 'package:jamb/data/services/supabase_storage_service.dart';
 
@@ -76,6 +79,7 @@ class _AppPerUtente extends StatelessWidget {
         ChangeNotifierProvider<IAvvisoRepository>(create: (ctx) => SupabaseAvvisoRepository(ctx.read<SessionService>())),
         ChangeNotifierProvider<IPresenzaRepository>(create: (_) => SupabasePresenzaRepository()),
         ChangeNotifierProvider<ISottogruppoRepository>(create: (ctx) => SupabaseSottogruppoRepository(ctx.read<SessionService>())),
+        ChangeNotifierProvider<IPillolaRepository>(create: (ctx) => SupabasePillolaRepository(ctx.read<SessionService>())),
 
         // ViewModels
         ChangeNotifierProvider(create: (context) => AmministrazioneViewModel(context.read<IScoutRepository>())),
@@ -86,6 +90,7 @@ class _AppPerUtente extends StatelessWidget {
         ChangeNotifierProvider(create: (context) => CalendarioViewModel(context.read<IEventoRepository>())),
         // Unico per l'app: la campanella della TopBar ne legge i non letti.
         ChangeNotifierProvider(create: (context) => BachecaViewModel(context.read<IAvvisoRepository>())),
+        ChangeNotifierProvider(create: (context) => PilloleViewModel(context.read<IPillolaRepository>())),
       ],
       child: MaterialApp(
         title: 'Jamb MVP',
