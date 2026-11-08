@@ -40,6 +40,8 @@ import 'package:jamb/domain/repositories/peg_repository.dart';
 import 'package:jamb/data/repositories/supabase_peg_repository.dart';
 import 'package:jamb/domain/repositories/veglia_repository.dart';
 import 'package:jamb/data/repositories/supabase_veglia_repository.dart';
+import 'package:jamb/domain/repositories/campo_repository.dart';
+import 'package:jamb/data/repositories/supabase_campo_repository.dart';
 import 'package:jamb/data/services/storage_service.dart';
 import 'package:jamb/data/services/supabase_storage_service.dart';
 
@@ -93,6 +95,7 @@ class _AppPerUtente extends StatelessWidget {
         ChangeNotifierProvider<IFormazioneRepository>(create: (ctx) => SupabaseFormazioneRepository(ctx.read<SessionService>())),
         ChangeNotifierProvider<IPegRepository>(create: (ctx) => SupabasePegRepository(ctx.read<SessionService>())),
         ChangeNotifierProvider<IVegliaRepository>(create: (ctx) => SupabaseVegliaRepository(ctx.read<SessionService>())),
+        ChangeNotifierProvider<ICampoRepository>(create: (ctx) => SupabaseCampoRepository(ctx.read<SessionService>())),
 
         // ViewModels
         ChangeNotifierProvider(create: (context) => AmministrazioneViewModel(context.read<IScoutRepository>())),
