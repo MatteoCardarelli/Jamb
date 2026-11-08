@@ -1,6 +1,7 @@
 import 'package:jamb/core/session_service.dart';
 import 'package:jamb/core/supabase_client.dart';
 import 'package:jamb/data/errori_supabase.dart';
+import 'package:jamb/data/nome_completo.dart';
 import '../../domain/entities/incarichi.dart';
 import '../../domain/repositories/incarichi_repository.dart';
 
@@ -12,14 +13,8 @@ class SupabaseIncarichiRepository extends IIncarichiRepository {
   static const String _table = 'incarichi_trasversali';
   static const String _assistente = 'assistente_ecclesiastico';
 
-  PersonaGruppo _persona(String id, Object? utente) {
-    final u = utente is Map ? utente : const {};
-    final nome = [u['nome'], u['cognome']]
-        .whereType<String>()
-        .where((e) => e.trim().isNotEmpty)
-        .join(' ');
-    return PersonaGruppo(id: id, nome: nome.isEmpty ? 'Senza nome' : nome);
-  }
+  PersonaGruppo _persona(String id, Object? utente) =>
+      PersonaGruppo(id: id, nome: nomeCompletoDa(utente));
 
   @override
   Future<List<PersonaGruppo>> getAssistenti() => eseguiSupabase(() async {

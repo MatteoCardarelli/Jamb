@@ -1,6 +1,7 @@
 import 'package:jamb/core/session_service.dart';
 import 'package:jamb/core/supabase_client.dart';
 import 'package:jamb/data/errori_supabase.dart';
+import 'package:jamb/data/nome_completo.dart';
 import '../../domain/entities/sottogruppi.dart';
 import '../../domain/repositories/sottogruppo_repository.dart';
 
@@ -40,7 +41,7 @@ class SupabaseSottogruppoRepository extends ISottogruppoRepository {
           for (final r in righe)
             MembroUnita(
               id: r['user_id'] as String,
-              nome: _nomeCompleto(r['users']),
+              nome: nomeCompletoDa(r['users']),
               ruolo: (r['ruolo'] ?? '') as String,
               squadriglia: (r['squads'] as Map?)?['nome'] as String?,
             ),
@@ -48,14 +49,6 @@ class SupabaseSottogruppoRepository extends ISottogruppoRepository {
         return membri..sort((a, b) => a.nome.compareTo(b.nome));
       });
 
-  String _nomeCompleto(Object? utente) {
-    final u = utente is Map ? utente : const {};
-    final nome = [u['nome'], u['cognome']]
-        .whereType<String>()
-        .where((e) => e.trim().isNotEmpty)
-        .join(' ');
-    return nome.isEmpty ? 'Senza nome' : nome;
-  }
 
   @override
   Future<List<Sottogruppo>> getSottogruppi() => eseguiSupabase(() async {

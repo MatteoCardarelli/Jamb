@@ -10,7 +10,7 @@ import 'package:jamb/ui/core/widgets/jamb_menu.dart';
 import 'package:jamb/ui/core/widgets/jamb_pulsante_secondario.dart';
 import 'package:jamb/ui/core/widgets/jamb_riquadro.dart';
 import 'package:jamb/ui/core/widgets/jamb_stati.dart';
-import 'package:jamb/ui/core/widgets/jamb_stato_errore.dart';
+import 'package:jamb/ui/core/widgets/jamb_schermata_elenco.dart';
 import 'package:jamb/ui/pillole/view_model/pillole_view_model.dart';
 
 /// Elenco delle pillole del metodo (US8) e degli spunti di spiritualità (US33).
@@ -20,7 +20,10 @@ class PilloleScreen extends StatelessWidget {
   const PilloleScreen({super.key, this.tipoIniziale = TipoPillola.metodo});
 
   /// Apre l'elenco su [tipo]; il ViewModel è quello della Home.
-  static Future<void> apri(BuildContext context, {TipoPillola tipo = TipoPillola.metodo}) {
+  static Future<void> apri(
+    BuildContext context, {
+    TipoPillola tipo = TipoPillola.metodo,
+  }) {
     return Navigator.of(context).push(
       MaterialPageRoute(builder: (_) => PilloleScreen(tipoIniziale: tipo)),
     );
@@ -58,10 +61,15 @@ class PilloleView extends StatefulWidget {
 class _PilloleViewState extends State<PilloleView> {
   late TipoPillola _tipo = widget.tipoIniziale;
 
-  bool get _puoModificare =>
-      _tipo == TipoPillola.metodo ? widget.puoModificare : widget.puoModificareSpiritualita;
+  bool get _puoModificare => _tipo == TipoPillola.metodo
+      ? widget.puoModificare
+      : widget.puoModificareSpiritualita;
 
-  Future<String?> _chiediTesto(BuildContext context, String titolo, {String iniziale = ''}) {
+  Future<String?> _chiediTesto(
+    BuildContext context,
+    String titolo, {
+    String iniziale = '',
+  }) {
     return JambDialogs.chiediNome(
       context,
       titolo: titolo,
@@ -85,14 +93,26 @@ class _PilloleViewState extends State<PilloleView> {
     }
   }
 
-  Future<void> _modifica(BuildContext context, PilloleViewModel viewModel, Pillola p) async {
-    final testo = await _chiediTesto(context, 'Modifica pillola', iniziale: p.testo);
+  Future<void> _modifica(
+    BuildContext context,
+    PilloleViewModel viewModel,
+    Pillola p,
+  ) async {
+    final testo = await _chiediTesto(
+      context,
+      'Modifica pillola',
+      iniziale: p.testo,
+    );
     if (testo != null && context.mounted) {
       await eseguiConFeedback(context, () => viewModel.aggiorna(p, testo));
     }
   }
 
-  Future<void> _elimina(BuildContext context, PilloleViewModel viewModel, Pillola p) async {
+  Future<void> _elimina(
+    BuildContext context,
+    PilloleViewModel viewModel,
+    Pillola p,
+  ) async {
     final conferma = await JambDialogs.confermaEliminazione(
       context,
       titolo: 'Elimina pillola',
@@ -129,83 +149,77 @@ class _PilloleViewState extends State<PilloleView> {
     final pillole = viewModel.pilloleDi(_tipo);
     final puoModificare = _puoModificare;
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
-      appBar: const JambAppBar(titolo: 'Pillole'),
-      body: SafeArea(
-        top: false,
-        child: viewModel.isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : viewModel.haErrore
-                ? JambStatoErrore(messaggio: viewModel.errore!, onRiprova: viewModel.ricarica)
-                : ListView(
-                    padding: const EdgeInsets.all(20),
-                    children: [
-                      Wrap(
-                        spacing: 8,
-                        children: [
-                          for (final t in TipoPillola.values)
-                            JambChipFiltro(
-                              etichetta: t.etichetta,
-                              selezionato: _tipo == t,
-                              onTap: () => setState(() => _tipo = t),
-                            ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      if (puoModificare) ...[
-                        JambPulsanteSecondario(
-                          icona: Icons.add_rounded,
-                          etichetta: 'Nuova pillola',
-                          onTap: () => _nuova(context, viewModel),
-                        ),
-                        const SizedBox(height: 16),
-                      ],
-                      if (pillole.isEmpty)
-                        JambTestoVuoto(
-                          _tipo == TipoPillola.metodo
-                              ? 'Nessuna pillola per questa branca.'
-                              : 'Nessuno spunto di spiritualità.',
-                          icona: Icons.lightbulb_outline_rounded,
-                          centrato: true,
-                        ),
-                      for (final p in pillole)
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 12),
-                          child: GestureDetector(
-                            behavior: HitTestBehavior.opaque,
-                            onLongPress: puoModificare && !p.comune
-                                ? () => _menu(context, viewModel, p)
-                                : null,
-                            child: JambRiquadro(
-                              children: [
-                                Text(
-                                  p.testo,
-                                  style: const TextStyle(
-                                    fontFamily: 'Lexend',
-                                    fontSize: 15,
-                                    height: 1.5,
-                                    color: Color(0xFF1E293B),
-                                  ),
-                                ),
-                                if (!p.comune) ...[
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    puoModificare ? 'Del gruppo · tieni premuto per modificare' : 'Del gruppo',
-                                    style: const TextStyle(
-                                      fontFamily: 'Lexend',
-                                      fontSize: 12,
-                                      color: Color(0xFF64748B),
-                                    ),
-                                  ),
-                                ],
-                              ],
-                            ),
-                          ),
-                        ),
-                    ],
+    return JambSchermataElenco(
+      titolo: 'Pillole',
+      caricamento: viewModel.isLoading,
+      errore: viewModel.errore,
+      onRiprova: viewModel.ricarica,
+      children: [
+        Wrap(
+          spacing: 8,
+          children: [
+            for (final t in TipoPillola.values)
+              JambChipFiltro(
+                etichetta: t.etichetta,
+                selezionato: _tipo == t,
+                onTap: () => setState(() => _tipo = t),
+              ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        if (puoModificare) ...[
+          JambPulsanteSecondario(
+            icona: Icons.add_rounded,
+            etichetta: 'Nuova pillola',
+            onTap: () => _nuova(context, viewModel),
+          ),
+          const SizedBox(height: 16),
+        ],
+        if (pillole.isEmpty)
+          JambTestoVuoto(
+            _tipo == TipoPillola.metodo
+                ? 'Nessuna pillola per questa branca.'
+                : 'Nessuno spunto di spiritualità.',
+            icona: Icons.lightbulb_outline_rounded,
+            centrato: true,
+          ),
+        for (final p in pillole)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onLongPress: puoModificare && !p.comune
+                  ? () => _menu(context, viewModel, p)
+                  : null,
+              child: JambRiquadro(
+                children: [
+                  Text(
+                    p.testo,
+                    style: const TextStyle(
+                      fontFamily: 'Lexend',
+                      fontSize: 15,
+                      height: 1.5,
+                      color: Color(0xFF1E293B),
+                    ),
                   ),
-      ),
+                  if (!p.comune) ...[
+                    const SizedBox(height: 8),
+                    Text(
+                      puoModificare
+                          ? 'Del gruppo · tieni premuto per modificare'
+                          : 'Del gruppo',
+                      style: const TextStyle(
+                        fontFamily: 'Lexend',
+                        fontSize: 12,
+                        color: Color(0xFF64748B),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+      ],
     );
   }
 }

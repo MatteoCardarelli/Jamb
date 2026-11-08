@@ -13,7 +13,7 @@ import 'package:jamb/ui/core/widgets/jamb_feedback.dart';
 import 'package:jamb/ui/core/widgets/jamb_pulsante_secondario.dart';
 import 'package:jamb/ui/core/widgets/jamb_riquadro.dart';
 import 'package:jamb/ui/core/widgets/jamb_stati.dart';
-import 'package:jamb/ui/core/widgets/jamb_stato_errore.dart';
+import 'package:jamb/ui/core/widgets/jamb_schermata_elenco.dart';
 import 'package:jamb/ui/veglie/view_model/veglie_view_model.dart';
 
 /// Veglie preparate dall'Assistente Ecclesiastico (US32).
@@ -22,9 +22,9 @@ class VeglieScreen extends StatelessWidget {
 
   /// Apre l'elenco delle veglie.
   static Future<void> apri(BuildContext context) {
-    return Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => const VeglieScreen()),
-    );
+    return Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => const VeglieScreen()));
   }
 
   @override
@@ -44,87 +44,89 @@ class VeglieView extends StatelessWidget {
   const VeglieView({super.key, required this.puoModificare});
 
   void _apri(BuildContext context, VeglieViewModel viewModel, Veglia veglia) {
-    Navigator.of(context).push(MaterialPageRoute(
-      builder: (_) => _DettaglioVeglia(
-        veglia: veglia,
-        puoModificare: puoModificare,
-        onElimina: () => viewModel.elimina(veglia),
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => _DettaglioVeglia(
+          veglia: veglia,
+          puoModificare: puoModificare,
+          onElimina: () => viewModel.elimina(veglia),
+        ),
       ),
-    ));
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final viewModel = context.watch<VeglieViewModel>();
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
-      appBar: const JambAppBar(titolo: 'Veglie'),
-      body: SafeArea(
-        top: false,
-        child: viewModel.isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : viewModel.haErrore
-                ? JambStatoErrore(messaggio: viewModel.errore!, onRiprova: viewModel.ricarica)
-                : ListView(
-                    padding: const EdgeInsets.all(20),
-                    children: [
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: [
-                          JambChipFiltro(
-                            etichetta: 'Tutte',
-                            selezionato: viewModel.filtro == null,
-                            onTap: () => viewModel.setFiltro(null),
-                          ),
-                          for (final b in BrancaVeglia.values)
-                            JambChipFiltro(
-                              etichetta: b.etichetta,
-                              selezionato: viewModel.filtro == b,
-                              onTap: () => viewModel.setFiltro(b),
-                            ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      if (puoModificare) ...[
-                        JambPulsanteSecondario(
-                          icona: Icons.add_rounded,
-                          etichetta: 'Nuova veglia',
-                          onTap: () => FormVegliaScreen.apri(context),
-                        ),
-                        const SizedBox(height: 16),
-                      ],
-                      if (viewModel.veglie.isEmpty)
-                        const JambTestoVuoto(
-                          'Nessuna veglia.',
-                          icona: Icons.nightlight_outlined,
-                          centrato: true,
-                        ),
-                      for (final v in viewModel.veglie)
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 12),
-                          child: GestureDetector(
-                            behavior: HitTestBehavior.opaque,
-                            onTap: () => _apri(context, viewModel, v),
-                            child: JambRiquadro(
-                              children: [
-                                Text(
-                                  v.titolo,
-                                  style: const TextStyle(fontFamily: 'Lexend', fontSize: 16, fontWeight: FontWeight.w800),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  '${v.branca.etichetta} · ${v.momenti.length} momenti',
-                                  style: const TextStyle(fontFamily: 'Lexend', fontSize: 13, color: Color(0xFF64748B)),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                    ],
+    return JambSchermataElenco(
+      titolo: 'Veglie',
+      caricamento: viewModel.isLoading,
+      errore: viewModel.errore,
+      onRiprova: viewModel.ricarica,
+      children: [
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            JambChipFiltro(
+              etichetta: 'Tutte',
+              selezionato: viewModel.filtro == null,
+              onTap: () => viewModel.setFiltro(null),
+            ),
+            for (final b in BrancaVeglia.values)
+              JambChipFiltro(
+                etichetta: b.etichetta,
+                selezionato: viewModel.filtro == b,
+                onTap: () => viewModel.setFiltro(b),
+              ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        if (puoModificare) ...[
+          JambPulsanteSecondario(
+            icona: Icons.add_rounded,
+            etichetta: 'Nuova veglia',
+            onTap: () => FormVegliaScreen.apri(context),
+          ),
+          const SizedBox(height: 16),
+        ],
+        if (viewModel.veglie.isEmpty)
+          const JambTestoVuoto(
+            'Nessuna veglia.',
+            icona: Icons.nightlight_outlined,
+            centrato: true,
+          ),
+        for (final v in viewModel.veglie)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () => _apri(context, viewModel, v),
+              child: JambRiquadro(
+                children: [
+                  Text(
+                    v.titolo,
+                    style: const TextStyle(
+                      fontFamily: 'Lexend',
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                    ),
                   ),
-      ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '${v.branca.etichetta} · ${v.momenti.length} momenti',
+                    style: const TextStyle(
+                      fontFamily: 'Lexend',
+                      fontSize: 13,
+                      color: Color(0xFF64748B),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+      ],
     );
   }
 }
@@ -135,13 +137,18 @@ class _DettaglioVeglia extends StatelessWidget {
   final bool puoModificare;
   final Future<void> Function() onElimina;
 
-  const _DettaglioVeglia({required this.veglia, required this.puoModificare, required this.onElimina});
+  const _DettaglioVeglia({
+    required this.veglia,
+    required this.puoModificare,
+    required this.onElimina,
+  });
 
   Future<void> _elimina(BuildContext context) async {
     final conferma = await JambDialogs.confermaEliminazione(
       context,
       titolo: 'Elimina veglia',
-      messaggio: 'Vuoi eliminare "${veglia.titolo}"? L\'azione non è reversibile.',
+      messaggio:
+          'Vuoi eliminare "${veglia.titolo}"? L\'azione non è reversibile.',
     );
     if (!conferma || !context.mounted) return;
     final eliminata = await eseguiConFeedback(context, onElimina);
@@ -166,7 +173,10 @@ class _DettaglioVeglia extends StatelessWidget {
             ),
             IconButton(
               tooltip: 'Elimina',
-              icon: const Icon(Icons.delete_outline_rounded, color: Color(0xFFB91C1C)),
+              icon: const Icon(
+                Icons.delete_outline_rounded,
+                color: Color(0xFFB91C1C),
+              ),
               onPressed: () => _elimina(context),
             ),
           ],
@@ -179,7 +189,10 @@ class _DettaglioVeglia extends StatelessWidget {
           children: [
             JambTitoloDettaglio(veglia.titolo),
             const SizedBox(height: 16),
-            JambRigaDettaglio(icona: Icons.groups_outlined, testo: 'Per ${veglia.branca.etichetta}'),
+            JambRigaDettaglio(
+              icona: Icons.groups_outlined,
+              testo: 'Per ${veglia.branca.etichetta}',
+            ),
             const SizedBox(height: 8),
             for (final m in veglia.momenti) _RigaMomento(momento: m),
           ],
@@ -208,10 +221,22 @@ class _RigaMomento extends StatelessWidget {
               children: [
                 Text(
                   momento.tipo.etichetta.toUpperCase(),
-                  style: const TextStyle(fontFamily: 'Lexend', fontSize: 11, fontWeight: FontWeight.w800, color: Color(0xFF64748B)),
+                  style: const TextStyle(
+                    fontFamily: 'Lexend',
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                    color: Color(0xFF64748B),
+                  ),
                 ),
                 const SizedBox(height: 2),
-                Text(momento.testo, style: const TextStyle(fontFamily: 'Lexend', fontSize: 15, height: 1.4)),
+                Text(
+                  momento.testo,
+                  style: const TextStyle(
+                    fontFamily: 'Lexend',
+                    fontSize: 15,
+                    height: 1.4,
+                  ),
+                ),
               ],
             ),
           ),
@@ -238,7 +263,10 @@ class FormVegliaScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (context) => FormVegliaViewModel(context.read<IVegliaRepository>(), esistente: esistente),
+      create: (context) => FormVegliaViewModel(
+        context.read<IVegliaRepository>(),
+        esistente: esistente,
+      ),
       child: const FormVegliaView(),
     );
   }
@@ -248,7 +276,10 @@ class FormVegliaScreen extends StatelessWidget {
 class FormVegliaView extends StatelessWidget {
   const FormVegliaView({super.key});
 
-  Future<void> _nuovoMomento(BuildContext context, FormVegliaViewModel viewModel) async {
+  Future<void> _nuovoMomento(
+    BuildContext context,
+    FormVegliaViewModel viewModel,
+  ) async {
     final tipo = await JambDialogs.scegli<TipoMomento>(
       context,
       titolo: 'Nuovo momento',
@@ -269,7 +300,10 @@ class FormVegliaView extends StatelessWidget {
     if (testo != null) viewModel.aggiungiMomento(tipo, testo);
   }
 
-  Future<void> _salva(BuildContext context, FormVegliaViewModel viewModel) async {
+  Future<void> _salva(
+    BuildContext context,
+    FormVegliaViewModel viewModel,
+  ) async {
     final salvata = await eseguiConFeedback(context, viewModel.salva);
     if (salvata && context.mounted) Navigator.of(context).pop();
   }
@@ -280,7 +314,9 @@ class FormVegliaView extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: JambAppBar(titolo: viewModel.isModifica ? 'Modifica veglia' : 'Nuova veglia'),
+      appBar: JambAppBar(
+        titolo: viewModel.isModifica ? 'Modifica veglia' : 'Nuova veglia',
+      ),
       body: ListView(
         padding: const EdgeInsets.all(24),
         children: [
@@ -306,7 +342,8 @@ class FormVegliaView extends StatelessWidget {
           ),
           const SizedBox(height: 24),
           const JambEtichettaCampo('Momenti'),
-          if (viewModel.momenti.isEmpty) const JambTestoVuoto('Aggiungi almeno un momento.'),
+          if (viewModel.momenti.isEmpty)
+            const JambTestoVuoto('Aggiungi almeno un momento.'),
           for (final (i, m) in viewModel.momenti.indexed)
             _RigaMomento(
               momento: m,
@@ -316,12 +353,16 @@ class FormVegliaView extends StatelessWidget {
                   IconButton(
                     tooltip: 'Sposta su',
                     icon: const Icon(Icons.arrow_upward_rounded, size: 20),
-                    onPressed: i == 0 ? null : () => viewModel.spostaMomento(i, -1),
+                    onPressed: i == 0
+                        ? null
+                        : () => viewModel.spostaMomento(i, -1),
                   ),
                   IconButton(
                     tooltip: 'Sposta giù',
                     icon: const Icon(Icons.arrow_downward_rounded, size: 20),
-                    onPressed: i == viewModel.momenti.length - 1 ? null : () => viewModel.spostaMomento(i, 1),
+                    onPressed: i == viewModel.momenti.length - 1
+                        ? null
+                        : () => viewModel.spostaMomento(i, 1),
                   ),
                   IconButton(
                     tooltip: 'Togli',

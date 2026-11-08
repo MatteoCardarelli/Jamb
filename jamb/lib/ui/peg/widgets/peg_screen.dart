@@ -10,7 +10,7 @@ import 'package:jamb/ui/core/widgets/jamb_menu.dart';
 import 'package:jamb/ui/core/widgets/jamb_pulsante_secondario.dart';
 import 'package:jamb/ui/core/widgets/jamb_riquadro.dart';
 import 'package:jamb/ui/core/widgets/jamb_stati.dart';
-import 'package:jamb/ui/core/widgets/jamb_stato_errore.dart';
+import 'package:jamb/ui/core/widgets/jamb_schermata_elenco.dart';
 import 'package:jamb/ui/peg/view_model/peg_view_model.dart';
 
 /// Progetto Educativo di Gruppo.
@@ -19,9 +19,9 @@ class PegScreen extends StatelessWidget {
 
   /// Apre il PEG del gruppo.
   static Future<void> apri(BuildContext context) {
-    return Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => const PegScreen()),
-    );
+    return Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => const PegScreen()));
   }
 
   @override
@@ -44,7 +44,11 @@ class PegView extends StatelessWidget {
   final bool puoModificare;
   final bool conAvanzamento;
 
-  const PegView({super.key, required this.puoModificare, this.conAvanzamento = true});
+  const PegView({
+    super.key,
+    required this.puoModificare,
+    this.conAvanzamento = true,
+  });
 
   Future<void> _testo(
     BuildContext context, {
@@ -113,11 +117,16 @@ class PegView extends StatelessWidget {
     );
   }
 
-  Future<void> _elimina(BuildContext context, PegViewModel viewModel, PegObiettivo o) async {
+  Future<void> _elimina(
+    BuildContext context,
+    PegViewModel viewModel,
+    PegObiettivo o,
+  ) async {
     final conferma = await JambDialogs.confermaEliminazione(
       context,
       titolo: 'Elimina obiettivo',
-      messaggio: 'Vuoi eliminare "${o.titolo}"? I Programmi d\'Unità collegati restano, senza collegamento.',
+      messaggio:
+          'Vuoi eliminare "${o.titolo}"? I Programmi d\'Unità collegati restano, senza collegamento.',
     );
     if (conferma && context.mounted) {
       await eseguiConFeedback(context, () => viewModel.eliminaObiettivo(o));
@@ -129,94 +138,94 @@ class PegView extends StatelessWidget {
     final viewModel = context.watch<PegViewModel>();
     final peg = viewModel.peg;
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
-      appBar: const JambAppBar(titolo: 'Progetto Educativo'),
-      body: SafeArea(
-        top: false,
-        child: viewModel.isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : viewModel.haErrore
-                ? JambStatoErrore(messaggio: viewModel.errore!, onRiprova: viewModel.ricarica)
-                : ListView(
-                    padding: const EdgeInsets.all(20),
-                    children: [
-                      JambRiquadro(
-                        titolo: peg.titolo.isEmpty ? 'PEG' : peg.titolo,
-                        children: [
-                          if (peg.premessa.isEmpty)
-                            const JambTestoVuoto('Il Capo Gruppo non ha ancora scritto la premessa.')
-                          else
-                            Text(
-                              peg.premessa,
-                              style: const TextStyle(fontFamily: 'Lexend', fontSize: 15, height: 1.5),
-                            ),
-                          if (puoModificare) ...[
-                            const SizedBox(height: 12),
-                            JambPulsanteSecondario(
-                              icona: Icons.title_rounded,
-                              etichetta: 'Modifica il titolo',
-                              onTap: () => _testo(
-                                context,
-                                titolo: 'Titolo del PEG',
-                                iniziale: peg.titolo,
-                                etichetta: 'Titolo',
-                                suggerimento: 'Es. Sulla stessa strada',
-                                salva: viewModel.salvaTitolo,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            JambPulsanteSecondario(
-                              icona: Icons.edit_note_rounded,
-                              etichetta: 'Modifica la premessa',
-                              onTap: () => _testo(
-                                context,
-                                titolo: 'Premessa',
-                                iniziale: peg.premessa,
-                                etichetta: 'Premessa',
-                                suggerimento: 'La direzione comune del gruppo',
-                                righe: 6,
-                                salva: viewModel.salvaPremessa,
-                              ),
-                            ),
-                          ],
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      JambRiquadro(
-                        titolo: conAvanzamento && viewModel.critici > 0
-                            ? 'Obiettivi · ${viewModel.critici} critici'
-                            : 'Obiettivi',
-                        children: [
-                          if (viewModel.avanzamenti.isEmpty)
-                            const JambTestoVuoto('Nessun obiettivo nel PEG.'),
-                          for (final a in viewModel.avanzamenti)
-                            _RigaObiettivo(
-                              avanzamento: a,
-                              conAvanzamento: conAvanzamento,
-                              onTap: puoModificare ? () => _menu(context, viewModel, a.obiettivo) : null,
-                            ),
-                          if (puoModificare) ...[
-                            const SizedBox(height: 8),
-                            JambPulsanteSecondario(
-                              icona: Icons.add_rounded,
-                              etichetta: 'Nuovo obiettivo',
-                              onTap: () => _testo(
-                                context,
-                                titolo: 'Nuovo obiettivo',
-                                iniziale: '',
-                                etichetta: 'Titolo',
-                                suggerimento: 'Es. Educare all\'essenzialità',
-                                valida: erroreTitoloPeg,
-                                salva: viewModel.creaObiettivo,
-                              ),
-                            ),
-                          ],
-                        ],
-                      ),
-                    ],
-                  ),
-      ),
+    return JambSchermataElenco(
+      titolo: 'Progetto Educativo',
+      caricamento: viewModel.isLoading,
+      errore: viewModel.errore,
+      onRiprova: viewModel.ricarica,
+      children: [
+        JambRiquadro(
+          titolo: peg.titolo.isEmpty ? 'PEG' : peg.titolo,
+          children: [
+            if (peg.premessa.isEmpty)
+              const JambTestoVuoto(
+                'Il Capo Gruppo non ha ancora scritto la premessa.',
+              )
+            else
+              Text(
+                peg.premessa,
+                style: const TextStyle(
+                  fontFamily: 'Lexend',
+                  fontSize: 15,
+                  height: 1.5,
+                ),
+              ),
+            if (puoModificare) ...[
+              const SizedBox(height: 12),
+              JambPulsanteSecondario(
+                icona: Icons.title_rounded,
+                etichetta: 'Modifica il titolo',
+                onTap: () => _testo(
+                  context,
+                  titolo: 'Titolo del PEG',
+                  iniziale: peg.titolo,
+                  etichetta: 'Titolo',
+                  suggerimento: 'Es. Sulla stessa strada',
+                  salva: viewModel.salvaTitolo,
+                ),
+              ),
+              const SizedBox(height: 8),
+              JambPulsanteSecondario(
+                icona: Icons.edit_note_rounded,
+                etichetta: 'Modifica la premessa',
+                onTap: () => _testo(
+                  context,
+                  titolo: 'Premessa',
+                  iniziale: peg.premessa,
+                  etichetta: 'Premessa',
+                  suggerimento: 'La direzione comune del gruppo',
+                  righe: 6,
+                  salva: viewModel.salvaPremessa,
+                ),
+              ),
+            ],
+          ],
+        ),
+        const SizedBox(height: 16),
+        JambRiquadro(
+          titolo: conAvanzamento && viewModel.critici > 0
+              ? 'Obiettivi · ${viewModel.critici} critici'
+              : 'Obiettivi',
+          children: [
+            if (viewModel.avanzamenti.isEmpty)
+              const JambTestoVuoto('Nessun obiettivo nel PEG.'),
+            for (final a in viewModel.avanzamenti)
+              _RigaObiettivo(
+                avanzamento: a,
+                conAvanzamento: conAvanzamento,
+                onTap: puoModificare
+                    ? () => _menu(context, viewModel, a.obiettivo)
+                    : null,
+              ),
+            if (puoModificare) ...[
+              const SizedBox(height: 8),
+              JambPulsanteSecondario(
+                icona: Icons.add_rounded,
+                etichetta: 'Nuovo obiettivo',
+                onTap: () => _testo(
+                  context,
+                  titolo: 'Nuovo obiettivo',
+                  iniziale: '',
+                  etichetta: 'Titolo',
+                  suggerimento: 'Es. Educare all\'essenzialità',
+                  valida: erroreTitoloPeg,
+                  salva: viewModel.creaObiettivo,
+                ),
+              ),
+            ],
+          ],
+        ),
+      ],
     );
   }
 }
@@ -227,7 +236,11 @@ class _RigaObiettivo extends StatelessWidget {
   final bool conAvanzamento;
   final VoidCallback? onTap;
 
-  const _RigaObiettivo({required this.avanzamento, required this.conAvanzamento, this.onTap});
+  const _RigaObiettivo({
+    required this.avanzamento,
+    required this.conAvanzamento,
+    this.onTap,
+  });
 
   String get _stato {
     final media = avanzamento.media;
@@ -238,7 +251,9 @@ class _RigaObiettivo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final o = avanzamento.obiettivo;
-    final colore = avanzamento.critico ? const Color(0xFFB91C1C) : const Color(0xFF1B5E20);
+    final colore = avanzamento.critico
+        ? const Color(0xFFB91C1C)
+        : const Color(0xFF1B5E20);
     return InkWell(
       onTap: onTap,
       child: Padding(
@@ -246,9 +261,23 @@ class _RigaObiettivo extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(o.titolo, style: const TextStyle(fontFamily: 'Lexend', fontSize: 15, fontWeight: FontWeight.w700)),
+            Text(
+              o.titolo,
+              style: const TextStyle(
+                fontFamily: 'Lexend',
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
             if (o.descrizione.isNotEmpty)
-              Text(o.descrizione, style: const TextStyle(fontFamily: 'Lexend', fontSize: 13, color: Color(0xFF64748B))),
+              Text(
+                o.descrizione,
+                style: const TextStyle(
+                  fontFamily: 'Lexend',
+                  fontSize: 13,
+                  color: Color(0xFF64748B),
+                ),
+              ),
             if (conAvanzamento) ...[
               const SizedBox(height: 6),
               LinearProgressIndicator(
@@ -259,7 +288,11 @@ class _RigaObiettivo extends StatelessWidget {
               const SizedBox(height: 4),
               Text(
                 avanzamento.critico ? 'Punto critico · $_stato' : _stato,
-                style: TextStyle(fontFamily: 'Lexend', fontSize: 12, color: colore),
+                style: TextStyle(
+                  fontFamily: 'Lexend',
+                  fontSize: 12,
+                  color: colore,
+                ),
               ),
             ],
           ],

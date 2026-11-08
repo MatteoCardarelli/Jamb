@@ -3,10 +3,9 @@ import 'package:jamb/domain/entities/bilancio.dart';
 import 'package:jamb/domain/entities/transazione.dart';
 import 'package:jamb/ui/core/formato.dart';
 import 'package:jamb/ui/core/widgets/jamb_riquadro.dart';
-import 'package:jamb/ui/core/widgets/jamb_app_bar.dart';
 import 'package:jamb/ui/core/widgets/jamb_chip_filtro.dart';
 import 'package:jamb/ui/core/widgets/jamb_stati.dart';
-import 'package:jamb/ui/core/widgets/jamb_stato_errore.dart';
+import 'package:jamb/ui/core/widgets/jamb_schermata_elenco.dart';
 
 /// Schermata di un bilancio: scelta dell'anno scout sopra i [contenuti], con
 /// gli stati di caricamento ed errore.
@@ -34,36 +33,27 @@ class SchermataBilancio extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final messaggio = errore;
-    return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
-      appBar: JambAppBar(titolo: titolo),
-      body: SafeArea(
-        top: false,
-        child: caricamento
-            ? const Center(child: CircularProgressIndicator())
-            : messaggio != null
-                ? JambStatoErrore(messaggio: messaggio, onRiprova: onRiprova)
-                : ListView(
-                    padding: const EdgeInsets.all(20),
-                    children: [
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: [
-                          for (final anno in anni)
-                            JambChipFiltro(
-                              etichetta: anno,
-                              selezionato: anno == annoScelto,
-                              onTap: () => onAnno(anno),
-                            ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      ...contenuti,
-                    ],
-                  ),
-      ),
+    return JambSchermataElenco(
+      titolo: titolo,
+      caricamento: caricamento,
+      errore: errore,
+      onRiprova: onRiprova,
+      children: [
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            for (final anno in anni)
+              JambChipFiltro(
+                etichetta: anno,
+                selezionato: anno == annoScelto,
+                onTap: () => onAnno(anno),
+              ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        ...contenuti,
+      ],
     );
   }
 }
