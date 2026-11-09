@@ -1,35 +1,60 @@
 import 'package:flutter/foundation.dart';
 import 'package:jamb/domain/entities/campo.dart';
+import 'package:jamb/domain/entities/sottogruppi.dart';
 import 'package:jamb/domain/errori/jamb_exception.dart';
 import 'package:jamb/domain/repositories/campo_repository.dart';
 
-/// Repository del campo finto (in memoria) per i test dei ViewModel.
+/// Repository dei campi finto (in memoria) per i test dei ViewModel.
 class FakeCampoRepository extends ChangeNotifier implements ICampoRepository {
-  Campo? campo;
+  final List<Campo> campi;
+  final List<MembroUnita> staff;
   final List<Pattuglia> pattuglie = [];
   final List<CompitoCampo> compiti = [];
+  final List<ContattoCampo> contatti = [];
   JambException? erroreLettura;
   int _id = 1;
 
-  FakeCampoRepository({this.campo});
+  FakeCampoRepository({List<Campo>? campi, List<MembroUnita>? staff})
+      : campi = campi ?? [],
+        staff = staff ?? [];
 
   @override
-  Future<Campo?> getCampo() async {
+  Future<List<Campo>> getCampi() async {
     if (erroreLettura != null) throw erroreLettura!;
+    return List.of(campi);
+  }
+
+  @override
+  Future<Campo?> getCampo(String id) async {
+    if (erroreLettura != null) throw erroreLettura!;
+    for (final c in campi) {
+      if (c.id == id) return c;
+    }
+    return null;
+  }
+
+  @override
+  Future<Campo> creaCampo(TipoCampo tipo, String titolo) async {
+    final campo = Campo(id: 'campo${_id++}', tipo: tipo, titolo: titolo);
+    campi.add(campo);
+    notifyListeners();
     return campo;
   }
 
   @override
-  Future<void> creaCampo(String titolo) async {
-    campo = Campo(id: 'campo', titolo: titolo);
+  Future<void> aggiornaCampo(Campo c) async {
+    campi[campi.indexWhere((x) => x.id == c.id)] = c;
     notifyListeners();
   }
 
   @override
-  Future<void> aggiornaCampo(Campo c) async {
-    campo = c;
+  Future<void> eliminaCampo(String id) async {
+    campi.removeWhere((c) => c.id == id);
     notifyListeners();
   }
+
+  @override
+  Future<List<MembroUnita>> getStaff() async => List.of(staff);
 
   @override
   Future<List<Pattuglia>> getPattuglie(String campoId) async => List.of(pattuglie);
@@ -42,7 +67,15 @@ class FakeCampoRepository extends ChangeNotifier implements ICampoRepository {
 
   @override
   Future<void> rinominaPattuglia(String id, String nome) async {
-    pattuglie[pattuglie.indexWhere((p) => p.id == id)] = Pattuglia(id: id, nome: nome);
+    final i = pattuglie.indexWhere((p) => p.id == id);
+    pattuglie[i] = Pattuglia(id: id, nome: nome, membri: pattuglie[i].membri);
+    notifyListeners();
+  }
+
+  @override
+  Future<void> salvaMembriPattuglia(String id, Set<String> membri) async {
+    final i = pattuglie.indexWhere((p) => p.id == id);
+    pattuglie[i] = Pattuglia(id: id, nome: pattuglie[i].nome, membri: membri);
     notifyListeners();
   }
 
@@ -75,6 +108,21 @@ class FakeCampoRepository extends ChangeNotifier implements ICampoRepository {
   @override
   Future<void> eliminaCompito(String id) async {
     compiti.removeWhere((c) => c.id == id);
+    notifyListeners();
+  }
+
+  @override
+  Future<List<ContattoCampo>> getContatti(String campoId) async => List.of(contatti);
+
+  @override
+  Future<void> creaContatto(String campoId, String etichetta, String telefono) async {
+    contatti.add(ContattoCampo(id: 't${_id++}', etichetta: etichetta, telefono: telefono));
+    notifyListeners();
+  }
+
+  @override
+  Future<void> eliminaContatto(String id) async {
+    contatti.removeWhere((c) => c.id == id);
     notifyListeners();
   }
 }

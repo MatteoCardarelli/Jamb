@@ -1,20 +1,30 @@
 import 'package:flutter/foundation.dart';
 import '../entities/campo.dart';
+import '../entities/sottogruppi.dart';
 
-/// Contratto per la programmazione del campo dell'unità attiva.
+/// Contratto per l'organizzazione dei campi dell'unità attiva.
 ///
 /// Estende [ChangeNotifier] per la ricarica reattiva dei ViewModel.
 abstract class ICampoRepository extends ChangeNotifier {
-  /// Campo dell'anno scout in corso; `null` se non è stato ancora creato.
-  Future<Campo?> getCampo();
+  /// Campi e uscite dell'unità, dal più recente.
+  Future<List<Campo>> getCampi();
 
-  /// Crea il campo dell'anno scout in corso.
-  Future<void> creaCampo(String titolo);
+  /// Campo [id]; `null` se non esiste più.
+  Future<Campo?> getCampo(String id);
+
+  /// Crea un campo di [tipo] nell'unità attiva e lo restituisce.
+  Future<Campo> creaCampo(TipoCampo tipo, String titolo);
 
   /// Salva titolo, luogo e date di [campo].
   Future<void> aggiornaCampo(Campo campo);
 
-  /// Pattuglie del campo [campoId], dalla più vecchia.
+  /// Elimina il campo con pattuglie, compiti e contatti.
+  Future<void> eliminaCampo(String id);
+
+  /// Capi dell'unità attiva, tra cui scegliere i componenti delle pattuglie.
+  Future<List<MembroUnita>> getStaff();
+
+  /// Pattuglie del campo [campoId] con i loro componenti, dalla più vecchia.
   Future<List<Pattuglia>> getPattuglie(String campoId);
 
   /// Aggiunge una pattuglia al campo.
@@ -22,6 +32,9 @@ abstract class ICampoRepository extends ChangeNotifier {
 
   /// Cambia il nome della pattuglia.
   Future<void> rinominaPattuglia(String id, String nome);
+
+  /// Sostituisce i componenti della pattuglia, in un'unica transazione.
+  Future<void> salvaMembriPattuglia(String id, Set<String> membri);
 
   /// Elimina la pattuglia con i suoi compiti.
   Future<void> eliminaPattuglia(String id);
@@ -37,4 +50,13 @@ abstract class ICampoRepository extends ChangeNotifier {
 
   /// Elimina un compito.
   Future<void> eliminaCompito(String id);
+
+  /// Contatti telefonici del campo [campoId], dal più vecchio.
+  Future<List<ContattoCampo>> getContatti(String campoId);
+
+  /// Aggiunge un contatto al campo.
+  Future<void> creaContatto(String campoId, String etichetta, String telefono);
+
+  /// Elimina un contatto.
+  Future<void> eliminaContatto(String id);
 }

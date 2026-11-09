@@ -2,37 +2,43 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:jamb/domain/entities/campo.dart';
+import 'package:jamb/domain/entities/sottogruppi.dart';
 import 'package:jamb/domain/repositories/campo_repository.dart';
 import 'package:jamb/ui/campo/view_model/campo_view_model.dart';
 import 'package:jamb/ui/core/widgets/jamb_dialogs.dart';
 import 'package:jamb/ui/core/widgets/jamb_feedback.dart';
 import 'package:jamb/ui/core/widgets/jamb_menu.dart';
 import 'package:jamb/ui/core/widgets/jamb_pulsante_secondario.dart';
+import 'package:jamb/ui/core/widgets/jamb_riga_contatto.dart';
 import 'package:jamb/ui/core/widgets/jamb_riquadro.dart';
+import 'package:jamb/ui/core/widgets/jamb_scelta_persone.dart';
 import 'package:jamb/ui/core/widgets/jamb_stati.dart';
 import 'package:jamb/ui/core/widgets/jamb_schermata_elenco.dart';
 
-/// Programmazione del campo dell'unità attiva (US18).
+/// Organizzazione di un campo (US18): pattuglie, compiti e contatti.
 class CampoScreen extends StatelessWidget {
-  const CampoScreen({super.key});
+  final String campoId;
 
-  /// Apre la programmazione del campo.
-  static Future<void> apri(BuildContext context) {
+  const CampoScreen({super.key, required this.campoId});
+
+  /// Apre l'organizzazione del campo [campoId].
+  static Future<void> apri(BuildContext context, String campoId) {
     return Navigator.of(
       context,
-    ).push(MaterialPageRoute(builder: (_) => const CampoScreen()));
+    ).push(MaterialPageRoute(builder: (_) => CampoScreen(campoId: campoId)));
   }
 
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (context) => CampoViewModel(context.read<ICampoRepository>()),
+      create: (context) =>
+          CampoViewModel(context.read<ICampoRepository>(), campoId),
       child: const CampoView(),
     );
   }
 }
 
-/// Contenuto della programmazione del campo.
+/// Contenuto dell'organizzazione del campo.
 class CampoView extends StatelessWidget {
   const CampoView({super.key});
 
@@ -124,6 +130,56 @@ class CampoView extends StatelessWidget {
     }
   }
 
+  Future<void> _componenti(
+    BuildContext context,
+    CampoViewModel viewModel,
+    Pattuglia p,
+  ) async {
+    final scelti = await scegliPersone(
+      context,
+      titolo: p.nome,
+      candidati: viewModel.staff,
+      iniziali: viewModel.membriDi(p).map((m) => m.id).toSet(),
+      testoVuoto: 'Nessun capo in questo staff.',
+    );
+    if (scelti != null && context.mounted) {
+      await eseguiConFeedback(context, () => viewModel.salvaMembri(p, scelti));
+    }
+  }
+
+  /// Chiede chi è il contatto e poi il suo numero.
+  Future<void> _nuovoContatto(
+    BuildContext context,
+    CampoViewModel viewModel,
+  ) async {
+    final etichetta = await JambDialogs.chiediNome(
+      context,
+      titolo: 'Nuovo contatto',
+      icona: Icons.contact_phone_outlined,
+      conferma: 'AVANTI',
+      etichetta: 'Chi è e a cosa serve',
+      suggerimento: 'Es. Guardia forestale, permessi',
+      valida: erroreTestoCampo,
+    );
+    if (etichetta == null || !context.mounted) return;
+    final telefono = await JambDialogs.chiediNome(
+      context,
+      titolo: etichetta,
+      icona: Icons.phone_outlined,
+      conferma: 'SALVA',
+      etichetta: 'Telefono',
+      suggerimento: 'Es. 333 1234567',
+      tastiera: TextInputType.phone,
+      valida: erroreTelefono,
+    );
+    if (telefono != null && context.mounted) {
+      await eseguiConFeedback(
+        context,
+        () => viewModel.creaContatto(etichetta, telefono),
+      );
+    }
+  }
+
   String _periodo(Campo c) {
     final inizio = c.dataInizio;
     final fine = c.dataFine;
@@ -143,28 +199,30 @@ class CampoView extends StatelessWidget {
       errore: viewModel.errore,
       onRiprova: viewModel.ricarica,
       children: campo == null
-          ? [
-              const JambTestoVuoto(
-                'Nessun campo per quest\'anno scout.',
+          ? const [
+              JambTestoVuoto(
+                'Questo campo non esiste più.',
                 icona: Icons.park_outlined,
                 centrato: true,
-              ),
-              JambPulsanteSecondario(
-                icona: Icons.add_rounded,
-                etichetta: 'Prepara il campo',
-                onTap: () => _chiedi(
-                  context,
-                  titolo: 'Nuovo campo',
-                  etichetta: 'Titolo',
-                  suggerimento: 'Es. Campo estivo 2027',
-                  salva: viewModel.creaCampo,
-                ),
               ),
             ]
           : [
               JambRiquadro(
                 titolo: campo.titolo,
                 children: [
+                  Text(
+                    [
+                      campo.tipo.etichetta,
+                      if (campo.annoScout.isNotEmpty) campo.annoScout,
+                    ].join(' · '),
+                    style: const TextStyle(
+                      fontFamily: 'Lexend',
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF64748B),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
                   Text(
                     campo.luogo.isEmpty ? 'Luogo da definire' : campo.luogo,
                     style: const TextStyle(fontFamily: 'Lexend', fontSize: 15),
@@ -195,6 +253,19 @@ class CampoView extends StatelessWidget {
                   ),
                   const SizedBox(height: 12),
                   JambPulsanteSecondario(
+                    icona: Icons.title_rounded,
+                    etichetta: 'Titolo',
+                    onTap: () => _chiedi(
+                      context,
+                      titolo: 'Titolo',
+                      etichetta: 'Titolo',
+                      suggerimento: 'Es. Campo estivo 2027',
+                      iniziale: campo.titolo,
+                      salva: viewModel.rinominaCampo,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  JambPulsanteSecondario(
                     icona: Icons.location_on_outlined,
                     etichetta: 'Luogo',
                     onTap: () => _chiedi(
@@ -215,10 +286,37 @@ class CampoView extends StatelessWidget {
                   ),
                 ],
               ),
+              const SizedBox(height: 16),
+              JambRiquadro(
+                titolo: 'Contatti',
+                children: [
+                  if (viewModel.contatti.isEmpty)
+                    const JambTestoVuoto('Nessun contatto.'),
+                  for (final c in viewModel.contatti)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: JambRigaContatto(
+                        etichetta: c.etichetta,
+                        telefono: c.telefono,
+                        onElimina: () => eseguiConFeedback(
+                          context,
+                          () => viewModel.eliminaContatto(c),
+                        ),
+                      ),
+                    ),
+                  JambPulsanteSecondario(
+                    icona: Icons.add_call,
+                    etichetta: 'Aggiungi un contatto',
+                    onTap: () => _nuovoContatto(context, viewModel),
+                  ),
+                ],
+              ),
               for (final p in viewModel.pattuglie) ...[
                 const SizedBox(height: 16),
                 _RiquadroPattuglia(
                   pattuglia: p,
+                  membri: viewModel.membriDi(p),
+                  onComponenti: () => _componenti(context, viewModel, p),
                   compiti: viewModel.compitiDi(p),
                   onMenu: () => _menuPattuglia(context, viewModel, p),
                   onAvanza: (c) => eseguiConFeedback(
@@ -258,6 +356,8 @@ class CampoView extends StatelessWidget {
 /// Una pattuglia con i suoi compiti; toccando lo stato si passa al successivo.
 class _RiquadroPattuglia extends StatelessWidget {
   final Pattuglia pattuglia;
+  final List<MembroUnita> membri;
+  final VoidCallback onComponenti;
   final List<CompitoCampo> compiti;
   final VoidCallback onMenu;
   final ValueChanged<CompitoCampo> onAvanza;
@@ -266,6 +366,8 @@ class _RiquadroPattuglia extends StatelessWidget {
 
   const _RiquadroPattuglia({
     required this.pattuglia,
+    required this.membri,
+    required this.onComponenti,
     required this.compiti,
     required this.onMenu,
     required this.onAvanza,
@@ -290,6 +392,23 @@ class _RiquadroPattuglia extends StatelessWidget {
       child: JambRiquadro(
         titolo: pattuglia.nome,
         children: [
+          membri.isEmpty
+              ? const JambTestoVuoto('Nessun componente.')
+              : Text(
+                  membri.map((m) => m.nome).join(', '),
+                  style: const TextStyle(
+                    fontFamily: 'Lexend',
+                    fontSize: 14,
+                    color: Color(0xFF1E293B),
+                  ),
+                ),
+          const SizedBox(height: 8),
+          JambPulsanteSecondario(
+            icona: Icons.group_outlined,
+            etichetta: 'Componenti',
+            onTap: onComponenti,
+          ),
+          const SizedBox(height: 8),
           if (compiti.isEmpty) const JambTestoVuoto('Nessun compito.'),
           for (final c in compiti)
             ListTile(

@@ -18,6 +18,7 @@ class JambDialogs {
     String etichetta = 'Nome',
     String suggerimento = 'Es. Verbali 2026',
     int righe = 1,
+    TextInputType? tastiera,
   }) {
     return showDialog<String>(
       context: context,
@@ -30,6 +31,7 @@ class JambDialogs {
         etichetta: etichetta,
         suggerimento: suggerimento,
         righe: righe,
+        tastiera: tastiera,
       ),
     );
   }
@@ -176,6 +178,7 @@ class _DialogoNome extends StatefulWidget {
   final String etichetta;
   final String suggerimento;
   final int righe;
+  final TextInputType? tastiera;
 
   const _DialogoNome({
     required this.titolo,
@@ -186,6 +189,7 @@ class _DialogoNome extends StatefulWidget {
     required this.etichetta,
     required this.suggerimento,
     required this.righe,
+    this.tastiera,
   });
 
   @override
@@ -222,6 +226,7 @@ class _DialogoNomeState extends State<_DialogoNome> {
             autofocus: true,
             minLines: widget.righe,
             maxLines: widget.righe,
+            keyboardType: widget.tastiera,
             onChanged: (_) => setState(() => _modificato = true),
             decoration: jambDecorazioneCampo(widget.suggerimento)
                 .copyWith(errorText: _modificato ? errore : null),

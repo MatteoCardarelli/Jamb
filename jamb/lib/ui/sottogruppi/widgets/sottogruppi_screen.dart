@@ -9,6 +9,7 @@ import 'package:jamb/ui/core/widgets/jamb_feedback.dart';
 import 'package:jamb/ui/core/widgets/jamb_menu.dart';
 import 'package:jamb/ui/core/widgets/jamb_pulsante_secondario.dart';
 import 'package:jamb/ui/core/widgets/jamb_riquadro.dart';
+import 'package:jamb/ui/core/widgets/jamb_scelta_persone.dart';
 import 'package:jamb/ui/core/widgets/jamb_stati.dart';
 import 'package:jamb/ui/core/widgets/jamb_schermata_elenco.dart';
 import 'package:jamb/ui/ragazzi/view_model/ragazzi_view_model.dart';
@@ -147,13 +148,12 @@ class SottogruppiView extends StatelessWidget {
     SottogruppiViewModel viewModel,
     TipoSottogruppo tipo,
   ) async {
-    final scelti = await showDialog<Set<String>>(
-      context: context,
-      builder: (_) => _DialogoMembri(
-        titolo: tipo.etichetta,
-        candidati: viewModel.ragazzi,
-        iniziali: viewModel.membriSottogruppo(tipo).map((m) => m.id).toSet(),
-      ),
+    final scelti = await scegliPersone(
+      context,
+      titolo: tipo.etichetta,
+      candidati: viewModel.ragazzi,
+      iniziali: viewModel.membriSottogruppo(tipo).map((m) => m.id).toSet(),
+      testoVuoto: 'Nessun ragazzo nell\'unità.',
     );
     if (scelti != null && context.mounted) {
       await eseguiConFeedback(
@@ -330,78 +330,6 @@ class _RigaMembro extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-}
-
-/// Dialogo per scegliere i componenti tra i ragazzi dell'unità; restituisce
-/// gli id scelti, o `null` se si annulla.
-class _DialogoMembri extends StatefulWidget {
-  final String titolo;
-  final List<MembroUnita> candidati;
-  final Set<String> iniziali;
-
-  const _DialogoMembri({
-    required this.titolo,
-    required this.candidati,
-    required this.iniziali,
-  });
-
-  @override
-  State<_DialogoMembri> createState() => _DialogoMembriState();
-}
-
-class _DialogoMembriState extends State<_DialogoMembri> {
-  late final Set<String> _scelti = {...widget.iniziali};
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      title: Text(
-        widget.titolo,
-        style: const TextStyle(
-          fontFamily: 'Lexend',
-          fontWeight: FontWeight.w900,
-          color: Color(0xFF1D2660),
-        ),
-      ),
-      content: SizedBox(
-        width: double.maxFinite,
-        child: widget.candidati.isEmpty
-            ? const JambTestoVuoto('Nessun ragazzo nell\'unità.')
-            : ListView(
-                shrinkWrap: true,
-                children: [
-                  for (final m in widget.candidati)
-                    CheckboxListTile(
-                      contentPadding: EdgeInsets.zero,
-                      value: _scelti.contains(m.id),
-                      title: Text(
-                        m.nome,
-                        style: const TextStyle(fontFamily: 'Lexend'),
-                      ),
-                      onChanged: (v) => setState(() {
-                        if (v == true) {
-                          _scelti.add(m.id);
-                        } else {
-                          _scelti.remove(m.id);
-                        }
-                      }),
-                    ),
-                ],
-              ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text('ANNULLA'),
-        ),
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(_scelti),
-          child: const Text('SALVA'),
-        ),
-      ],
     );
   }
 }
