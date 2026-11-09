@@ -44,6 +44,8 @@ import 'package:jamb/domain/repositories/campo_repository.dart';
 import 'package:jamb/data/repositories/supabase_campo_repository.dart';
 import 'package:jamb/data/repositories/locale_preferenze_repository.dart';
 import 'package:jamb/ui/profilo/view_model/preferenze_view_model.dart';
+import 'package:jamb/data/repositories/supabase_auth_repository.dart';
+import 'package:jamb/domain/repositories/auth_repository.dart';
 import 'package:jamb/data/cache_letture.dart';
 import 'package:jamb/data/services/storage_service.dart';
 import 'package:jamb/data/services/supabase_storage_service.dart';
@@ -88,6 +90,7 @@ class _AppPerUtente extends StatelessWidget {
         Provider<IStorageService>(create: (_) => SupabaseStorageService()),
 
         // Repositories
+        Provider<IAuthRepository>(create: (_) => SupabaseAuthRepository()),
         ChangeNotifierProvider<IScoutRepository>(create: (ctx) => SupabaseScoutRepository(ctx.read<SessionService>(), ctx.read<CacheLetture>())),
         Provider<IObiettivoRepository>(create: (ctx) => SupabaseObiettivoRepository(ctx.read<SessionService>(), ctx.read<CacheLetture>())),
         ChangeNotifierProvider<ITransazioneRepository>(create: (ctx) => SupabaseTransazioneRepository(ctx.read<SessionService>(), ctx.read<IStorageService>(), ctx.read<CacheLetture>())),
