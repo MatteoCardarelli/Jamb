@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:jamb/domain/entities/evento.dart';
 import 'package:jamb/ui/calendario/view_model/calendario_view_model.dart';
-import 'package:jamb/ui/campo/widgets/campo_screen.dart';
+import 'package:jamb/ui/campo/widgets/campi_screen.dart';
 import 'package:jamb/ui/core/widgets/jamb_chip_filtro.dart';
 import 'package:jamb/ui/core/widgets/jamb_pulsante_secondario.dart';
 import 'package:jamb/ui/core/widgets/empty_background_screen.dart';
@@ -58,8 +58,8 @@ class CalendarioScreen extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: JambPulsanteSecondario(
                   icona: Icons.park_outlined,
-                  etichetta: "Programmazione del campo",
-                  onTap: () => CampoScreen.apri(context),
+                  etichetta: "Campi e uscite",
+                  onTap: () => CampiScreen.apri(context),
                 ),
               ),
               const SizedBox(height: 80), // Padding below for the bottom navbar
