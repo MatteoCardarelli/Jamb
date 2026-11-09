@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:jamb/core/supabase_client.dart';
 import 'package:jamb/core/session_service.dart';
+import 'package:jamb/data/cache_letture.dart';
 import 'package:jamb/data/errori_supabase.dart';
 import '../../domain/entities/scout.dart';
 import '../../domain/entities/progresso.dart';
@@ -15,13 +16,14 @@ import '../../domain/repositories/scout_repository.dart';
 /// `salva_ragazzo`.
 class SupabaseScoutRepository extends IScoutRepository {
   final SessionService _session;
-  SupabaseScoutRepository(this._session);
+  final CacheLetture _cache;
+  SupabaseScoutRepository(this._session, this._cache);
 
   @override
-  Future<List<Scout>> getRagazzi() => eseguiSupabase(_leggiRagazzi);
+  Future<List<Scout>> getRagazzi() => _cache.leggiSupabase('ragazzi', _leggiRagazzi);
 
   @override
-  Future<List<String>> getSquadriglie() => eseguiSupabase(() async {
+  Future<List<String>> getSquadriglie() => _cache.leggiSupabase('squadriglie', () async {
         final unitId = _session.activeUnitId;
         if (unitId == null) return [];
         final List<dynamic> rows = await supabase
@@ -74,6 +76,7 @@ class SupabaseScoutRepository extends IScoutRepository {
       'p_unit_id': _session.activeUnitId,
       'p_ragazzo': payloadRagazzo(ragazzo),
     });
+    _cache.dimentica(const ['ragazzi', 'sottogruppi', 'campo_staff', 'formazione/capi']);
     notifyListeners();
   }
 

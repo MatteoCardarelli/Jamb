@@ -89,6 +89,61 @@ void main() {
     });
   });
 
+  group('letture del calendario', () {
+    // Ogni tocco su un giorno scaricava tre volte tutti gli eventi.
+    test('l\'apertura legge gli eventi una sola volta', () async {
+      final repo = FakeEventoRepository(eventi: [unita]);
+      CalendarioViewModel(repo);
+      await pumpEventQueue();
+      expect(repo.letture, 1);
+    });
+
+    test('cambiare giorno e filtro non richiede nulla al server', () async {
+      final repo = FakeEventoRepository(eventi: [unita]);
+      final vm = CalendarioViewModel(repo);
+      await pumpEventQueue();
+
+      vm.setSelectedDate(giorno.add(const Duration(days: 1)));
+      await pumpEventQueue();
+      expect(vm.eventiDelGiorno, isEmpty);
+
+      vm.setSelectedDate(giorno);
+      vm.setFiltro(FiltroCalendario.coca);
+      await pumpEventQueue();
+
+      expect(repo.letture, 1);
+    });
+  });
+
+  group('eventoNelGiorno', () {
+    final campo = eventoDiTest('campo', DateTime(2026, 7, 1, 18), fine: DateTime(2026, 7, 8, 10));
+
+    test('vale dal primo all\'ultimo giorno, a qualunque ora', () {
+      expect(eventoNelGiorno(campo, DateTime(2026, 7, 1, 2)), isTrue);
+      expect(eventoNelGiorno(campo, DateTime(2026, 7, 4)), isTrue);
+      expect(eventoNelGiorno(campo, DateTime(2026, 7, 8, 23)), isTrue);
+    });
+
+    test('non vale il giorno prima né quello dopo', () {
+      expect(eventoNelGiorno(campo, DateTime(2026, 6, 30, 23)), isFalse);
+      expect(eventoNelGiorno(campo, DateTime(2026, 7, 9)), isFalse);
+    });
+  });
+
+  group('eventiProssimi', () {
+    final oggiFisso = DateTime(2026, 11, 9, 15);
+
+    test('da domani per due settimane, non oggi', () {
+      final eventi = [
+        eventoDiTest('oggi', DateTime(2026, 11, 9, 20)),
+        eventoDiTest('domani', DateTime(2026, 11, 10)),
+        eventoDiTest('ultimo', DateTime(2026, 11, 24)),
+        eventoDiTest('oltre', DateTime(2026, 11, 25, 9)),
+      ];
+      expect(eventiProssimi(eventi, oggiFisso).map((e) => e.id), ['domani', 'ultimo']);
+    });
+  });
+
   group('eventoPerAppello', () {
     test('ignora un evento di Co.Ca. in corso e prende quello dell\'unità', () {
       final adesso = DateTime(2026, 11, 8, 10, 30);

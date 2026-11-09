@@ -1,5 +1,6 @@
 import 'package:jamb/core/session_service.dart';
 import 'package:jamb/core/supabase_client.dart';
+import 'package:jamb/data/cache_letture.dart';
 import 'package:jamb/data/errori_supabase.dart';
 import '../../domain/entities/pillola.dart';
 import '../../domain/repositories/pillola_repository.dart';
@@ -8,12 +9,13 @@ import '../../domain/repositories/pillola_repository.dart';
 /// la branca dell'unità attiva; le RLS decidono chi le scrive.
 class SupabasePillolaRepository extends IPillolaRepository {
   final SessionService _session;
-  SupabasePillolaRepository(this._session);
+  final CacheLetture _cache;
+  SupabasePillolaRepository(this._session, this._cache);
 
   static const String _table = 'pillole';
 
   @override
-  Future<List<Pillola>> getPillole({TipoPillola tipo = TipoPillola.metodo}) => eseguiSupabase(() async {
+  Future<List<Pillola>> getPillole({TipoPillola tipo = TipoPillola.metodo}) => _cache.leggiSupabase('pillole/${tipo.valoreDb}', () async {
         final branca = _session.tipoBrancaAttiva;
         final groupId = _session.groupId;
         if (groupId == null) return [];
@@ -45,18 +47,21 @@ class SupabasePillolaRepository extends IPillolaRepository {
           'branca': branca,
           'testo': testo.trim(),
         });
+        _cache.dimentica(const ['pillole']);
         notifyListeners();
       });
 
   @override
   Future<void> aggiorna(String id, String testo) => eseguiSupabase(() async {
         await supabase.from(_table).update({'testo': testo.trim()}).eq('id', id);
+        _cache.dimentica(const ['pillole']);
         notifyListeners();
       });
 
   @override
   Future<void> elimina(String id) => eseguiSupabase(() async {
         await supabase.from(_table).delete().eq('id', id);
+        _cache.dimentica(const ['pillole']);
         notifyListeners();
       });
 }

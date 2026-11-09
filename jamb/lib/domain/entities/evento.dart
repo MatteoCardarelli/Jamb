@@ -90,6 +90,23 @@ class Evento {
   }
 }
 
+/// `true` se [evento] ricade nel giorno di [giorno] (inizio ≤ giorno ≤ fine).
+bool eventoNelGiorno(Evento evento, DateTime giorno) {
+  final g = DateTime(giorno.year, giorno.month, giorno.day);
+  final inizio = _giorno(evento.dataInizio);
+  final fine = _giorno(evento.dataFine);
+  return !g.isBefore(inizio) && !g.isAfter(fine);
+}
+
+/// Eventi che iniziano nelle due settimane successive a [oggi], da domani.
+List<Evento> eventiProssimi(Iterable<Evento> eventi, DateTime oggi) {
+  final domani = DateTime(oggi.year, oggi.month, oggi.day + 1);
+  final limite = DateTime(oggi.year, oggi.month, oggi.day + 15);
+  return eventi
+      .where((e) => !e.dataInizio.isBefore(domani) && !e.dataInizio.isAfter(limite))
+      .toList();
+}
+
 /// Calendario a cui appartiene un evento.
 enum LivelloEvento {
   /// Dell'unità attiva.

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:jamb/core/categoria_evento_colori.dart';
 import 'package:jamb/core/session_service.dart';
 import 'package:jamb/core/supabase_client.dart';
+import 'package:jamb/data/cache_letture.dart';
 import 'package:jamb/data/errori_supabase.dart';
 import 'package:jamb/data/services/file_archiviati.dart' show idCasuale;
 import '../../domain/entities/evento.dart';
@@ -9,16 +10,17 @@ import '../../domain/repositories/evento_repository.dart';
 
 /// Repository degli eventi del calendario su Supabase (tabella `events`).
 ///
-/// I filtri per data ([getEventiPerData], [getEventiTraDate]) sono applicati
-/// lato client riusando [getEventi]: i volumi sono piccoli.
+/// Una sola lettura serve tutto il calendario: i filtri per data sono funzioni
+/// del dominio applicate agli eventi già in memoria.
 class SupabaseEventoRepository extends IEventoRepository {
   final SessionService _session;
-  SupabaseEventoRepository(this._session);
+  final CacheLetture _cache;
+  SupabaseEventoRepository(this._session, this._cache);
 
   static const String _table = 'events';
 
   @override
-  Future<List<Evento>> getEventi() => eseguiSupabase(() async {
+  Future<List<Evento>> getEventi() => _cache.leggiSupabase('eventi', () async {
         final unitId = _session.activeUnitId;
         if (unitId == null) return [];
         final groupId = _session.groupId;
@@ -31,26 +33,6 @@ class SupabaseEventoRepository extends IEventoRepository {
             .order('data_inizio', ascending: true);
         return rows.map((r) => _fromDb(r as Map<String, dynamic>)).toList();
       });
-
-  @override
-  Future<List<Evento>> getEventiPerData(DateTime data) async {
-    final eventi = await getEventi();
-    final target = DateTime(data.year, data.month, data.day);
-    return eventi.where((e) {
-      final start = DateTime(e.dataInizio.year, e.dataInizio.month, e.dataInizio.day);
-      final end = DateTime(e.dataFine.year, e.dataFine.month, e.dataFine.day);
-      return (target.isAfter(start) || target.isAtSameMomentAs(start)) &&
-             (target.isBefore(end) || target.isAtSameMomentAs(end));
-    }).toList();
-  }
-
-  @override
-  Future<List<Evento>> getEventiTraDate(DateTime dal, DateTime al) async {
-    final eventi = await getEventi();
-    return eventi.where((e) =>
-        (e.dataInizio.isAfter(dal) || e.dataInizio.isAtSameMomentAs(dal)) &&
-        (e.dataInizio.isBefore(al) || e.dataInizio.isAtSameMomentAs(al))).toList();
-  }
 
   static const Map<Ripetizione, String> _ripetizioniDb = {
     Ripetizione.ogniGiorno: 'giornaliera',
@@ -95,6 +77,7 @@ class SupabaseEventoRepository extends IEventoRepository {
               ..._campiModificabili(e),
             },
         ]);
+        _cache.dimentica(const ['eventi']);
         notifyListeners();
       });
 
@@ -122,6 +105,7 @@ class SupabaseEventoRepository extends IEventoRepository {
               {...r, ..._campiModificabili(applicaAllaSerie(evento, _fromDb(r)))},
           ]);
         }
+        _cache.dimentica(const ['eventi']);
         notifyListeners();
       });
 
@@ -137,6 +121,7 @@ class SupabaseEventoRepository extends IEventoRepository {
               .eq('serie_id', evento.serieId!)
               .gte('data_inizio', evento.dataInizio.toIso8601String());
         }
+        _cache.dimentica(const ['eventi']);
         notifyListeners();
       });
 

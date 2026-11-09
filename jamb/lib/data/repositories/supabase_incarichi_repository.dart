@@ -1,5 +1,6 @@
 import 'package:jamb/core/session_service.dart';
 import 'package:jamb/core/supabase_client.dart';
+import 'package:jamb/data/cache_letture.dart';
 import 'package:jamb/data/errori_supabase.dart';
 import 'package:jamb/data/nome_completo.dart';
 import '../../domain/entities/incarichi.dart';
@@ -8,7 +9,8 @@ import '../../domain/repositories/incarichi_repository.dart';
 /// Incarichi trasversali del gruppo su Supabase; solo il Capo Gruppo li modifica.
 class SupabaseIncarichiRepository extends IIncarichiRepository {
   final SessionService _session;
-  SupabaseIncarichiRepository(this._session);
+  final CacheLetture _cache;
+  SupabaseIncarichiRepository(this._session, this._cache);
 
   static const String _table = 'incarichi_trasversali';
   static const String _assistente = 'assistente_ecclesiastico';
@@ -17,7 +19,7 @@ class SupabaseIncarichiRepository extends IIncarichiRepository {
       PersonaGruppo(id: id, nome: nomeCompletoDa(utente));
 
   @override
-  Future<List<PersonaGruppo>> getAssistenti() => eseguiSupabase(() async {
+  Future<List<PersonaGruppo>> getAssistenti() => _cache.leggiSupabase('incarichi/assistenti', () async {
         final groupId = _session.groupId;
         if (groupId == null) return [];
         final List<dynamic> righe = await supabase
@@ -29,7 +31,7 @@ class SupabaseIncarichiRepository extends IIncarichiRepository {
       });
 
   @override
-  Future<List<PersonaGruppo>> getPersone() => eseguiSupabase(() async {
+  Future<List<PersonaGruppo>> getPersone() => _cache.leggiSupabase('incarichi/persone', () async {
         final groupId = _session.groupId;
         if (groupId == null) return [];
         final List<dynamic> righe =
@@ -46,12 +48,14 @@ class SupabaseIncarichiRepository extends IIncarichiRepository {
           'group_id': groupId,
           'tipo': _assistente,
         });
+        _cache.dimentica(const ['incarichi']);
         notifyListeners();
       });
 
   @override
   Future<void> revoca(String userId) => eseguiSupabase(() async {
         await supabase.from(_table).delete().eq('user_id', userId).eq('tipo', _assistente);
+        _cache.dimentica(const ['incarichi']);
         notifyListeners();
       });
 }

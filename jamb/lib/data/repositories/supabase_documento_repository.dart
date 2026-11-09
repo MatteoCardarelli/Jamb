@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' show PostgrestFilterBuilder;
 import 'package:jamb/core/session_service.dart';
 import 'package:jamb/core/supabase_client.dart';
+import 'package:jamb/data/cache_letture.dart';
 import 'package:jamb/data/errori_supabase.dart';
 import 'package:jamb/data/services/file_archiviati.dart';
 import 'package:jamb/data/services/storage_service.dart';
@@ -19,7 +20,8 @@ import '../../domain/repositories/documento_repository.dart';
 class SupabaseDocumentoRepository extends IDocumentoRepository {
   final SessionService _session;
   final IStorageService _storage;
-  SupabaseDocumentoRepository(this._session, this._storage);
+  final CacheLetture _cache;
+  SupabaseDocumentoRepository(this._session, this._storage, this._cache);
 
   static const String _table = 'documents';
 
@@ -61,7 +63,7 @@ class SupabaseDocumentoRepository extends IDocumentoRepository {
 
   @override
   Future<List<Documento>> getContenuto(ArchivioDocumenti archivio, String? parentId) =>
-      eseguiSupabase(() async {
+      _cache.leggiSupabase('documenti/${archivio.name}/$parentId', () async {
         final p = await _proprietario(archivio);
         final query = _righe(p);
         final List<dynamic> rows = parentId == null
@@ -71,7 +73,7 @@ class SupabaseDocumentoRepository extends IDocumentoRepository {
       });
 
   @override
-  Future<List<Documento>> getRecenti({int quanti = 5}) => eseguiSupabase(() async {
+  Future<List<Documento>> getRecenti({int quanti = 5}) => _cache.leggiSupabase('documenti/recenti/$quanti', () async {
         final p = await _proprietario(ArchivioDocumenti.driveBranca);
         final List<dynamic> rows = await _righe(p)
             .eq('is_cartella', false)
@@ -90,6 +92,7 @@ class SupabaseDocumentoRepository extends IDocumentoRepository {
           'is_cartella': true,
           'titolo': nome.trim(),
         });
+        _cache.dimentica(const ['documenti']);
         notifyListeners();
       });
 
@@ -123,6 +126,7 @@ class SupabaseDocumentoRepository extends IDocumentoRepository {
           }),
           eliminaFile: () => _storage.elimina(bucketDocumenti, [percorso]),
         );
+        _cache.dimentica(const ['documenti']);
         notifyListeners();
         return Documento(
           id: id,
@@ -141,6 +145,7 @@ class SupabaseDocumentoRepository extends IDocumentoRepository {
           'titolo': nome.trim(),
           'ultima_modifica': DateTime.now().toUtc().toIso8601String(),
         }).eq('id', documento.id);
+        _cache.dimentica(const ['documenti']);
         notifyListeners();
       });
 
@@ -171,6 +176,7 @@ class SupabaseDocumentoRepository extends IDocumentoRepository {
         // file: se lo storage fallisce restano file orfani, privati e
         // invisibili, mai righe che puntano a file inesistenti.
         await supabase.from(_table).delete().inFilter('id', [for (final d in documenti) d.id]);
+        _cache.dimentica(const ['documenti']);
         notifyListeners();
         try {
           await _storage.elimina(bucketDocumenti, percorsi);
@@ -197,11 +203,12 @@ class SupabaseDocumentoRepository extends IDocumentoRepository {
             'Non hai il permesso di spostare questi documenti.',
           );
         }
+        _cache.dimentica(const ['documenti']);
         notifyListeners();
       });
 
   @override
-  Future<List<Documento>> getCartelle(ArchivioDocumenti archivio) => eseguiSupabase(() async {
+  Future<List<Documento>> getCartelle(ArchivioDocumenti archivio) => _cache.leggiSupabase('documenti/cartelle/${archivio.name}', () async {
         final List<dynamic> rows =
             await _righe(await _proprietario(archivio)).eq('is_cartella', true);
         return rows.map((r) => _fromDb(r as Map<String, dynamic>)).toList();

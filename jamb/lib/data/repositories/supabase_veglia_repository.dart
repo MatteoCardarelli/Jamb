@@ -1,5 +1,6 @@
 import 'package:jamb/core/session_service.dart';
 import 'package:jamb/core/supabase_client.dart';
+import 'package:jamb/data/cache_letture.dart';
 import 'package:jamb/data/errori_supabase.dart';
 import '../../domain/entities/veglia.dart';
 import '../../domain/repositories/veglia_repository.dart';
@@ -7,10 +8,11 @@ import '../../domain/repositories/veglia_repository.dart';
 /// Veglie su Supabase (tabella `veglie`); le scrive solo l'Assistente.
 class SupabaseVegliaRepository extends IVegliaRepository {
   final SessionService _session;
-  SupabaseVegliaRepository(this._session);
+  final CacheLetture _cache;
+  SupabaseVegliaRepository(this._session, this._cache);
 
   @override
-  Future<List<Veglia>> getVeglie() => eseguiSupabase(() async {
+  Future<List<Veglia>> getVeglie() => _cache.leggiSupabase('veglie', () async {
         final groupId = _session.groupId;
         if (groupId == null) return [];
         final List<dynamic> righe = await supabase
@@ -56,12 +58,14 @@ class SupabaseVegliaRepository extends IVegliaRepository {
         } else {
           await supabase.from('veglie').update(dati).eq('id', v.id);
         }
+        _cache.dimentica(const ['veglie']);
         notifyListeners();
       });
 
   @override
   Future<void> elimina(String id) => eseguiSupabase(() async {
         await supabase.from('veglie').delete().eq('id', id);
+        _cache.dimentica(const ['veglie']);
         notifyListeners();
       });
 }

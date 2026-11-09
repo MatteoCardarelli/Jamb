@@ -24,10 +24,4 @@ abstract class IEventoRepository extends ChangeNotifier {
 
   /// Tutti gli eventi visibili, ordinati per data di inizio crescente.
   Future<List<Evento>> getEventi();
-
-  /// Eventi che ricadono nel giorno [data] (inizio ≤ giorno ≤ fine).
-  Future<List<Evento>> getEventiPerData(DateTime data);
-
-  /// Eventi con data di inizio compresa tra [dal] e [al] (estremi inclusi).
-  Future<List<Evento>> getEventiTraDate(DateTime dal, DateTime al);
 }
