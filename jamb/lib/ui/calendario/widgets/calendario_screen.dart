@@ -86,7 +86,7 @@ class _FiltriCalendario extends StatelessWidget {
           spacing: 8,
           runSpacing: 8,
           children: [
-            for (final filtro in FiltroCalendario.values)
+            for (final filtro in viewModel.filtri)
               JambChipFiltro(
                 etichetta: filtro.etichetta,
                 selezionato: viewModel.filtro == filtro,

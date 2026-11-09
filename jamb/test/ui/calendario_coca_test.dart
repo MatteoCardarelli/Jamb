@@ -89,6 +89,38 @@ void main() {
     });
   });
 
+  group('filtri per le altre unità', () {
+    final branco = altra.copyWith(id: 'branco', nomeUnita: 'Branco Seeonee');
+    final clan = altra.copyWith(id: 'clan', nomeUnita: 'Clan Orsa');
+
+    test('un chip per ogni altra unità con eventi, in ordine alfabetico', () {
+      expect(
+        FiltroCalendario.disponibili([unita, clan, branco, clan]).map((f) => f.etichetta),
+        ['Tutti', 'La mia unità', 'Co.Ca.', 'Branco Seeonee', 'Clan Orsa'],
+      );
+    });
+
+    test('il filtro di un\'unità mostra solo i suoi eventi', () {
+      expect(
+        [unita, coca, branco, clan].where(const FiltroCalendario.altraUnita('Clan Orsa').include),
+        [clan],
+      );
+    });
+
+    // Altrimenti il calendario resterebbe vuoto senza il chip per uscirne.
+    test('se l\'unità filtrata non ha più eventi si torna a tutti', () async {
+      final repo = FakeEventoRepository(eventi: [unita, clan]);
+      final vm = CalendarioViewModel(repo);
+      await pumpEventQueue();
+      vm.setFiltro(const FiltroCalendario.altraUnita('Clan Orsa'));
+
+      repo.eventi.remove(clan);
+      await vm.refresh();
+
+      expect(vm.filtro, FiltroCalendario.tutti);
+    });
+  });
+
   group('letture del calendario', () {
     // Ogni tocco su un giorno scaricava tre volte tutti gli eventi.
     test('l\'apertura legge gli eventi una sola volta', () async {

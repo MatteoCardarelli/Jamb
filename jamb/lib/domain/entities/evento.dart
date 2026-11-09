@@ -126,23 +126,54 @@ enum LivelloEvento {
   const LivelloEvento(this.etichetta);
 }
 
-/// Quali eventi mostra il calendario.
-enum FiltroCalendario {
-  tutti('Tutti'),
-  unita('La mia unità'),
-  coca('Co.Ca.');
+enum _AmbitoFiltro { tutti, unita, coca, altraUnita }
 
+/// Quali eventi mostra il calendario.
+class FiltroCalendario {
+  final _AmbitoFiltro _ambito;
+
+  /// Testo del filtro; per un'altra unità è il suo nome.
   final String etichetta;
-  const FiltroCalendario(this.etichetta);
+
+  const FiltroCalendario._(this._ambito, this.etichetta);
+
+  static const tutti = FiltroCalendario._(_AmbitoFiltro.tutti, 'Tutti');
+  static const unita = FiltroCalendario._(_AmbitoFiltro.unita, 'La mia unità');
+  static const coca = FiltroCalendario._(_AmbitoFiltro.coca, 'Co.Ca.');
+
+  /// Solo gli eventi dell'unità del gruppo chiamata [nome].
+  const FiltroCalendario.altraUnita(String nome) : this._(_AmbitoFiltro.altraUnita, nome);
+
+  /// Filtri tra cui scegliere: quelli fissi e le altre unità che hanno
+  /// almeno un evento, in ordine alfabetico.
+  static List<FiltroCalendario> disponibili(Iterable<Evento> eventi) {
+    final altreUnita = eventi
+        .where((e) => e.livello == LivelloEvento.altraUnita)
+        .map((e) => e.nomeUnita)
+        .whereType<String>()
+        .toSet()
+        .toList()
+      ..sort();
+    return [tutti, unita, coca, ...altreUnita.map(FiltroCalendario.altraUnita)];
+  }
 
   /// `true` se [evento] rientra nel filtro. Gli eventi di gruppo riguardano
   /// i capi come quelli di Co.Ca.
-  bool include(Evento evento) => switch (this) {
-        FiltroCalendario.tutti => true,
-        FiltroCalendario.unita => evento.livello == LivelloEvento.unita,
-        FiltroCalendario.coca =>
+  bool include(Evento evento) => switch (_ambito) {
+        _AmbitoFiltro.tutti => true,
+        _AmbitoFiltro.unita => evento.livello == LivelloEvento.unita,
+        _AmbitoFiltro.coca =>
           evento.livello == LivelloEvento.coca || evento.livello == LivelloEvento.gruppo,
+        _AmbitoFiltro.altraUnita =>
+          evento.livello == LivelloEvento.altraUnita && evento.nomeUnita == etichetta,
       };
+
+  @override
+  bool operator ==(Object other) =>
+      other is FiltroCalendario && other._ambito == _ambito && other.etichetta == etichetta;
+
+  @override
+  int get hashCode => Object.hash(_ambito, etichetta);
 }
 
 /// Ogni quanto si ripete un evento.
