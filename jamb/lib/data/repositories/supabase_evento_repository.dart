@@ -9,8 +9,8 @@ import '../../domain/repositories/evento_repository.dart';
 
 /// Repository degli eventi del calendario su Supabase (tabella `events`).
 ///
-/// I filtri per data ([getEventiPerData], [getEventiTraDate]) sono applicati
-/// lato client riusando [getEventi]: i volumi sono piccoli.
+/// Una sola lettura serve tutto il calendario: i filtri per data sono funzioni
+/// del dominio applicate agli eventi già in memoria.
 class SupabaseEventoRepository extends IEventoRepository {
   final SessionService _session;
   SupabaseEventoRepository(this._session);
@@ -31,26 +31,6 @@ class SupabaseEventoRepository extends IEventoRepository {
             .order('data_inizio', ascending: true);
         return rows.map((r) => _fromDb(r as Map<String, dynamic>)).toList();
       });
-
-  @override
-  Future<List<Evento>> getEventiPerData(DateTime data) async {
-    final eventi = await getEventi();
-    final target = DateTime(data.year, data.month, data.day);
-    return eventi.where((e) {
-      final start = DateTime(e.dataInizio.year, e.dataInizio.month, e.dataInizio.day);
-      final end = DateTime(e.dataFine.year, e.dataFine.month, e.dataFine.day);
-      return (target.isAfter(start) || target.isAtSameMomentAs(start)) &&
-             (target.isBefore(end) || target.isAtSameMomentAs(end));
-    }).toList();
-  }
-
-  @override
-  Future<List<Evento>> getEventiTraDate(DateTime dal, DateTime al) async {
-    final eventi = await getEventi();
-    return eventi.where((e) =>
-        (e.dataInizio.isAfter(dal) || e.dataInizio.isAtSameMomentAs(dal)) &&
-        (e.dataInizio.isBefore(al) || e.dataInizio.isAtSameMomentAs(al))).toList();
-  }
 
   static const Map<Ripetizione, String> _ripetizioniDb = {
     Ripetizione.ogniGiorno: 'giornaliera',

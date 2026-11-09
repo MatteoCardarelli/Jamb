@@ -40,15 +40,12 @@ class FakeEventoRepository extends ChangeNotifier implements IEventoRepository {
     ambitiEliminazione.add(ambito);
   }
 
-  @override
-  Future<List<Evento>> getEventi() async => List.of(eventi);
+  /// Quante volte gli eventi sono stati letti dal "server".
+  int letture = 0;
 
   @override
-  Future<List<Evento>> getEventiPerData(DateTime data) async => eventi
-      .where((e) => e.dataInizio.year == data.year && e.dataInizio.month == data.month && e.dataInizio.day == data.day)
-      .toList();
-
-  @override
-  Future<List<Evento>> getEventiTraDate(DateTime dal, DateTime al) async =>
-      eventi.where((e) => !e.dataInizio.isBefore(dal) && !e.dataInizio.isAfter(al)).toList();
+  Future<List<Evento>> getEventi() async {
+    letture++;
+    return List.of(eventi);
+  }
 }
