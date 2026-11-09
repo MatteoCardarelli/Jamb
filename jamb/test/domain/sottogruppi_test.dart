@@ -11,14 +11,21 @@ MembroUnita _m(String nome, String ruolo, [String? squadriglia]) =>
 
 void main() {
   group('consiglioCapi', () {
-    test('staff, capi e vice delle squadriglie attive; non i ragazzi', () {
+    test('solo Capi Unità e Capi Squadriglia, in ordine alfabetico', () {
       final consiglio = consiglioCapi([
         _m('Zoe', 'CAPO_UNITA'),
         _m('Anna', 'CAPO_SQ', 'Aquile'),
+      ], [_aquile]);
+      expect(consiglio.map((m) => m.nome), ['Anna', 'Zoe']);
+    });
+
+    test('non ne fanno parte Aiuto Capo, vice e ragazzi', () {
+      final consiglio = consiglioCapi([
+        _m('Dario', 'AIUTO_CAPO'),
         _m('Bruno', 'VICE_CAPO_SQ', 'Aquile'),
         _m('Carlo', 'RAGAZZO', 'Aquile'),
       ], [_aquile]);
-      expect(consiglio.map((m) => m.nome), ['Anna', 'Bruno', 'Zoe']);
+      expect(consiglio, isEmpty);
     });
 
     test('il capo di una squadriglia disattivata non ne fa parte', () {

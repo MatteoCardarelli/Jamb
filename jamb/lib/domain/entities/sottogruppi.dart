@@ -138,19 +138,18 @@ String? erroreNomeSquadriglia(
 List<MembroUnita> membriDi(Squadriglia squadriglia, Iterable<MembroUnita> membri) =>
     membri.where((m) => m.squadriglia == squadriglia.nome).toList();
 
-/// Consiglio Capi, ricavato dalle memberships: lo staff dell'unità e i capi e
-/// vice delle squadriglie attive, in ordine alfabetico.
+/// Consiglio Capi, ricavato dalle memberships: i Capi Unità e i Capi
+/// Squadriglia delle squadriglie attive, in ordine alfabetico (non gli Aiuto
+/// Capo né i vice, indicazione dell'utente del 2026-11-09).
 List<MembroUnita> consiglioCapi(
   Iterable<MembroUnita> membri,
   Iterable<Squadriglia> squadriglie,
 ) {
-  const staff = {'AIUTO_CAPO', 'CAPO_UNITA', 'CAPO_GRUPPO'};
-  const capiSquadriglia = {'CAPO_SQ', 'VICE_CAPO_SQ'};
   final attive = {for (final s in squadriglie) if (s.attiva) s.nome};
   return membri
       .where((m) =>
-          staff.contains(m.ruolo) ||
-          (capiSquadriglia.contains(m.ruolo) && attive.contains(m.squadriglia)))
+          m.ruolo == 'CAPO_UNITA' ||
+          (m.ruolo == 'CAPO_SQ' && attive.contains(m.squadriglia)))
       .toList()
     ..sort((a, b) => a.nome.compareTo(b.nome));
 }
