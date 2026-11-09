@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:jamb/domain/repositories/auth_repository.dart';
 import 'package:jamb/ui/auth/view_model/login_view_model.dart';
 
 /// Schermata di login: form email/password per l'autenticazione a Supabase.
@@ -12,7 +13,7 @@ class LoginScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (_) => LoginViewModel(),
+      create: (ctx) => LoginViewModel(ctx.read<IAuthRepository>()),
       child: Scaffold(
         body: SafeArea(
           child: Padding(

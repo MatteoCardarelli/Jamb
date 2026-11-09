@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:jamb/domain/entities/evento.dart';
 import 'package:jamb/ui/calendario/view_model/calendario_view_model.dart';
 import 'package:jamb/ui/campo/widgets/campi_screen.dart';
 import 'package:jamb/ui/core/widgets/jamb_chip_filtro.dart';
@@ -86,7 +85,7 @@ class _FiltriCalendario extends StatelessWidget {
           spacing: 8,
           runSpacing: 8,
           children: [
-            for (final filtro in FiltroCalendario.values)
+            for (final filtro in viewModel.filtri)
               JambChipFiltro(
                 etichetta: filtro.etichetta,
                 selezionato: viewModel.filtro == filtro,

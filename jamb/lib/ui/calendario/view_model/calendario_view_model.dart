@@ -22,6 +22,9 @@ class CalendarioViewModel extends ChangeNotifier with StatoCaricamentoMixin {
   DateTime get selectedDate => _selectedDate;
   FiltroCalendario get filtro => _filtro;
 
+  /// Filtri tra cui scegliere, comprese le altre unità con eventi.
+  List<FiltroCalendario> get filtri => FiltroCalendario.disponibili(_tuttiEventi);
+
   Iterable<Evento> get _filtrati => _tuttiEventi.where(_filtro.include);
 
   List<Evento> get eventiDelGiorno => getEventiForDay(_selectedDate);
@@ -41,6 +44,9 @@ class CalendarioViewModel extends ChangeNotifier with StatoCaricamentoMixin {
 
   Future<void> _loadEventi() => eseguiCaricamento(() async {
         _tuttiEventi = await _eventoRepository.getEventi();
+        // Un'unità rimasta senza eventi lascerebbe un calendario vuoto senza
+        // il chip per togliere il filtro.
+        if (!filtri.contains(_filtro)) _filtro = FiltroCalendario.tutti;
       });
 
   /// Ricarica gli eventi (es. dopo un errore).

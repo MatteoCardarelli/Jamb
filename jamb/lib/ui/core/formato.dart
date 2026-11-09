@@ -10,6 +10,9 @@ String dataBreve(DateTime data, {DateTime? adesso}) {
   return DateFormat(formato, 'it_IT').format(data);
 }
 
+/// Data completa in cifre, es. "05/03/2026": per le date di conseguimento.
+String dataInCifre(DateTime data) => DateFormat('dd/MM/yyyy').format(data);
+
 /// Importo in [centesimi] alla maniera italiana, senza valuta: "1.234,50".
 String importoLeggibile(int centesimi) =>
     NumberFormat('#,##0.00', 'it_IT').format(centesimi / 100);

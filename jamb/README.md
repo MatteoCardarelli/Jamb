@@ -91,6 +91,18 @@ Perché l'utente veda qualcosa serve infine una riga in `memberships` che lo
 colleghi a un'unità con un ruolo. Senza membership attiva le policy RLS non
 restituiscono alcun dato e l'applicazione mostra la schermata "nessun ruolo".
 
+### 5. Dati di prova (facoltativo)
+
+`tool/crea_dati_prova.dart` crea via Admin API un gruppo di prova con le quattro
+unità, due squadriglie e otto utenti `prova.*@test.it`. Si può rilanciare: ciò che
+esiste già viene riusato. La chiave `service_role` scavalca le RLS, quindi va
+passata solo nell'ambiente, e `JAMB_CONFERMA_PROGETTO` deve ripetere il
+riferimento del progetto:
+
+```bash
+SUPABASE_URL=https://<ref>.supabase.co SUPABASE_SERVICE_ROLE_KEY=<chiave> JAMB_PASSWORD_PROVA=<password> JAMB_CONFERMA_PROGETTO=<ref> dart run tool/crea_dati_prova.dart
+```
+
 ## Avvio
 
 ```bash
