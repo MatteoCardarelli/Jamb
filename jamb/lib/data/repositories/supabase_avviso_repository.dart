@@ -1,3 +1,4 @@
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:jamb/core/session_service.dart';
 import 'package:jamb/core/supabase_client.dart';
 import 'package:jamb/data/errori_supabase.dart';
@@ -13,9 +14,58 @@ import '../../domain/repositories/avviso_repository.dart';
 /// restituiscono solo le righe dell'utente loggato.
 class SupabaseAvvisoRepository extends IAvvisoRepository {
   final SessionService _session;
-  SupabaseAvvisoRepository(this._session);
+  RealtimeChannel? _canale;
+
+  SupabaseAvvisoRepository(this._session) {
+    _ascoltaAvvisiDegliAltri();
+  }
 
   static const String _table = 'notice_board';
+
+  /// Avvisa chi osserva il repository quando un altro capo pubblica o modifica
+  /// un avviso dell'unità: la campanella si aggiorna senza aprire la bacheca.
+  /// Le RLS valgono anche qui; gli avvisi scritti da sé li notifica già la scrittura.
+  void _ascoltaAvvisiDegliAltri() {
+    final unitId = _session.activeUnitId;
+    if (unitId == null) return;
+
+    final filtro = PostgresChangeFilter(
+      type: PostgresChangeFilterType.eq,
+      column: 'unit_id',
+      value: unitId,
+    );
+    void suModifica(PostgresChangePayload modifica) {
+      if (_canale != null && modifica.newRecord['autore_id'] != _session.userId) {
+        notifyListeners();
+      }
+    }
+
+    _canale = supabase
+        .channel('bacheca:$unitId')
+        .onPostgresChanges(
+          event: PostgresChangeEvent.insert,
+          schema: 'public',
+          table: _table,
+          filter: filtro,
+          callback: suModifica,
+        )
+        .onPostgresChanges(
+          event: PostgresChangeEvent.update,
+          schema: 'public',
+          table: _table,
+          filter: filtro,
+          callback: suModifica,
+        )
+        .subscribe();
+  }
+
+  @override
+  void dispose() {
+    final canale = _canale;
+    _canale = null;
+    if (canale != null) supabase.removeChannel(canale);
+    super.dispose();
+  }
 
   @override
   Future<List<Avviso>> getAvvisi() => eseguiSupabase(() async {
