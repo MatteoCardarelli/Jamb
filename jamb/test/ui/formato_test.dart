@@ -5,6 +5,13 @@ import 'package:jamb/ui/core/formato.dart';
 void main() {
   setUpAll(() => initializeDateFormatting('it_IT'));
 
+  // Una data di conseguimento di oggi non deve diventare un orario.
+  test('dataInCifre mostra sempre la data completa', () {
+    final oggi = DateTime.now();
+    expect(dataInCifre(DateTime(2026, 3, 5, 14, 32)), '05/03/2026');
+    expect(dataInCifre(oggi), isNot(contains(':')));
+  });
+
   group('dataBreve', () {
     final adesso = DateTime(2026, 10, 29, 18);
 
