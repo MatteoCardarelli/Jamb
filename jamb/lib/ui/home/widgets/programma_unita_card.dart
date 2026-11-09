@@ -36,32 +36,14 @@ class ProgrammaUnitaCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          // INTESTAZIONE: Titolo e Data
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Expanded(
-                child: Text(
-                  "Programma d'Unità",
-                  style: TextStyle(
-                    color: darkBlue,
-                    fontSize: 20,
-                    fontWeight: FontWeight.w800,
-                    fontFamily: 'Lexend',
-                  ),
-                ),
-              ),
-              Text(
-                "26/04/2026",
-                style: TextStyle(
-                  color: darkBlue.withValues(alpha: 0.9),
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                  fontFamily: 'Lexend',
-                ),
-              ),
-            ],
+          const Text(
+            "Programma d'Unità",
+            style: TextStyle(
+              color: darkBlue,
+              fontSize: 20,
+              fontWeight: FontWeight.w800,
+              fontFamily: 'Lexend',
+            ),
           ),
           const SizedBox(height: 4),
           const Text(
