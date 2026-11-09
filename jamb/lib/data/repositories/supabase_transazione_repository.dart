@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:jamb/core/supabase_client.dart';
 import 'package:jamb/core/session_service.dart';
+import 'package:jamb/data/cache_letture.dart';
 import 'package:jamb/data/errori_supabase.dart';
 import 'package:jamb/data/services/file_archiviati.dart';
 import 'package:jamb/data/services/storage_service.dart';
@@ -17,7 +18,8 @@ import '../../domain/repositories/transazione_repository.dart';
 class SupabaseTransazioneRepository extends ITransazioneRepository {
   final SessionService _session;
   final IStorageService _storage;
-  SupabaseTransazioneRepository(this._session, this._storage);
+  final CacheLetture _cache;
+  SupabaseTransazioneRepository(this._session, this._storage, this._cache);
 
   static const String _table = 'transactions';
 
@@ -29,7 +31,7 @@ class SupabaseTransazioneRepository extends ITransazioneRepository {
   );
 
   @override
-  Future<List<Transazione>> getTransazioni() => eseguiSupabase(() async {
+  Future<List<Transazione>> getTransazioni() => _cache.leggiSupabase('transazioni/unita', () async {
         final unitId = _session.activeUnitId;
         if (unitId == null) return [];
         final List<dynamic> rows = await supabase
@@ -41,7 +43,7 @@ class SupabaseTransazioneRepository extends ITransazioneRepository {
       });
 
   @override
-  Future<List<CassaDelGruppo>> getCasseDelGruppo() => eseguiSupabase(() async {
+  Future<List<CassaDelGruppo>> getCasseDelGruppo() => _cache.leggiSupabase('transazioni/gruppo', () async {
         final groupId = _session.groupId;
         if (groupId == null) return [];
         final List<dynamic> unita = await supabase
@@ -138,6 +140,8 @@ class SupabaseTransazioneRepository extends ITransazioneRepository {
           }).eq('id', t.id);
         }
 
+        _cache.dimentica(const ['transazioni']);
+
         notifyListeners();
       });
 
@@ -145,6 +149,7 @@ class SupabaseTransazioneRepository extends ITransazioneRepository {
   Future<void> eliminaTransazione(String id) => eseguiSupabase(() async {
         final List<dynamic> eliminate =
             await supabase.from(_table).delete().eq('id', id).select('receipt_url');
+        _cache.dimentica(const ['transazioni']);
         notifyListeners();
 
         // Prima la riga, poi la foto: se l'eliminazione della foto fallisce

@@ -1,5 +1,6 @@
 import 'package:jamb/core/session_service.dart';
 import 'package:jamb/core/supabase_client.dart';
+import 'package:jamb/data/cache_letture.dart';
 import 'package:jamb/data/errori_supabase.dart';
 import 'package:jamb/data/nome_completo.dart';
 import '../../domain/entities/anno_scout.dart';
@@ -10,7 +11,8 @@ import '../../domain/repositories/campo_repository.dart';
 /// Organizzazione dei campi su Supabase, per l'unità attiva.
 class SupabaseCampoRepository extends ICampoRepository {
   final SessionService _session;
-  SupabaseCampoRepository(this._session);
+  final CacheLetture _cache;
+  SupabaseCampoRepository(this._session, this._cache);
 
   static String? _soloData(DateTime? d) => d?.toIso8601String().split('T').first;
 
@@ -25,7 +27,7 @@ class SupabaseCampoRepository extends ICampoRepository {
       );
 
   @override
-  Future<List<Campo>> getCampi() => eseguiSupabase(() async {
+  Future<List<Campo>> getCampi() => _cache.leggiSupabase('campi/elenco', () async {
         final unitId = _session.activeUnitId;
         if (unitId == null) return [];
         final List<dynamic> righe = await supabase
@@ -37,7 +39,7 @@ class SupabaseCampoRepository extends ICampoRepository {
       });
 
   @override
-  Future<Campo?> getCampo(String id) => eseguiSupabase(() async {
+  Future<Campo?> getCampo(String id) => _cache.leggiSupabase('campi/$id', () async {
         final r = await supabase.from('campi').select().eq('id', id).maybeSingle();
         return r == null ? null : _campoDaDb(r);
       });
@@ -56,6 +58,7 @@ class SupabaseCampoRepository extends ICampoRepository {
             })
             .select()
             .single();
+        _cache.dimentica(const ['campi/']);
         notifyListeners();
         return _campoDaDb(r);
       });
@@ -68,17 +71,19 @@ class SupabaseCampoRepository extends ICampoRepository {
           'data_inizio': _soloData(c.dataInizio),
           'data_fine': _soloData(c.dataFine),
         }).eq('id', c.id);
+        _cache.dimentica(const ['campi/']);
         notifyListeners();
       });
 
   @override
   Future<void> eliminaCampo(String id) => eseguiSupabase(() async {
         await supabase.from('campi').delete().eq('id', id);
+        _cache.dimentica(const ['campi/', 'campo_pattuglie', 'campo_compiti', 'campo_contatti']);
         notifyListeners();
       });
 
   @override
-  Future<List<MembroUnita>> getStaff() => eseguiSupabase(() async {
+  Future<List<MembroUnita>> getStaff() => _cache.leggiSupabase('campo_staff', () async {
         final unitId = _session.activeUnitId;
         if (unitId == null) return [];
         final List<dynamic> righe = await supabase
@@ -99,7 +104,7 @@ class SupabaseCampoRepository extends ICampoRepository {
       });
 
   @override
-  Future<List<Pattuglia>> getPattuglie(String campoId) => eseguiSupabase(() async {
+  Future<List<Pattuglia>> getPattuglie(String campoId) => _cache.leggiSupabase('campo_pattuglie/$campoId', () async {
         final List<dynamic> righe = await supabase
             .from('campo_pattuglie')
             .select('id, nome, campo_pattuglia_membri ( user_id )')
@@ -121,12 +126,14 @@ class SupabaseCampoRepository extends ICampoRepository {
   @override
   Future<void> creaPattuglia(String campoId, String nome) => eseguiSupabase(() async {
         await supabase.from('campo_pattuglie').insert({'campo_id': campoId, 'nome': nome.trim()});
+        _cache.dimentica(const ['campo_pattuglie']);
         notifyListeners();
       });
 
   @override
   Future<void> rinominaPattuglia(String id, String nome) => eseguiSupabase(() async {
         await supabase.from('campo_pattuglie').update({'nome': nome.trim()}).eq('id', id);
+        _cache.dimentica(const ['campo_pattuglie']);
         notifyListeners();
       });
 
@@ -136,17 +143,19 @@ class SupabaseCampoRepository extends ICampoRepository {
           'p_pattuglia_id': id,
           'p_membri': membri.toList(),
         });
+        _cache.dimentica(const ['campo_pattuglie']);
         notifyListeners();
       });
 
   @override
   Future<void> eliminaPattuglia(String id) => eseguiSupabase(() async {
         await supabase.from('campo_pattuglie').delete().eq('id', id);
+        _cache.dimentica(const ['campo_pattuglie', 'campo_compiti']);
         notifyListeners();
       });
 
   @override
-  Future<List<CompitoCampo>> getCompiti(Iterable<String> pattuglie) => eseguiSupabase(() async {
+  Future<List<CompitoCampo>> getCompiti(Iterable<String> pattuglie) => _cache.leggiSupabase('campo_compiti/${pattuglie.join(',')}', () async {
         if (pattuglie.isEmpty) return [];
         final List<dynamic> righe = await supabase
             .from('campo_compiti')
@@ -167,23 +176,26 @@ class SupabaseCampoRepository extends ICampoRepository {
   @override
   Future<void> creaCompito(String pattugliaId, String titolo) => eseguiSupabase(() async {
         await supabase.from('campo_compiti').insert({'pattuglia_id': pattugliaId, 'titolo': titolo.trim()});
+        _cache.dimentica(const ['campo_compiti']);
         notifyListeners();
       });
 
   @override
   Future<void> impostaStato(String id, StatoCompito stato) => eseguiSupabase(() async {
         await supabase.from('campo_compiti').update({'stato': stato.valoreDb}).eq('id', id);
+        _cache.dimentica(const ['campo_compiti']);
         notifyListeners();
       });
 
   @override
   Future<void> eliminaCompito(String id) => eseguiSupabase(() async {
         await supabase.from('campo_compiti').delete().eq('id', id);
+        _cache.dimentica(const ['campo_compiti']);
         notifyListeners();
       });
 
   @override
-  Future<List<ContattoCampo>> getContatti(String campoId) => eseguiSupabase(() async {
+  Future<List<ContattoCampo>> getContatti(String campoId) => _cache.leggiSupabase('campo_contatti/$campoId', () async {
         final List<dynamic> righe = await supabase
             .from('campo_contatti')
             .select()
@@ -207,12 +219,14 @@ class SupabaseCampoRepository extends ICampoRepository {
           'etichetta': etichetta.trim(),
           'telefono': telefono.trim(),
         });
+        _cache.dimentica(const ['campo_contatti']);
         notifyListeners();
       });
 
   @override
   Future<void> eliminaContatto(String id) => eseguiSupabase(() async {
         await supabase.from('campo_contatti').delete().eq('id', id);
+        _cache.dimentica(const ['campo_contatti']);
         notifyListeners();
       });
 }

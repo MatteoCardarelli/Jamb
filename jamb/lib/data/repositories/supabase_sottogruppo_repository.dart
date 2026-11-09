@@ -1,5 +1,6 @@
 import 'package:jamb/core/session_service.dart';
 import 'package:jamb/core/supabase_client.dart';
+import 'package:jamb/data/cache_letture.dart';
 import 'package:jamb/data/errori_supabase.dart';
 import 'package:jamb/data/nome_completo.dart';
 import '../../domain/entities/sottogruppi.dart';
@@ -9,10 +10,11 @@ import '../../domain/repositories/sottogruppo_repository.dart';
 /// dell'unità attiva, presa dalla sessione; le RLS decidono chi modifica.
 class SupabaseSottogruppoRepository extends ISottogruppoRepository {
   final SessionService _session;
-  SupabaseSottogruppoRepository(this._session);
+  final CacheLetture _cache;
+  SupabaseSottogruppoRepository(this._session, this._cache);
 
   @override
-  Future<List<Squadriglia>> getSquadriglie() => eseguiSupabase(() async {
+  Future<List<Squadriglia>> getSquadriglie() => _cache.leggiSupabase('sottogruppi/squadriglie', () async {
         final unitId = _session.activeUnitId;
         if (unitId == null) return [];
         final List<dynamic> righe =
@@ -29,7 +31,7 @@ class SupabaseSottogruppoRepository extends ISottogruppoRepository {
       });
 
   @override
-  Future<List<MembroUnita>> getMembriUnita() => eseguiSupabase(() async {
+  Future<List<MembroUnita>> getMembriUnita() => _cache.leggiSupabase('sottogruppi/membri', () async {
         final unitId = _session.activeUnitId;
         if (unitId == null) return [];
         final List<dynamic> righe = await supabase
@@ -51,7 +53,7 @@ class SupabaseSottogruppoRepository extends ISottogruppoRepository {
 
 
   @override
-  Future<List<Sottogruppo>> getSottogruppi() => eseguiSupabase(() async {
+  Future<List<Sottogruppo>> getSottogruppi() => _cache.leggiSupabase('sottogruppi/scelti', () async {
         final unitId = _session.activeUnitId;
         if (unitId == null) return [];
         final List<dynamic> righe = await supabase
@@ -77,6 +79,7 @@ class SupabaseSottogruppoRepository extends ISottogruppoRepository {
         final unitId = _session.activeUnitId;
         if (unitId == null) throw sessioneSenzaUnita;
         await supabase.from('squads').insert({'unit_id': unitId, 'nome': nome.trim()});
+        _cache.dimentica(const ['sottogruppi', 'ragazzi', 'squadriglie']);
         notifyListeners();
       });
 
@@ -87,6 +90,7 @@ class SupabaseSottogruppoRepository extends ISottogruppoRepository {
           'urlo': s.urlo.trim(),
           'is_active': s.attiva,
         }).eq('id', s.id);
+        _cache.dimentica(const ['sottogruppi', 'ragazzi', 'squadriglie']);
         notifyListeners();
       });
 
@@ -100,6 +104,7 @@ class SupabaseSottogruppoRepository extends ISottogruppoRepository {
           'p_tipo': tipo.valoreDb,
           'p_membri': membri.toList(),
         });
+        _cache.dimentica(const ['sottogruppi', 'ragazzi', 'squadriglie']);
         notifyListeners();
       });
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:jamb/core/session_service.dart';
 import 'package:jamb/core/supabase_client.dart';
+import 'package:jamb/data/cache_letture.dart';
 import 'package:jamb/data/errori_supabase.dart';
 import '../../domain/entities/obiettivo.dart';
 import '../../domain/repositories/obiettivo_repository.dart';
@@ -8,7 +9,8 @@ import '../../domain/repositories/obiettivo_repository.dart';
 /// Repository degli obiettivi educativi su Supabase (tabella `obiettivi_educativi`).
 class SupabaseObiettivoRepository implements IObiettivoRepository {
   final SessionService _session;
-  SupabaseObiettivoRepository(this._session);
+  final CacheLetture _cache;
+  SupabaseObiettivoRepository(this._session, this._cache);
 
   static const String _table = 'obiettivi_educativi';
 
@@ -20,7 +22,7 @@ class SupabaseObiettivoRepository implements IObiettivoRepository {
   );
 
   @override
-  Future<List<Obiettivo>> getObiettivi() => eseguiSupabase(() async {
+  Future<List<Obiettivo>> getObiettivi() => _cache.leggiSupabase('obiettivi', () async {
         final unitId = _session.activeUnitId;
         if (unitId == null) return [];
         final List<dynamic> rows = await supabase
@@ -56,11 +58,13 @@ class SupabaseObiettivoRepository implements IObiettivoRepository {
         } else {
           await supabase.from(_table).update(payload).eq('id', o.id);
         }
+        _cache.dimentica(const ['obiettivi', 'peg/gradi']);
       });
 
   @override
   Future<void> eliminaObiettivo(String id) => eseguiSupabase(() async {
         await supabase.from(_table).delete().eq('id', id);
+        _cache.dimentica(const ['obiettivi', 'peg/gradi']);
       });
 
   /// Costruisce un [Obiettivo] a partire da una riga del database.

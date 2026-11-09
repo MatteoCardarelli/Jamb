@@ -1,6 +1,7 @@
 import 'package:jamb/core/permessi.dart';
 import 'package:jamb/core/session_service.dart';
 import 'package:jamb/core/supabase_client.dart';
+import 'package:jamb/data/cache_letture.dart';
 import 'package:jamb/data/errori_supabase.dart';
 import 'package:jamb/data/nome_completo.dart';
 import '../../domain/entities/badge.dart';
@@ -11,7 +12,8 @@ import '../../domain/repositories/formazione_repository.dart';
 /// dati; il Capo Gruppo li legge tramite le RLS.
 class SupabaseFormazioneRepository extends IFormazioneRepository {
   final SessionService _session;
-  SupabaseFormazioneRepository(this._session);
+  final CacheLetture _cache;
+  SupabaseFormazioneRepository(this._session, this._cache);
 
   String get _utente {
     final id = _session.userId;
@@ -44,7 +46,7 @@ class SupabaseFormazioneRepository extends IFormazioneRepository {
   }
 
   @override
-  Future<List<TappaCompiuta>> getMieTappe() => eseguiSupabase(() async {
+  Future<List<TappaCompiuta>> getMieTappe() => _cache.leggiSupabase('formazione/tappe', () async {
         final List<dynamic> righe =
             await supabase.from('iter_formativo').select().eq('user_id', _utente);
         return righe.cast<Map<String, dynamic>>().map(_tappaDaDb).whereType<TappaCompiuta>().toList();
@@ -58,6 +60,7 @@ class SupabaseFormazioneRepository extends IFormazioneRepository {
           'data': t.data.toIso8601String().split('T').first,
           'note': t.note,
         });
+        _cache.dimentica(const ['formazione/tappe', 'formazione/capi']);
         notifyListeners();
       });
 
@@ -68,6 +71,7 @@ class SupabaseFormazioneRepository extends IFormazioneRepository {
             .delete()
             .eq('user_id', _utente)
             .eq('tappa', tappa.valoreDb);
+        _cache.dimentica(const ['formazione/tappe', 'formazione/capi']);
         notifyListeners();
       });
 
@@ -84,18 +88,19 @@ class SupabaseFormazioneRepository extends IFormazioneRepository {
           ],
           'updated_at': DateTime.now().toUtc().toIso8601String(),
         });
+        _cache.dimentica(const ['formazione/progetto']);
         notifyListeners();
       });
 
   @override
-  Future<ProgettoCapo> getProgettoDi(String userId) => eseguiSupabase(() async {
+  Future<ProgettoCapo> getProgettoDi(String userId) => _cache.leggiSupabase('formazione/progetto/$userId', () async {
         final riga =
             await supabase.from('progetti_capo').select().eq('user_id', userId).maybeSingle();
         return _progettoDaDb(riga);
       });
 
   @override
-  Future<List<IncaricoStorico>> getMioStorico() => eseguiSupabase(() async {
+  Future<List<IncaricoStorico>> getMioStorico() => _cache.leggiSupabase('formazione/storico', () async {
         final List<dynamic> righe = await supabase
             .from('memberships')
             .select('ruolo, anno_scout, units ( tipo_branca )')
@@ -111,7 +116,7 @@ class SupabaseFormazioneRepository extends IFormazioneRepository {
       });
 
   @override
-  Future<List<CapoFormazione>> getCapiDelGruppo() => eseguiSupabase(() async {
+  Future<List<CapoFormazione>> getCapiDelGruppo() => _cache.leggiSupabase('formazione/capi', () async {
         final groupId = _session.groupId;
         if (groupId == null) return [];
         final List<dynamic> righe = await supabase

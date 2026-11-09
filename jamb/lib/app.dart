@@ -44,6 +44,7 @@ import 'package:jamb/domain/repositories/campo_repository.dart';
 import 'package:jamb/data/repositories/supabase_campo_repository.dart';
 import 'package:jamb/data/repositories/locale_preferenze_repository.dart';
 import 'package:jamb/ui/profilo/view_model/preferenze_view_model.dart';
+import 'package:jamb/data/cache_letture.dart';
 import 'package:jamb/data/services/storage_service.dart';
 import 'package:jamb/data/services/supabase_storage_service.dart';
 
@@ -80,24 +81,27 @@ class _AppPerUtente extends StatelessWidget {
     return MultiProvider(
       key: ValueKey('$userId/$unitId'),
       providers: [
+        // Letture recenti, per non ripetere richieste al server
+        Provider<CacheLetture>(create: (_) => CacheLetture()),
+
         // Archivio dei file, usato dai repository di documenti e transazioni
         Provider<IStorageService>(create: (_) => SupabaseStorageService()),
 
         // Repositories
-        ChangeNotifierProvider<IScoutRepository>(create: (ctx) => SupabaseScoutRepository(ctx.read<SessionService>())),
-        Provider<IObiettivoRepository>(create: (ctx) => SupabaseObiettivoRepository(ctx.read<SessionService>())),
-        ChangeNotifierProvider<ITransazioneRepository>(create: (ctx) => SupabaseTransazioneRepository(ctx.read<SessionService>(), ctx.read<IStorageService>())),
-        ChangeNotifierProvider<IEventoRepository>(create: (ctx) => SupabaseEventoRepository(ctx.read<SessionService>())),
-        ChangeNotifierProvider<IDocumentoRepository>(create: (ctx) => SupabaseDocumentoRepository(ctx.read<SessionService>(), ctx.read<IStorageService>())),
+        ChangeNotifierProvider<IScoutRepository>(create: (ctx) => SupabaseScoutRepository(ctx.read<SessionService>(), ctx.read<CacheLetture>())),
+        Provider<IObiettivoRepository>(create: (ctx) => SupabaseObiettivoRepository(ctx.read<SessionService>(), ctx.read<CacheLetture>())),
+        ChangeNotifierProvider<ITransazioneRepository>(create: (ctx) => SupabaseTransazioneRepository(ctx.read<SessionService>(), ctx.read<IStorageService>(), ctx.read<CacheLetture>())),
+        ChangeNotifierProvider<IEventoRepository>(create: (ctx) => SupabaseEventoRepository(ctx.read<SessionService>(), ctx.read<CacheLetture>())),
+        ChangeNotifierProvider<IDocumentoRepository>(create: (ctx) => SupabaseDocumentoRepository(ctx.read<SessionService>(), ctx.read<IStorageService>(), ctx.read<CacheLetture>())),
         ChangeNotifierProvider<IAvvisoRepository>(create: (ctx) => SupabaseAvvisoRepository(ctx.read<SessionService>())),
         ChangeNotifierProvider<IPresenzaRepository>(create: (_) => SupabasePresenzaRepository()),
-        ChangeNotifierProvider<ISottogruppoRepository>(create: (ctx) => SupabaseSottogruppoRepository(ctx.read<SessionService>())),
-        ChangeNotifierProvider<IPillolaRepository>(create: (ctx) => SupabasePillolaRepository(ctx.read<SessionService>())),
-        ChangeNotifierProvider<IIncarichiRepository>(create: (ctx) => SupabaseIncarichiRepository(ctx.read<SessionService>())),
-        ChangeNotifierProvider<IFormazioneRepository>(create: (ctx) => SupabaseFormazioneRepository(ctx.read<SessionService>())),
-        ChangeNotifierProvider<IPegRepository>(create: (ctx) => SupabasePegRepository(ctx.read<SessionService>())),
-        ChangeNotifierProvider<IVegliaRepository>(create: (ctx) => SupabaseVegliaRepository(ctx.read<SessionService>())),
-        ChangeNotifierProvider<ICampoRepository>(create: (ctx) => SupabaseCampoRepository(ctx.read<SessionService>())),
+        ChangeNotifierProvider<ISottogruppoRepository>(create: (ctx) => SupabaseSottogruppoRepository(ctx.read<SessionService>(), ctx.read<CacheLetture>())),
+        ChangeNotifierProvider<IPillolaRepository>(create: (ctx) => SupabasePillolaRepository(ctx.read<SessionService>(), ctx.read<CacheLetture>())),
+        ChangeNotifierProvider<IIncarichiRepository>(create: (ctx) => SupabaseIncarichiRepository(ctx.read<SessionService>(), ctx.read<CacheLetture>())),
+        ChangeNotifierProvider<IFormazioneRepository>(create: (ctx) => SupabaseFormazioneRepository(ctx.read<SessionService>(), ctx.read<CacheLetture>())),
+        ChangeNotifierProvider<IPegRepository>(create: (ctx) => SupabasePegRepository(ctx.read<SessionService>(), ctx.read<CacheLetture>())),
+        ChangeNotifierProvider<IVegliaRepository>(create: (ctx) => SupabaseVegliaRepository(ctx.read<SessionService>(), ctx.read<CacheLetture>())),
+        ChangeNotifierProvider<ICampoRepository>(create: (ctx) => SupabaseCampoRepository(ctx.read<SessionService>(), ctx.read<CacheLetture>())),
 
         // ViewModels
         ChangeNotifierProvider(create: (context) => AmministrazioneViewModel(context.read<IScoutRepository>())),
