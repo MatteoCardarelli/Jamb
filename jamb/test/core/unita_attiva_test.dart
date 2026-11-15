@@ -44,5 +44,16 @@ void main() {
       // Il ruolo della membership non va perso a favore della riga senza ruolo.
       expect(unita.firstWhere((u) => u.id == 'eg').ruolo, 'AIUTO_CAPO');
     });
+
+    test('la Comunità Capi non è tra le unità in cui operare, neanche con una membership', () {
+      final unita = componiUnitaDisponibili(
+        daMembership: const [
+          UnitaDisponibile(id: 'coca', nome: 'Comunità Capi', ruolo: 'CAPO_GRUPPO', tipoBranca: 'COCA'),
+        ],
+        delGruppo: const [UnitaDisponibile(id: 'eg', nome: 'Reparto Velino', tipoBranca: 'EG')],
+      );
+
+      expect(unita.map((u) => u.id), ['eg']);
+    });
   });
 }
