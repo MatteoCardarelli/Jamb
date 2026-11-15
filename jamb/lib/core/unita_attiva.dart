@@ -25,6 +25,10 @@ String? scegliUnitaIniziale(List<UnitaDisponibile> disponibili, String? salvata)
 
 /// Unità delle membership attive più, per il Capo Gruppo, tutte quelle del
 /// gruppo; senza doppioni e in ordine alfabetico.
+///
+/// La Comunità Capi non è un'unità in cui operare (ha solo drive ed eventi
+/// condivisi): resta fuori anche quando c'è una membership lì, per esempio
+/// quella del Capo Gruppo.
 List<UnitaDisponibile> componiUnitaDisponibili({
   required List<UnitaDisponibile> daMembership,
   List<UnitaDisponibile> delGruppo = const [],
@@ -34,5 +38,6 @@ List<UnitaDisponibile> componiUnitaDisponibili({
     // Le membership vincono: portano il ruolo.
     for (final u in daMembership) u.id: u,
   };
-  return perId.values.toList()..sort((a, b) => a.nome.compareTo(b.nome));
+  return perId.values.where((u) => u.tipoBranca != 'COCA').toList()
+    ..sort((a, b) => a.nome.compareTo(b.nome));
 }
