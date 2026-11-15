@@ -135,7 +135,13 @@ flutter build web --release
 ```
 
 Il risultato in `build/web/` è un sito statico, da pubblicare su un qualunque
-hosting di file statici. Sul computer l'app resta larga come un telefono, al
+hosting di file statici.
+
+La CI lo fa da sola su Netlify: a ogni push su `main` con analisi e test verdi
+compila la versione web e la pubblica. Servono quattro segreti del repository
+(*Settings → Secrets and variables → Actions*): `NETLIFY_AUTH_TOKEN`,
+`NETLIFY_SITE_ID`, `SUPABASE_URL` e `SUPABASE_PUBLISHABLE_KEY`. Finché mancano,
+la pubblicazione viene saltata con un avviso. Sul computer l'app resta larga come un telefono, al
 centro dello schermo.
 
 ## Test
