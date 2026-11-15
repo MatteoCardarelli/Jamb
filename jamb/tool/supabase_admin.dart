@@ -83,6 +83,16 @@ class SupabaseAdmin {
     return righe.isEmpty ? null : righe.first as Map<String, dynamic>;
   }
 
+  /// Tutte le righe di [tabella] che rispettano [filtri].
+  Future<List<Map<String, dynamic>>> elenca(
+    String tabella,
+    Map<String, String> filtri,
+  ) async {
+    final righe =
+        await _invia('GET', '/rest/v1/$tabella?${_filtri(filtri)}') as List;
+    return righe.cast<Map<String, dynamic>>();
+  }
+
   /// Inserisce una riga e la restituisce come salvata.
   Future<Map<String, dynamic>> inserisci(
     String tabella,

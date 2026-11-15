@@ -20,7 +20,8 @@
 // delle email degli account; nessuna email viene inviata.
 //
 // Si può rilanciare: gruppo, unità e persone esistenti vengono riusati, e
-// i contenuti (eventi, cassa, avvisi…) si creano solo la prima volta.
+// ogni contenuto (schede, eventi, cassa, avvisi…) si crea una volta sola,
+// anche se un lancio precedente si è interrotto a metà.
 import 'dart:io';
 import 'dart:math';
 
@@ -280,22 +281,43 @@ Future<void> main() async {
       'Struttura e ${capi.length + 1 + ragazzi.length} persone pronte.',
     );
 
-    // --- Contenuti: solo la prima volta ---
-    if (await db.trova('events', {'unit_id': unita['EG']!}) != null) {
-      stdout.writeln('Contenuti già presenti: non li ricreo.');
-    } else {
+    // --- Contenuti: ogni passo solo se non è già stato fatto, così un
+    // lancio interrotto a metà si può ripetere senza doppioni ---
+    Future<bool> manca(String tabella, Map<String, String> filtri) async =>
+        await db.trova(tabella, filtri) == null;
+    final reparto = unita['EG']!;
+    final primo = ragazzi.values.first;
+
+    if (await manca('user_dati_sensibili', {'user_id': primo})) {
       await _schede(db, ragazzi, oggi, anno);
-      final eventi = await _eventi(db, gruppoId, unita, oggi);
-      await _appelli(db, eventi, ragazzi, unita, oggi);
-      await _cassa(db, unita, capi, inizioAnno, oggi);
-      final pegObiettivi = await _peg(db, gruppoId);
-      await _programma(db, unita, anno, pegObiettivi);
-      await _avvisi(db, unita, squadre, capi, oggi);
-      await _campo(db, unita['EG']!, capi, anno, oggi);
-      await _formazione(db, capi, oggi);
-      await _altaSquadriglia(db, unita['EG']!, ragazzi);
-      stdout.writeln('Contenuti creati.');
     }
+    if (await manca('events', {'unit_id': reparto})) {
+      await _eventi(db, gruppoId, unita, oggi);
+    }
+    if (await manca('event_attendances', {'user_id': primo})) {
+      final eventi = await db.elenca('events', {'group_id': gruppoId});
+      await _appelli(db, _eventiDiUnita(eventi, unita), ragazzi, unita, oggi);
+    }
+    if (await manca('transactions', {'unit_id': reparto})) {
+      await _cassa(db, unita, capi, inizioAnno, oggi);
+    }
+    final pegObiettivi = await _peg(db, gruppoId);
+    if (await manca('obiettivi_educativi', {'unit_id': reparto})) {
+      await _programma(db, unita, anno, pegObiettivi);
+    }
+    if (await manca('notice_board', {'unit_id': reparto})) {
+      await _avvisi(db, unita, squadre, capi, oggi);
+    }
+    if (await manca('campi', {'unit_id': reparto})) {
+      await _campo(db, reparto, capi, anno, oggi);
+    }
+    if (await manca('iter_formativo', {'user_id': capi['capogruppo']!})) {
+      await _formazione(db, capi, oggi);
+    }
+    if (await manca('sottogruppi', {'unit_id': reparto})) {
+      await _altaSquadriglia(db, reparto, ragazzi);
+    }
+    stdout.writeln('Contenuti pronti.');
 
     stdout.writeln('');
     stdout.writeln(
@@ -452,8 +474,7 @@ Future<void> _schede(
 }
 
 /// Riunioni ripetute, uscite, campo, Co.Ca. ed eventi di gruppo.
-/// Restituisce gli eventi di unità creati, per fare gli appelli.
-Future<List<Map<String, dynamic>>> _eventi(
+Future<void> _eventi(
   SupabaseAdmin db,
   String gruppoId,
   Map<String, String> unita,
@@ -513,6 +534,9 @@ Future<List<Map<String, dynamic>>> _eventi(
       'data_fine': _istante(fine),
       'luogo': luogo,
       'tutto_il_giorno': true,
+      // Un inserimento di più righe vuole le stesse colonne in tutte.
+      'serie_id': null,
+      'ripetizione': null,
     });
   }
 
@@ -534,6 +558,8 @@ Future<List<Map<String, dynamic>>> _eventi(
       'data_fine': _istante(inizio.add(Duration(hours: ore))),
       'luogo': luogo,
       'tutto_il_giorno': false,
+      'serie_id': null,
+      'ripetizione': null,
     });
   }
 
@@ -654,11 +680,16 @@ Future<List<Map<String, dynamic>>> _eventi(
     1,
   );
 
-  final salvati = await db.inserisciMolte('events', righe);
-  return salvati
-      .where((e) => e['unit_id'] != null && e['unit_id'] != unita['COCA'])
-      .toList();
+  await db.inserisciMolte('events', righe);
 }
+
+/// Gli eventi di Branco, Reparto e Clan tra [eventi]: quelli con l'appello.
+List<Map<String, dynamic>> _eventiDiUnita(
+  List<Map<String, dynamic>> eventi,
+  Map<String, String> unita,
+) => eventi
+    .where((e) => e['unit_id'] != null && e['unit_id'] != unita['COCA'])
+    .toList();
 
 /// Appelli delle attività già passate: quasi tutti presenti, qualche
 /// giustificato, e un ragazzo con tre assenze di fila (segnalazione).
@@ -861,8 +892,23 @@ Future<void> _cassa(
   ]);
 }
 
-/// Progetto Educativo di Gruppo con tre obiettivi; restituisce i loro id.
+/// Progetto Educativo di Gruppo con tre obiettivi; restituisce i loro id,
+/// nell'ordine in cui sono scritti qui, anche se esistevano già.
 Future<List<String>> _peg(SupabaseAdmin db, String gruppoId) async {
+  final esistenti = await db.elenca('peg_obiettivi', {'group_id': gruppoId});
+  if (esistenti.isNotEmpty) {
+    final perTitolo = {
+      for (final o in esistenti) o['titolo']: o['id'] as String,
+    };
+    return [
+      for (final t in const [
+        'Vivere la natura con responsabilità',
+        'Servire il quartiere',
+        'Crescere nella fede insieme',
+      ])
+        perTitolo[t] ?? esistenti.first['id'] as String,
+    ];
+  }
   if (await db.trova('peg', {'group_id': gruppoId}) == null) {
     await db.inserisci('peg', {
       'group_id': gruppoId,
