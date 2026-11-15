@@ -1,11 +1,12 @@
 {
-    "name": "jamb",
-    "short_name": "jamb",
+    "name": "Jamb",
+    "short_name": "Jamb",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#F8FAFC",
+    "theme_color": "#1D2660",
+    "description": "L'app per gli staff e la Comunità Capi di un gruppo AGESCI.",
+    "lang": "it",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

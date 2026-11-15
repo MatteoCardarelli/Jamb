@@ -2,8 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:jamb/domain/repositories/auth_repository.dart';
 import 'package:jamb/ui/auth/view_model/login_view_model.dart';
+import 'package:jamb/ui/core/widgets/jamb_campo.dart';
 
-/// Schermata di login: form email/password per l'autenticazione a Supabase.
+const Color _blu = Color(0xFF1D2660);
+
+/// Schermata di accesso con email e password.
+///
+/// È la prima cosa che vede chi apre Jamb: logo, nome, a cosa serve, e lo
+/// stesso paesaggio delle altre schermate in fondo.
 class LoginScreen extends StatelessWidget {
   LoginScreen({super.key});
 
@@ -15,80 +21,108 @@ class LoginScreen extends StatelessWidget {
     return ChangeNotifierProvider(
       create: (ctx) => LoginViewModel(ctx.read<IAuthRepository>()),
       child: Scaffold(
-        body: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(32),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const Icon(Icons.hiking, size: 64, color: Color(0xFF003366)),
-                const SizedBox(height: 8),
-                Text(
-                  'JAMB',
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: const Color(0xFF003366),
-                  ),
-                ),
-                const SizedBox(height: 48),
-                TextField(
-                  controller: _emailController,
-                  keyboardType: TextInputType.emailAddress,
-                  decoration: const InputDecoration(
-                    labelText: 'Email',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.email_outlined),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: _passwordController,
-                  obscureText: true,
-                  decoration: const InputDecoration(
-                    labelText: 'Password',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.lock_outlined),
-                  ),
-                  onSubmitted: (_) => _doLogin(context),
-                ),
-                Consumer<LoginViewModel>(
-                  builder: (context, vm, _) {
-                    if (vm.errorMessage == null) return const SizedBox.shrink();
-                    return Padding(
-                      padding: const EdgeInsets.only(top: 8),
-                      child: Text(
-                        vm.errorMessage!,
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.error,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    );
-                  },
-                ),
-                const SizedBox(height: 24),
-                Consumer<LoginViewModel>(
-                  builder: (context, vm, _) {
-                    return FilledButton(
-                      onPressed: vm.isLoading ? null : () => _doLogin(context),
-                      child: vm.isLoading
-                          ? const SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Colors.white,
-                              ),
-                            )
-                          : const Text('Accedi'),
-                    );
-                  },
-                ),
-              ],
+        backgroundColor: Colors.white,
+        body: Stack(
+          children: [
+            // Lo stesso paesaggio delle schermate dell'app, in basso.
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              height: 200,
+              child: Image.asset(
+                'assets/icons/sfondo.png',
+                fit: BoxFit.cover,
+                alignment: Alignment.bottomCenter,
+              ),
             ),
-          ),
+            SafeArea(
+              child: Center(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(28, 24, 28, 140),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const _Intestazione(),
+                      const SizedBox(height: 36),
+                      const JambEtichettaCampo('Email'),
+                      TextField(
+                        controller: _emailController,
+                        keyboardType: TextInputType.emailAddress,
+                        autofillHints: const [AutofillHints.email],
+                        textInputAction: TextInputAction.next,
+                        decoration: jambDecorazioneCampo(
+                          'nome@esempio.it',
+                          icona: Icons.email_outlined,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      const JambEtichettaCampo('Password'),
+                      TextField(
+                        controller: _passwordController,
+                        obscureText: true,
+                        autofillHints: const [AutofillHints.password],
+                        decoration: jambDecorazioneCampo(
+                          'La tua password',
+                          icona: Icons.lock_outline_rounded,
+                        ),
+                        onSubmitted: (_) => _doLogin(context),
+                      ),
+                      Consumer<LoginViewModel>(
+                        builder: (context, vm, _) {
+                          if (vm.errorMessage == null) {
+                            return const SizedBox.shrink();
+                          }
+                          return Padding(
+                            padding: const EdgeInsets.only(top: 12),
+                            child: Text(
+                              vm.errorMessage!,
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.error,
+                                fontWeight: FontWeight.w600,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 24),
+                      Consumer<LoginViewModel>(
+                        builder: (context, vm, _) {
+                          return FilledButton(
+                            style: FilledButton.styleFrom(
+                              backgroundColor: _blu,
+                              minimumSize: const Size.fromHeight(54),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              textStyle: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                            onPressed: vm.isLoading
+                                ? null
+                                : () => _doLogin(context),
+                            child: vm.isLoading
+                                ? const SizedBox(
+                                    height: 20,
+                                    width: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: Colors.white,
+                                    ),
+                                  )
+                                : const Text('Accedi'),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -98,6 +132,58 @@ class LoginScreen extends StatelessWidget {
     context.read<LoginViewModel>().login(
       _emailController.text,
       _passwordController.text,
+    );
+  }
+}
+
+/// Logo, nome e una riga che dice a cosa serve l'app.
+class _Intestazione extends StatelessWidget {
+  const _Intestazione();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Container(
+          width: 96,
+          height: 96,
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(28),
+            border: Border.all(color: const Color(0xFFE2E8F0)),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x1A1D2660),
+                blurRadius: 24,
+                offset: Offset(0, 8),
+              ),
+            ],
+          ),
+          child: Image.asset('assets/icons/app_icon.png'),
+        ),
+        const SizedBox(height: 20),
+        const Text(
+          'Jamb',
+          style: TextStyle(
+            fontSize: 36,
+            fontWeight: FontWeight.w900,
+            color: _blu,
+            letterSpacing: -0.5,
+          ),
+        ),
+        const SizedBox(height: 8),
+        const Text(
+          'Ragazzi, appello, cassa, calendario e campo:\nil servizio dello staff, in un posto solo.',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 15,
+            height: 1.4,
+            color: Color(0xFF64748B),
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ],
     );
   }
 }
