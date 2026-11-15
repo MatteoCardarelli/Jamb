@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:jamb/domain/repositories/auth_repository.dart';
 import 'package:jamb/ui/auth/view_model/login_view_model.dart';
+import 'package:jamb/ui/core/widgets/jamb_barra_azioni.dart';
 import 'package:jamb/ui/core/widgets/jamb_campo.dart';
+import 'package:jamb/ui/core/widgets/sfondo_paesaggio.dart';
 
 const Color _blu = Color(0xFF1D2660);
 
@@ -24,18 +26,9 @@ class LoginScreen extends StatelessWidget {
         backgroundColor: Colors.white,
         body: Stack(
           children: [
-            // Lo stesso paesaggio delle schermate dell'app, in basso.
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              height: 200,
-              child: Image.asset(
-                'assets/icons/sfondo.png',
-                fit: BoxFit.cover,
-                alignment: Alignment.bottomCenter,
-              ),
-            ),
+            // Lo stesso paesaggio delle schermate dell'app, in basso: non sale
+            // quando si apre la tastiera.
+            const SfondoPaesaggio(altezza: 200),
             SafeArea(
               child: Center(
                 child: SingleChildScrollView(
@@ -87,35 +80,17 @@ class LoginScreen extends StatelessWidget {
                         },
                       ),
                       const SizedBox(height: 24),
+                      // Il pulsante principale dei form dell'app; durante
+                      // l'accesso è disattivato.
                       Consumer<LoginViewModel>(
-                        builder: (context, vm, _) {
-                          return FilledButton(
-                            style: FilledButton.styleFrom(
-                              backgroundColor: _blu,
-                              minimumSize: const Size.fromHeight(54),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              textStyle: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w800,
-                              ),
-                            ),
-                            onPressed: vm.isLoading
-                                ? null
-                                : () => _doLogin(context),
-                            child: vm.isLoading
-                                ? const SizedBox(
-                                    height: 20,
-                                    width: 20,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      color: Colors.white,
-                                    ),
-                                  )
-                                : const Text('Accedi'),
-                          );
-                        },
+                        builder: (context, vm, _) => JambBarraAzioni(
+                          mostraIndietro: false,
+                          etichetta: 'Accedi',
+                          icona: Icons.login_rounded,
+                          onPressed: vm.isLoading
+                              ? null
+                              : () => _doLogin(context),
+                        ),
                       ),
                     ],
                   ),
