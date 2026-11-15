@@ -19,6 +19,7 @@ import 'package:jamb/ui/calendario/view_model/calendario_view_model.dart';
 import 'package:jamb/ui/auth/widgets/login_screen.dart';
 import 'package:jamb/core/session_service.dart';
 import 'package:jamb/ui/core/widgets/jamb_feedback.dart';
+import 'package:jamb/ui/core/widgets/cornice_schermo_largo.dart';
 import 'package:jamb/domain/repositories/documento_repository.dart';
 import 'package:jamb/data/repositories/supabase_documento_repository.dart';
 import 'package:jamb/domain/repositories/avviso_repository.dart';
@@ -119,8 +120,10 @@ class _AppPerUtente extends StatelessWidget {
         ChangeNotifierProvider(create: (context) => PreferenzeViewModel(LocalePreferenzeRepository(context.read<SessionService>()))),
       ],
       child: MaterialApp(
-        title: 'Jamb MVP',
-        debugShowCheckedModeBanner: true,
+        title: 'Jamb',
+        debugShowCheckedModeBanner: false,
+        // Sul computer (versione web) l'app resta larga come un telefono.
+        builder: (context, child) => CorniceSchermoLargo(child: child ?? const SizedBox.shrink()),
         localizationsDelegates: const [
           GlobalMaterialLocalizations.delegate,
           GlobalWidgetsLocalizations.delegate,
