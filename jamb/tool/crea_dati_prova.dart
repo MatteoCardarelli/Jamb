@@ -59,13 +59,14 @@ const List<_UtenteProva> _utenti = [
   _UtenteProva('prova.capoeg@test.it', 'Elena', 'Reparto', 'EG', 'CAPO_UNITA'),
   _UtenteProva('prova.aiutoeg@test.it', 'Marco', 'Aiuto', 'EG', 'AIUTO_CAPO'),
   _UtenteProva('prova.capors@test.it', 'Rita', 'Clan', 'RS', 'CAPO_UNITA'),
+  // Squadriglie maschili o femminili, non miste: Sara con Giulia nelle Volpi.
   _UtenteProva(
     'prova.caposq@test.it',
     'Sara',
-    'Aquile',
+    'Volpi',
     'EG',
     'CAPO_SQ',
-    'Aquile',
+    'Volpi',
   ),
   _UtenteProva(
     'prova.ragazzo1@test.it',

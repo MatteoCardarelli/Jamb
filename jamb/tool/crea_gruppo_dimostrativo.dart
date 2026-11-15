@@ -39,12 +39,14 @@ const Map<String, String> _unita = {
   'RS': 'Clan Sentiero Alto',
 };
 
-/// Squadriglie (E/G) e sestiglie (L/C), con l'urlo.
+/// Squadriglie (E/G) e sestiglie (L/C), con l'urlo. In Reparto le
+/// squadriglie sono maschili o femminili, non miste (l'utente, 2026-11-15).
 const Map<String, Map<String, String>> _squadriglie = {
   'EG': {
     'Aquile': 'Aquile, in alto!',
-    'Volpi': 'Volpi, svelte e furbe!',
     'Pantere': 'Pantere, sempre pronte!',
+    'Volpi': 'Volpi, svelte e furbe!',
+    'Gazzelle': 'Gazzelle, leggere e veloci!',
   },
   'LC': {'Bianchi': '', 'Neri': '', 'Grigi': ''},
 };
@@ -93,38 +95,38 @@ class _Ragazzo {
 }
 
 const List<_Ragazzo> _ragazzi = [
-  // Reparto: tre squadriglie da cinque.
+  // Reparto: due squadriglie maschili e due femminili.
   _Ragazzo('Tommaso', 'Galli', 'EG', 16, 'Aquile', 'CAPO_SQ'),
-  _Ragazzo(
-    'Alice',
-    'Fontana',
-    'EG',
-    15,
-    'Aquile',
-    'VICE_CAPO_SQ',
-    "Allergia alle arachidi: ha sempre con sé l'autoiniettore di adrenalina.",
-  ),
+  _Ragazzo('Riccardo', 'Barbieri', 'EG', 15, 'Aquile', 'VICE_CAPO_SQ'),
   _Ragazzo('Matteo', 'Rinaldi', 'EG', 14, 'Aquile'),
-  _Ragazzo('Giorgia', 'Caruso', 'EG', 13, 'Aquile'),
   _Ragazzo('Samuele', 'Testa', 'EG', 12, 'Aquile'),
-  _Ragazzo('Beatrice', 'Lombardi', 'EG', 16, 'Volpi', 'CAPO_SQ'),
-  _Ragazzo('Riccardo', 'Barbieri', 'EG', 15, 'Volpi', 'VICE_CAPO_SQ'),
-  _Ragazzo('Sofia', 'Mancini', 'EG', 14, 'Volpi'),
+  _Ragazzo('Lorenzo', 'Gatti', 'EG', 16, 'Pantere', 'CAPO_SQ'),
   _Ragazzo(
     'Pietro',
     'Colombo',
     'EG',
     13,
-    'Volpi',
-    'RAGAZZO',
+    'Pantere',
+    'VICE_CAPO_SQ',
     'Celiachia: pasti senza glutine.',
   ),
-  _Ragazzo('Emma', 'Ricci', 'EG', 12, 'Volpi'),
-  _Ragazzo('Lorenzo', 'Gatti', 'EG', 16, 'Pantere', 'CAPO_SQ'),
-  _Ragazzo('Martina', 'Pellegrini', 'EG', 15, 'Pantere', 'VICE_CAPO_SQ'),
   _Ragazzo('Francesco', 'Vitale', 'EG', 14, 'Pantere'),
-  _Ragazzo('Aurora', 'Serra', 'EG', 13, 'Pantere'),
   _Ragazzo('Leonardo', 'Bianco', 'EG', 12, 'Pantere'),
+  _Ragazzo('Beatrice', 'Lombardi', 'EG', 16, 'Volpi', 'CAPO_SQ'),
+  _Ragazzo(
+    'Alice',
+    'Fontana',
+    'EG',
+    15,
+    'Volpi',
+    'VICE_CAPO_SQ',
+    "Allergia alle arachidi: ha sempre con sé l'autoiniettore di adrenalina.",
+  ),
+  _Ragazzo('Sofia', 'Mancini', 'EG', 14, 'Volpi'),
+  _Ragazzo('Emma', 'Ricci', 'EG', 12, 'Volpi'),
+  _Ragazzo('Martina', 'Pellegrini', 'EG', 15, 'Gazzelle', 'CAPO_SQ'),
+  _Ragazzo('Giorgia', 'Caruso', 'EG', 13, 'Gazzelle', 'VICE_CAPO_SQ'),
+  _Ragazzo('Aurora', 'Serra', 'EG', 13, 'Gazzelle'),
   // Branco: tre sestiglie.
   _Ragazzo('Edoardo', 'Fabbri', 'LC', 11, 'Bianchi', 'CAPO_SQ'),
   _Ragazzo('Ginevra', 'Monti', 'LC', 10, 'Bianchi'),
@@ -231,21 +233,38 @@ Future<void> main() async {
           password: password,
         );
 
+    /// Membership attiva nell'unità; se c'è già con un altro ruolo o un'altra
+    /// squadriglia la allinea a questo script (sono dati dimostrativi: per
+    /// esempio dopo che le squadriglie sono state rifatte).
     Future<void> membership(
       String utente,
       String branca,
       String ruolo,
       String? squadriglia,
-    ) => db.trovaOCrea(
-      'memberships',
-      {'user_id': utente, 'unit_id': unita[branca]!},
-      {
-        'ruolo': ruolo,
-        'squad_id': squadriglia == null ? null : squadre[squadriglia],
-        'anno_scout': anno,
-        'data_inizio': _giorno(inizioAnno),
-      },
-    );
+    ) async {
+      final filtri = {'user_id': utente, 'unit_id': unita[branca]!};
+      final squadId = squadriglia == null ? null : squadre[squadriglia];
+      final esistente = await db.trova('memberships', {
+        ...filtri,
+        'is_active': 'true',
+      });
+      if (esistente == null) {
+        await db.inserisci('memberships', {
+          ...filtri,
+          'ruolo': ruolo,
+          'squad_id': squadId,
+          'anno_scout': anno,
+          'data_inizio': _giorno(inizioAnno),
+        });
+      } else if (esistente['ruolo'] != ruolo ||
+          esistente['squad_id'] != squadId) {
+        await db.aggiorna(
+          'memberships',
+          {'id': esistente['id'] as String},
+          {'ruolo': ruolo, 'squad_id': squadId},
+        );
+      }
+    }
 
     final capi = <String, String>{};
     for (final c in _capi) {
@@ -314,9 +333,7 @@ Future<void> main() async {
     if (await manca('iter_formativo', {'user_id': capi['capogruppo']!})) {
       await _formazione(db, capi, oggi);
     }
-    if (await manca('sottogruppi', {'unit_id': reparto})) {
-      await _altaSquadriglia(db, reparto, ragazzi);
-    }
+    await _altaSquadriglia(db, reparto, ragazzi);
     stdout.writeln('Contenuti pronti.');
 
     stdout.writeln('');
@@ -1204,19 +1221,28 @@ Future<void> _formazione(
   ]);
 }
 
-/// Alta Squadriglia del Reparto con i tre capi squadriglia.
+/// Alta Squadriglia del Reparto con i capi squadriglia: la crea se manca e
+/// aggiunge chi è diventato capo squadriglia dopo un lancio precedente.
 Future<void> _altaSquadriglia(
   SupabaseAdmin db,
   String reparto,
   Map<_Ragazzo, String> ragazzi,
 ) async {
-  final alta = await db.inserisci('sottogruppi', {
-    'unit_id': reparto,
-    'tipo': 'alta_squadriglia',
-  });
+  final filtri = {'unit_id': reparto, 'tipo': 'alta_squadriglia'};
+  final alta =
+      await db.trova('sottogruppi', filtri) ??
+      await db.inserisci('sottogruppi', filtri);
+  final presenti = {
+    for (final m in await db.elenca('sottogruppo_membri', {
+      'sottogruppo_id': alta['id'] as String,
+    }))
+      m['user_id'],
+  };
   await db.inserisciMolte('sottogruppo_membri', [
     for (final voce in ragazzi.entries)
-      if (voce.key.branca == 'EG' && voce.key.ruolo == 'CAPO_SQ')
+      if (voce.key.branca == 'EG' &&
+          voce.key.ruolo == 'CAPO_SQ' &&
+          !presenti.contains(voce.value))
         {'sottogruppo_id': alta['id'], 'user_id': voce.value},
   ]);
 }
