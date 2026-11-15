@@ -76,10 +76,7 @@ class SupabaseObiettivoRepository implements IObiettivoRepository {
       grado: (row['grado'] as num?)?.toInt() ?? 0,
       diarioDiBordo: (row['diario_di_bordo'] ?? '') as String,
       colore: Color((row['colore'] as num?)?.toInt() ?? 0xFF1D2660),
-      icona: IconData(
-        (row['icona'] as num?)?.toInt() ?? Icons.star_rounded.codePoint,
-        fontFamily: 'MaterialIcons',
-      ),
+      icona: iconaObiettivoDaCodice((row['icona'] as num?)?.toInt()),
       pegObiettivoId: row['peg_obiettivo_id'] as String?,
     );
   }

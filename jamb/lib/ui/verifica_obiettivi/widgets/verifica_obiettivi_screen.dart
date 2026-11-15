@@ -48,7 +48,7 @@ class VerificaObiettiviScreen extends StatelessWidget {
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       dominio: "NUOVO DOMINIO",
       descrizione: "Descrizione obiettivo...",
-      icona: Icons.star_rounded,
+      icona: iconaObiettivoPredefinita,
       colore: const Color(0xFF1D2660),
       grado: 1,
       diarioDiBordo: "",

@@ -1,5 +1,34 @@
 import 'package:flutter/material.dart';
 
+/// Icone che si possono scegliere per un obiettivo, nell'ordine del dialogo.
+///
+/// Il database salva il codice dell'icona e l'icona si ricostruisce cercandola
+/// qui ([iconaObiettivoDaCodice]): un `IconData` costruito al volo impedisce alla
+/// compilazione di rilascio di includere solo le icone usate, e la versione
+/// web non si compila.
+const List<IconData> iconeObiettivo = [
+  Icons.church_rounded,
+  Icons.handyman_rounded,
+  Icons.directions_walk_rounded,
+  Icons.local_fire_department_rounded,
+  Icons.park_rounded,
+  Icons.explore_rounded,
+  Icons.favorite_rounded,
+  Icons.flag_rounded,
+];
+
+/// Icona di un obiettivo nuovo o con un codice sconosciuto.
+const IconData iconaObiettivoPredefinita = Icons.star_rounded;
+
+/// Icona con il codice [codice] salvato nel database; un codice assente o
+/// sconosciuto degrada a [iconaObiettivoPredefinita].
+IconData iconaObiettivoDaCodice(int? codice) {
+  for (final icona in iconeObiettivo) {
+    if (icona.codePoint == codice) return icona;
+  }
+  return iconaObiettivoPredefinita;
+}
+
 /// Obiettivo educativo dell'unità, definito per dominio (Spiritualità,
 /// Competenza, Servizio, ...) con un grado di raggiungimento e un diario.
 class Obiettivo {
@@ -64,18 +93,5 @@ class Obiettivo {
       'icona': icona.codePoint,
       'diarioDiBordo': diarioDiBordo,
     };
-  }
-
-  /// Costruisce un obiettivo a partire da una mappa serializzata.
-  factory Obiettivo.fromMap(Map<String, dynamic> map) {
-    return Obiettivo(
-      id: map['id'],
-      dominio: map['dominio'],
-      descrizione: map['descrizione'],
-      grado: map['grado'],
-      colore: Color(map['colore']),
-      icona: IconData(map['icona'], fontFamily: 'MaterialIcons'),
-      diarioDiBordo: map['diarioDiBordo'] ?? "",
-    );
   }
 }

@@ -45,17 +45,8 @@ class _EditObiettivoDialogState extends State<EditObiettivoDialog> {
     const Color(0xFF8E44AD), // Viola Scout
   ];
 
-  // Set di icone tematiche disponibili
-  final List<IconData> _availableIcons = [
-    Icons.church_rounded,
-    Icons.handyman_rounded,
-    Icons.directions_walk_rounded,
-    Icons.local_fire_department_rounded,
-    Icons.park_rounded,
-    Icons.explore_rounded,
-    Icons.favorite_rounded,
-    Icons.flag_rounded,
-  ];
+  // Icone tematiche disponibili: le stesse che il repository sa ricostruire
+  final List<IconData> _availableIcons = iconeObiettivo;
 
   @override
   void initState() {
