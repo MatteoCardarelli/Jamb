@@ -1,7 +1,8 @@
 // Client minimo per PostgREST e Admin API di Supabase, condiviso dagli
 // script che preparano dati (prova, gruppo dimostrativo).
 //
-// Usa la chiave service_role, che scavalca le RLS: si legge solo
+// Usa la chiave segreta del progetto (la nuova `sb_secret_…` o la legacy
+// `service_role`), che scavalca le RLS: si legge solo
 // dall'ambiente e lo script parte solo se JAMB_CONFERMA_PROGETTO ripete il
 // riferimento del progetto.
 import 'dart:convert';
@@ -49,9 +50,14 @@ class SupabaseAdmin {
     final richiesta = await _http.openUrl(metodo, Uri.parse('$url$percorso'));
     richiesta.headers
       ..set('apikey', _chiave)
-      ..set('Authorization', 'Bearer $_chiave')
       ..set('Prefer', 'return=representation')
       ..contentType = ContentType.json;
+    // La chiave legacy `service_role` è un JWT e va anche in Authorization;
+    // le chiavi nuove (`sb_secret_…`) vanno solo in apikey: in Authorization
+    // Supabase le rifiuta come JWT non valido.
+    if (!_chiave.startsWith('sb_')) {
+      richiesta.headers.set('Authorization', 'Bearer $_chiave');
+    }
     if (corpo != null) richiesta.add(utf8.encode(jsonEncode(corpo)));
 
     final risposta = await richiesta.close();
