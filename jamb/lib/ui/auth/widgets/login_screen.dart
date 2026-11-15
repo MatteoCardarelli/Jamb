@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:jamb/domain/repositories/auth_repository.dart';
 import 'package:jamb/ui/auth/view_model/login_view_model.dart';
+import 'package:jamb/ui/core/widgets/jamb_barra_azioni.dart';
 import 'package:jamb/ui/core/widgets/jamb_campo.dart';
 import 'package:jamb/ui/core/widgets/sfondo_paesaggio.dart';
 
@@ -79,35 +80,17 @@ class LoginScreen extends StatelessWidget {
                         },
                       ),
                       const SizedBox(height: 24),
+                      // Il pulsante principale dei form dell'app; durante
+                      // l'accesso è disattivato.
                       Consumer<LoginViewModel>(
-                        builder: (context, vm, _) {
-                          return FilledButton(
-                            style: FilledButton.styleFrom(
-                              backgroundColor: _blu,
-                              minimumSize: const Size.fromHeight(54),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              textStyle: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w800,
-                              ),
-                            ),
-                            onPressed: vm.isLoading
-                                ? null
-                                : () => _doLogin(context),
-                            child: vm.isLoading
-                                ? const SizedBox(
-                                    height: 20,
-                                    width: 20,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      color: Colors.white,
-                                    ),
-                                  )
-                                : const Text('Accedi'),
-                          );
-                        },
+                        builder: (context, vm, _) => JambBarraAzioni(
+                          mostraIndietro: false,
+                          etichetta: 'Accedi',
+                          icona: Icons.login_rounded,
+                          onPressed: vm.isLoading
+                              ? null
+                              : () => _doLogin(context),
+                        ),
                       ),
                     ],
                   ),
