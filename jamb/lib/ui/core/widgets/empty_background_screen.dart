@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:jamb/core/session_service.dart';
 import 'package:jamb/ui/core/widgets/topbar.dart';
 import 'package:jamb/ui/core/widgets/bottom_navbar.dart';
+import 'package:jamb/ui/core/widgets/sfondo_paesaggio.dart';
 
 /// Layout base universale per le schermate dell'applicazione Jamb.
 /// Fornisce lo sfondo istituzionale, la TopBar, la BottomNavBar e la gestione
@@ -52,18 +53,8 @@ class _EmptyBackgroundScreenState extends State<EmptyBackgroundScreen> {
           clipBehavior: Clip.none,
           children: [
             // --- 1. STRATO SFONDO (Immagine istituzionale) ---
-            // Il posizionamento è calcolato dall'alto per evitare l'effetto "fisarmonica"
-            // quando la tastiera si apre e lo schermo si ridimensiona.
-            Positioned(
-              top: MediaQuery.of(context).size.height - 590, 
-              left: 0,
-              right: 0,
-              height: 590,
-              child: Image.asset(
-                'assets/icons/sfondo.png',
-                fit: BoxFit.cover,
-              ),
-            ),
+            // Agganciato al fondo dello schermo: non sale quando si apre la tastiera.
+            const SfondoPaesaggio(altezza: 590),
             
             // --- 2. STRATO CONTENUTO (Child) ---
             if (widget.child != null)
