@@ -1,7 +1,15 @@
 import 'package:flutter/material.dart';
 
+/// Quota massima dello schermo occupata da un menu dal basso: sopra resta
+/// visibile la schermata da cui lo si è aperto.
+const double altezzaMassimaMenu = 0.85;
+
 /// Apre un menu dal basso con [titolo], un eventuale [sottotitolo] e le
 /// [voci] costruite con il context del menu (per chiuderlo con `pop`).
+///
+/// Il menu è alto quanto le sue voci, fino a [altezzaMassimaMenu] dello
+/// schermo; oltre, titolo e sottotitolo restano fermi e le voci scorrono
+/// (per esempio il menu del profilo del Capo Gruppo, con tutte le unità).
 Future<void> mostraMenuJamb(
   BuildContext context, {
   required String titolo,
@@ -10,36 +18,52 @@ Future<void> mostraMenuJamb(
 }) {
   return showModalBottomSheet(
     context: context,
+    isScrollControlled: true,
     backgroundColor: Colors.white,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
     ),
     builder: (menu) => SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              titolo,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w900,
-                color: Color(0xFF1D2660),
-                fontFamily: 'Lexend',
-              ),
-            ),
-            if (sottotitolo.isNotEmpty)
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(menu).size.height * altezzaMassimaMenu,
+        ),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
               Text(
-                sottotitolo,
-                style: const TextStyle(color: Color(0xFF64748B), fontFamily: 'Lexend'),
+                titolo,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w900,
+                  color: Color(0xFF1D2660),
+                  fontFamily: 'Lexend',
+                ),
               ),
-            const SizedBox(height: 16),
-            ...voci(menu),
-          ],
+              if (sottotitolo.isNotEmpty)
+                Text(
+                  sottotitolo,
+                  style: const TextStyle(
+                    color: Color(0xFF64748B),
+                    fontFamily: 'Lexend',
+                  ),
+                ),
+              const SizedBox(height: 16),
+              Flexible(
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: voci(menu),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     ),
@@ -64,7 +88,9 @@ class JambVoceMenu extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colore = pericolosa ? const Color(0xFFB91C1C) : const Color(0xFF1D2660);
+    final colore = pericolosa
+        ? const Color(0xFFB91C1C)
+        : const Color(0xFF1D2660);
     return ListTile(
       contentPadding: EdgeInsets.zero,
       leading: Icon(icona, color: colore),
