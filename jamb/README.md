@@ -20,8 +20,9 @@ implementazioni.
   il debug USB attivo
 - Un progetto Supabase, anche sul piano gratuito
 
-L'applicazione è stata sviluppata e collaudata su **Android**. Le altre
-piattaforme sono presenti nel progetto ma non sono state verificate.
+L'applicazione è stata sviluppata e collaudata su **Android**. La versione
+**web** si compila e si apre (vedi «Versione web»); le altre piattaforme sono
+presenti nel progetto ma non sono state verificate.
 
 ## Configurazione
 
@@ -103,11 +104,39 @@ riferimento del progetto:
 SUPABASE_URL=https://<ref>.supabase.co SUPABASE_SERVICE_ROLE_KEY=<chiave> JAMB_PASSWORD_PROVA=<password> JAMB_CONFERMA_PROGETTO=<ref> dart run tool/crea_dati_prova.dart
 ```
 
+### 6. Gruppo dimostrativo (facoltativo)
+
+`tool/crea_gruppo_dimostrativo.dart` crea «Valle Serena 1», un gruppo inventato
+da mostrare a chi prova l'app: Branco, Reparto e Clan con 29 ragazzi, cinque capi
+e l'Assistente Ecclesiastico, riunioni passate e future con l'appello fatto,
+cassa, avvisi, Programma d'Unità collegato al PEG, un campo invernale e l'iter
+formativo dei capi. Nomi e telefoni sono finti e le date partono dal giorno in
+cui si lancia. Si può rilanciare: i contenuti si creano solo la prima volta.
+
+```bash
+SUPABASE_URL=https://<ref>.supabase.co SUPABASE_SERVICE_ROLE_KEY=<chiave> JAMB_PASSWORD_DEMO=<password> JAMB_CONFERMA_PROGETTO=<ref> dart run tool/crea_gruppo_dimostrativo.dart
+```
+
+Alla fine stampa gli account; per vedere tutto si entra come Capo Gruppo.
+
 ## Avvio
 
 ```bash
 flutter run
 ```
+
+## Versione web
+
+Lo stesso codice si compila anche per il browser: si apre da un collegamento
+(anche su iPhone e computer) e si può installare sulla schermata Home.
+
+```bash
+flutter build web --release
+```
+
+Il risultato in `build/web/` è un sito statico, da pubblicare su un qualunque
+hosting di file statici. Sul computer l'app resta larga come un telefono, al
+centro dello schermo.
 
 ## Test
 
@@ -164,8 +193,8 @@ ricreati a ogni cambio di utente, così non restano in memoria i dati di chi
   ancora implementato.
 - I file del Drive e le ricevute si aprono con le app del telefono (lettore PDF,
   galleria): l'applicazione non ha un visualizzatore interno.
-- Gli avvisi pubblicati dagli altri capi compaiono aprendo la bacheca o
-  trascinando l'elenco verso il basso: non c'è aggiornamento in tempo reale.
+- Gli avvisi di un altro capo arrivano in tempo reale; un avviso eliminato
+  sparisce alla prossima apertura della bacheca.
 - Chi opera in più unità le sceglie dal menu del profilo; cambiando unità
   l'applicazione torna alla schermata principale.
 - L'area dedicata ai ragazzi non esiste: l'applicazione è oggi rivolta ai soli
