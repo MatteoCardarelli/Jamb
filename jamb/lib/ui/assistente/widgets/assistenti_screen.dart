@@ -5,12 +5,16 @@ import 'package:jamb/domain/repositories/incarichi_repository.dart';
 import 'package:jamb/ui/assistente/view_model/assistenti_view_model.dart';
 import 'package:jamb/ui/core/widgets/jamb_dialogs.dart';
 import 'package:jamb/ui/core/widgets/jamb_feedback.dart';
+import 'package:jamb/ui/core/widgets/jamb_lavori_in_corso.dart';
 import 'package:jamb/ui/core/widgets/jamb_pulsante_secondario.dart';
 import 'package:jamb/ui/core/widgets/jamb_riquadro.dart';
 import 'package:jamb/ui/core/widgets/jamb_stati.dart';
 import 'package:jamb/ui/core/widgets/jamb_schermata_elenco.dart';
 
 /// Nomina dell'Assistente Ecclesiastico, per il Capo Gruppo.
+///
+/// Per ora mostra «lavori in corso» (l'utente, 2026-11-15: la parte
+/// dell'Assistente va rifatta). La nomina resta pronta in [AssistentiView].
 class AssistentiScreen extends StatelessWidget {
   const AssistentiScreen({super.key});
 
@@ -20,6 +24,28 @@ class AssistentiScreen extends StatelessWidget {
       context,
     ).push(MaterialPageRoute(builder: (_) => const AssistentiScreen()));
   }
+
+  @override
+  Widget build(BuildContext context) {
+    return JambSchermataElenco(
+      titolo: 'Assistente Ecclesiastico',
+      caricamento: false,
+      errore: null,
+      onRiprova: () {},
+      children: const [
+        JambLavoriInCorso(
+          messaggio:
+              'Nomina dell\'Assistente, veglie e spunti di spiritualità: li stiamo rifacendo.',
+        ),
+      ],
+    );
+  }
+}
+
+/// Schermata delle nomine con il suo ViewModel, da rimettere in
+/// [AssistentiScreen] quando la parte dell'Assistente sarà rifatta.
+class AssistentiNomine extends StatelessWidget {
+  const AssistentiNomine({super.key});
 
   @override
   Widget build(BuildContext context) {
