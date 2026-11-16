@@ -138,9 +138,10 @@ class SupabaseAdmin {
     }
   }
 
-  /// Crea l'utente con l'Admin API, se non esiste già: il trigger
-  /// `handle_new_user` scrive la riga in `users` leggendo i metadati.
-  /// Mai `INSERT` in `auth.users`.
+  /// Crea la persona con un account, se non esiste già: prima la scheda in
+  /// `users`, poi l'account con l'Admin API e lo stesso id. Senza scheda il
+  /// trigger `handle_new_user` rifiuta l'account (migrazione
+  /// `schede_senza_account`). Mai `INSERT` in `auth.users`.
   Future<String> creaUtente({
     required String email,
     required String nome,
@@ -150,19 +151,26 @@ class SupabaseAdmin {
   }) async {
     final esistente = await _idUtente(email);
     if (esistente != null) return esistente;
-    final creato =
-        await _invia('POST', '/auth/v1/admin/users', {
-              'email': email,
-              'password': password,
-              'email_confirm': true,
-              'user_metadata': {
-                'group_id': gruppoId,
-                'nome': nome,
-                'cognome': cognome,
-              },
-            })
-            as Map;
-    return creato['id'] as String;
+
+    final scheda = await inserisci('users', {
+      'group_id': gruppoId,
+      'nome': nome,
+      'cognome': cognome,
+    });
+    final id = scheda['id'] as String;
+    try {
+      await _invia('POST', '/auth/v1/admin/users', {
+        'id': id,
+        'email': email,
+        'password': password,
+        'email_confirm': true,
+      });
+    } catch (_) {
+      // Senza account la scheda appena creata non serve: si toglie.
+      await _invia('DELETE', '/rest/v1/users?id=eq.$id');
+      rethrow;
+    }
+    return id;
   }
 
   /// Aggiorna le righe di [tabella] che rispettano [filtri].

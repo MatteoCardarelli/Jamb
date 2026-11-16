@@ -66,31 +66,29 @@ npx supabase db push
 Ogni modifica successiva allo schema va fatta con una nuova migrazione
 (`npx supabase migration new <nome>`), mai a mano dalla console.
 
-### 4. Creazione degli utenti
+### 4. Persone e account
 
-> **Gli utenti vanno creati esclusivamente tramite Supabase Auth**, dalla
-> console (*Authentication → Users → Add user*) oppure via Admin API.
+Ogni persona, capo o ragazzo, è prima di tutto una **scheda** nella tabella
+`users`; l'account per accedere è facoltativo e si aggancia alla scheda con
+lo **stesso id**. Un account senza scheda viene rifiutato dal trigger
+`handle_new_user`, così la registrazione libera non crea profili.
 
-Inserirli con una `INSERT` diretta in `auth.users` produce record con i campi
-dei token a `NULL`, e il login fallisce con un errore 500
-(`Database error querying schema`). È un problema già incontrato durante lo
-sviluppo e documentato nelle decisioni di progetto.
+Per creare una persona con un account (lo fanno gli script del punto 5, con
+`tool/supabase_admin.dart`):
 
-Alla creazione, il trigger `handle_new_user` popola automaticamente la tabella
-`users` leggendo `group_id`, `nome` e `cognome` dai metadati dell'utente.
-Vanno quindi passati al momento della creazione, in *User Metadata*:
+1. inserire la scheda in `users` (gruppo, nome, cognome);
+2. creare l'account con l'Admin API di Supabase Auth, passando l'`id` della
+   scheda (`POST /auth/v1/admin/users` con `id`, email e password).
 
-```json
-{
-  "group_id": "<uuid-del-gruppo>",
-  "nome": "Mario",
-  "cognome": "Rossi"
-}
-```
+> **Mai una `INSERT` diretta in `auth.users`**: lascia i campi dei token a
+> `NULL` e il login fallisce con un errore 500 (`Database error querying
+> schema`). Dalla console (*Add user*) non si può scegliere l'id, quindi
+> l'account verrebbe rifiutato.
 
-Perché l'utente veda qualcosa serve infine una riga in `memberships` che lo
+Perché la persona veda qualcosa serve infine una riga in `memberships` che la
 colleghi a un'unità con un ruolo. Senza membership attiva le policy RLS non
 restituiscono alcun dato e l'applicazione mostra la schermata "nessun ruolo".
+I ragazzi si aggiungono anche dall'app (Capo Unità o Capo Gruppo), senza account.
 
 ### 5. Dati di prova (facoltativo)
 
