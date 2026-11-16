@@ -17,6 +17,8 @@ class RagazziViewModel extends ChangeNotifier with StatoCaricamentoMixin {
     searchController.addListener(() {
       notifyListeners();
     });
+    // Un ragazzo aggiunto, modificato o tolto dall'unità aggiorna l'elenco.
+    _repository.addListener(_caricaDati);
     _caricaDati();
   }
 
@@ -26,6 +28,7 @@ class RagazziViewModel extends ChangeNotifier with StatoCaricamentoMixin {
 
   @override
   void dispose() {
+    _repository.removeListener(_caricaDati);
     searchController.dispose();
     super.dispose();
   }

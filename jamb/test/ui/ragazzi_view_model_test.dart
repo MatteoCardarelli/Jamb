@@ -30,5 +30,19 @@ void main() {
       vm.setAlertFiltro(true);
       expect(vm.ragazziFiltrati.length, 2);
     });
+
+    test("un ragazzo tolto dall'unità sparisce dall'elenco senza ricaricare a mano", () async {
+      final repo = FakeScoutRepository([
+        scoutDiTest('Andrea Conti', 'Aquile'),
+        scoutDiTest('Luca Ferrari', 'Aquile'),
+      ]);
+      final vm = RagazziViewModel(repo);
+      await Future.delayed(Duration.zero);
+
+      await repo.togliDallUnita('Luca Ferrari');
+      await Future.delayed(Duration.zero);
+
+      expect(vm.ragazziFiltrati.map((s) => s.nome), ['Andrea Conti']);
+    });
   });
 }
