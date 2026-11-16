@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:jamb/core/session_service.dart';
 import 'package:jamb/domain/entities/formazione.dart';
+import 'package:jamb/domain/repositories/auth_repository.dart';
 import 'package:jamb/domain/repositories/formazione_repository.dart';
 import 'package:jamb/ui/core/widgets/jamb_dialogs.dart';
 import 'package:jamb/ui/core/widgets/jamb_feedback.dart';
@@ -10,7 +11,9 @@ import 'package:jamb/ui/core/widgets/jamb_pulsante_secondario.dart';
 import 'package:jamb/ui/core/widgets/jamb_schermata_elenco.dart';
 import 'package:jamb/ui/profilo/view_model/preferenze_view_model.dart';
 import 'package:jamb/ui/profilo/view_model/profilo_view_model.dart';
+import 'package:jamb/ui/profilo/view_model/sicurezza_view_model.dart';
 import 'package:jamb/ui/profilo/widgets/formazione_coca_screen.dart';
+import 'package:jamb/ui/profilo/widgets/riquadro_sicurezza.dart';
 import 'package:jamb/ui/profilo/widgets/sezioni_formazione.dart';
 
 /// Profilo del capo connesso: iter formativo e Progetto del Capo.
@@ -27,9 +30,17 @@ class ProfiloScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final session = context.read<SessionService>();
-    return ChangeNotifierProvider(
-      create: (context) =>
-          ProfiloViewModel(context.read<IFormazioneRepository>()),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(
+          create: (context) =>
+              ProfiloViewModel(context.read<IFormazioneRepository>()),
+        ),
+        ChangeNotifierProvider(
+          create: (context) =>
+              SicurezzaViewModel(context.read<IAuthRepository>()),
+        ),
+      ],
       child: ProfiloView(
         puoVedereCoca: session.permessi.puoVedereFormazioneCoca,
         conPreferenze: session.permessi.puoUsareAreaCapi,
@@ -197,6 +208,8 @@ class ProfiloView extends StatelessWidget {
             onTap: () => FormazioneCocaScreen.apri(context),
           ),
         ],
+        const SizedBox(height: 16),
+        const RiquadroSicurezza(),
       ],
     );
   }

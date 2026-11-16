@@ -7,7 +7,17 @@ import 'package:jamb/core/supabase_client.dart';
 import 'package:jamb/core/unita_attiva.dart';
 
 /// Stati possibili della sessione applicativa.
-enum SessionStatus { loading, unauthenticated, noMembership, ready, error }
+enum SessionStatus {
+  loading,
+  unauthenticated,
+
+  /// Password giusta, ma l'utente ha la verifica in due passaggi: manca il
+  /// codice dell'app di autenticazione.
+  secondoFattore,
+  noMembership,
+  ready,
+  error,
+}
 
 /// Una membership attiva dell'utente: il suo ruolo in una specifica unità.
 class SessionMembership {
@@ -61,6 +71,11 @@ class SessionService extends ChangeNotifier {
           break;
         case AuthChangeEvent.signedOut:
           _clear();
+          break;
+        case AuthChangeEvent.mfaChallengeVerified:
+          // Codice giusto dopo la password. Attivare la verifica dal profilo
+          // emette lo stesso evento, ma lì la sessione è già pronta.
+          if (_status == SessionStatus.secondoFattore) load();
           break;
         default:
           break; // tokenRefreshed, userUpdated, ecc.: ignorati
@@ -167,6 +182,16 @@ class SessionService extends ChangeNotifier {
     final user = supabase.auth.currentUser;
     if (user == null) {
       _clear();
+      return;
+    }
+
+    // Con la verifica in due passaggi attiva, la sola password non basta:
+    // niente dati finché non arriva il codice.
+    final livello = supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+    if (livello.nextLevel == AuthenticatorAssuranceLevels.aal2 &&
+        livello.currentLevel != AuthenticatorAssuranceLevels.aal2) {
+      _status = SessionStatus.secondoFattore;
+      notifyListeners();
       return;
     }
 
