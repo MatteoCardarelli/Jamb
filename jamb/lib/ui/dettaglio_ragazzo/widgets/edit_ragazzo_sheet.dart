@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:jamb/domain/entities/scout.dart'; // Importa entità di dominio
 import 'package:jamb/core/ruolo_display.dart';
 import 'package:intl/intl.dart';
+import 'package:jamb/ui/ragazzi/widgets/scelta_squadriglia_ruolo.dart';
 
 /// Pannello (BottomSheet) per la modifica dei dati anagrafici e dei contatti di uno scout.
 /// Utilizza l'entità di dominio [ContattoEmergenza] (Shared Model).
@@ -26,6 +27,10 @@ class EditRagazzoSheet extends StatefulWidget {
     List<ContattoEmergenza> contatti
   ) onSalva;
 
+  /// Toglie il ragazzo dall'unità; `null` per chi non può farlo (sotto il
+  /// Capo Unità): l'azione non compare.
+  final VoidCallback? onTogliDallUnita;
+
   const EditRagazzoSheet({
     super.key,
     required this.squadriglia,
@@ -36,6 +41,7 @@ class EditRagazzoSheet extends StatefulWidget {
     required this.squadriglieDisponibili,
     required this.puoCambiareRuoloESquadriglia,
     required this.onSalva,
+    this.onTogliDallUnita,
   });
 
   @override
@@ -50,9 +56,6 @@ class _EditRagazzoSheetState extends State<EditRagazzoSheet> {
   late TextEditingController _privacyCtrl;
   late List<TextEditingController> _nomiCtrl;
   late List<TextEditingController> _telCtrl;
-
-  // Ruoli selezionabili per un ragazzo, come valori dell'enum ruolo_enum.
-  static const List<String> _ruoliEnum = ['CAPO_SQ', 'VICE_CAPO_SQ', 'RAGAZZO'];
 
   @override
   void initState() {
@@ -144,51 +147,14 @@ class _EditRagazzoSheetState extends State<EditRagazzoSheet> {
 
             if (!widget.puoCambiareRuoloESquadriglia)
               _buildSolaLettura()
-            else ...[
-            _buildLabel("Squadriglia"),
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: widget.squadriglieDisponibili.map((sq) {
-                final isSelected = _squadriglia.toLowerCase() == sq.toLowerCase();
-                return GestureDetector(
-                  onTap: () => setState(() => _squadriglia = sq),
-                  child: _buildChip(sq.toUpperCase(), isSelected),
-                );
-              }).toList(),
-            ),
-            const SizedBox(height: 24),
-
-            _buildLabel("Ruolo in Squadriglia"),
-            const SizedBox(height: 8),
-            ..._ruoliEnum.map((r) {
-              final isSelected = _ruolo == r;
-              return GestureDetector(
-                onTap: () => setState(() => _ruolo = r),
-                child: Container(
-                  margin: const EdgeInsets.only(bottom: 10),
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                  decoration: BoxDecoration(
-                    color: isSelected ? const Color(0xFFEEF2FF) : const Color(0xFFF8FAFC),
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: isSelected ? const Color(0xFF1D2660) : const Color(0xFFE2E8F0)),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(ruoloLabel(r), style: TextStyle(
-                        color: isSelected ? const Color(0xFF1D2660) : const Color(0xFF64748B),
-                        fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
-                        fontFamily: 'Lexend',
-                      )),
-                      if (isSelected) const Icon(Icons.check_circle_rounded, color: Color(0xFF1D2660), size: 20),
-                    ],
-                  ),
-                ),
-              );
-            }),
-            ],
+            else
+              SceltaSquadrigliaRuolo(
+                squadriglie: widget.squadriglieDisponibili,
+                squadriglia: _squadriglia,
+                ruolo: _ruolo,
+                onSquadriglia: (sq) => setState(() => _squadriglia = sq),
+                onRuolo: (r) => setState(() => _ruolo = r),
+              ),
             const SizedBox(height: 24),
 
             Row(
@@ -291,6 +257,17 @@ class _EditRagazzoSheetState extends State<EditRagazzoSheet> {
                 ),
               ],
             ),
+            if (widget.onTogliDallUnita != null) ...[
+              const SizedBox(height: 16),
+              Center(
+                child: TextButton.icon(
+                  onPressed: widget.onTogliDallUnita,
+                  icon: const Icon(Icons.person_remove_outlined, size: 20),
+                  label: const Text("Togli dall'unità", style: TextStyle(fontWeight: FontWeight.w700, fontFamily: 'Lexend')),
+                  style: TextButton.styleFrom(foregroundColor: const Color(0xFFB91C1C)),
+                ),
+              ),
+            ],
           ],
         ),
       ),
