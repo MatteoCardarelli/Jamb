@@ -5,6 +5,7 @@ import 'package:jamb/core/ruolo_display.dart';
 import 'package:jamb/core/session_service.dart';
 import 'package:jamb/ui/core/widgets/empty_background_screen.dart';
 import 'package:jamb/ui/core/widgets/back_action_button.dart';
+import 'package:jamb/ui/core/widgets/jamb_dialogs.dart';
 import 'package:jamb/ui/core/widgets/jamb_feedback.dart';
 import 'package:jamb/ui/dettaglio_ragazzo/widgets/allergie_widget.dart';
 import 'package:jamb/ui/dettaglio_ragazzo/widgets/contatti_emergenza_widget.dart';
@@ -47,6 +48,7 @@ class DettaglioRagazzoScreen extends StatelessWidget {
     });
     if (!caricate || !context.mounted) return;
 
+    final puoGestire = context.read<SessionService>().permessi.puoCambiareRuoloESquadriglia;
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -54,8 +56,13 @@ class DettaglioRagazzoScreen extends StatelessWidget {
       backgroundColor: Colors.transparent,
       builder: (ctx) => EditRagazzoSheet(
         squadriglieDisponibili: squadriglie,
-        puoCambiareRuoloESquadriglia:
-            context.read<SessionService>().permessi.puoCambiareRuoloESquadriglia,
+        puoCambiareRuoloESquadriglia: puoGestire,
+        onTogliDallUnita: puoGestire
+            ? () {
+                Navigator.of(ctx).pop();
+                _togliDallUnita(context, viewModel);
+              }
+            : null,
         squadriglia: s.squadriglia,
         ruolo: s.ruolo,
         allergie: s.allergie ?? "",
@@ -75,6 +82,21 @@ class DettaglioRagazzoScreen extends StatelessWidget {
         },
       ),
     );
+  }
+
+  /// Dopo la conferma toglie il ragazzo dall'unità e torna all'elenco, dove
+  /// non compare più. La scheda e i suoi dati restano.
+  Future<void> _togliDallUnita(BuildContext context, DettaglioRagazzoViewModel viewModel) async {
+    final conferma = await JambDialogs.conferma(
+      context,
+      titolo: "Togli dall'unità",
+      messaggio:
+          '${viewModel.scout.nome} non sarà più tra i ragazzi dell\'unità. La sua scheda, la progressione e le presenze restano.',
+      etichetta: 'TOGLI',
+    );
+    if (!conferma || !context.mounted) return;
+    final tolto = await eseguiConFeedback(context, viewModel.togliDallUnita);
+    if (tolto && context.mounted) Navigator.of(context).pop();
   }
 
   @override

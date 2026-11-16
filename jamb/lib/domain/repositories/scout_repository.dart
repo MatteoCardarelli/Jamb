@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import '../../domain/entities/nuovo_ragazzo.dart';
 import '../../domain/entities/scout.dart';
 
 /// Contratto per l'accesso ai dati degli scout (ragazzi).
@@ -16,4 +17,12 @@ abstract class IScoutRepository extends ChangeNotifier {
 
   /// Nomi delle squadriglie attive dell'unità corrente.
   Future<List<String>> getSquadriglie();
+
+  /// Crea la scheda di [ragazzo] e lo iscrive all'unità attiva, in una sola
+  /// transazione. Possono farlo il Capo Unità e il Capo Gruppo.
+  Future<void> aggiungiRagazzo(NuovoRagazzo ragazzo);
+
+  /// Toglie il ragazzo [ragazzoId] dall'unità attiva chiudendo la sua
+  /// membership: la scheda, la progressione e le presenze restano.
+  Future<void> togliDallUnita(String ragazzoId);
 }
