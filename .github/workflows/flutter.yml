@@ -1,5 +1,7 @@
-# Analisi statica e test a ogni push, su qualunque ramo (rami feature e main);
-# su main, se sono verdi, pubblicazione della versione web su Netlify.
+# Analisi statica e test a ogni push, su qualunque ramo. Se sono verdi:
+# - su `preproduzione`, pubblicazione su un link di prova di Netlify, da
+#   controllare prima di approvare il passaggio in produzione;
+# - su `main`, pubblicazione sul sito vero (quello che vedono gli altri).
 name: Flutter
 
 on:
@@ -34,18 +36,20 @@ jobs:
       - run: flutter analyze
       - run: flutter test
 
-  # Pubblica la versione web su Netlify a ogni push su main, solo se analisi e
-  # test sono verdi. Finché i segreti non sono impostati il job si limita a
-  # dirlo, senza fallire. Segreti del repository (Settings → Secrets and
-  # variables → Actions): NETLIFY_AUTH_TOKEN, NETLIFY_SITE_ID, SUPABASE_URL,
-  # SUPABASE_PUBLISHABLE_KEY.
+  # Pubblica la versione web su Netlify a ogni push su main o su preproduzione,
+  # solo se analisi e test sono verdi. Finché i segreti non sono impostati il
+  # job si limita a dirlo, senza fallire. Segreti del repository (Settings →
+  # Secrets and variables → Actions): NETLIFY_AUTH_TOKEN, NETLIFY_SITE_ID,
+  # SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY.
   pubblica-web:
     needs: analisi-e-test
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: >-
+      github.event_name == 'push' &&
+      (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/preproduzione')
     runs-on: ubuntu-latest
-    # Una pubblicazione alla volta: se ne arriva una nuova, la vecchia si ferma.
+    # Una pubblicazione alla volta per ramo: se ne arriva una nuova, la vecchia si ferma.
     concurrency:
-      group: pubblica-web
+      group: pubblica-web-${{ github.ref_name }}
       cancel-in-progress: true
     defaults:
       run:
@@ -94,10 +98,17 @@ jobs:
           flutter pub get
           flutter build web --release
 
+      # main va sul sito vero; preproduzione su un link a parte,
+      # https://preproduzione--<nome-del-sito>.netlify.app, che non tocca il sito vero.
       - name: Pubblicazione su Netlify
         if: steps.segreti.outputs.pronti == 'true'
-        run: >
-          npx --yes netlify-cli@27.16.1 deploy
-          --prod --no-build --dir build/web
-          --site "$NETLIFY_SITE_ID"
-          --message "main ${GITHUB_SHA::7}"
+        run: |
+          if [ "$GITHUB_REF_NAME" = "main" ]; then
+            destinazione="--prod"
+          else
+            destinazione="--alias preproduzione"
+          fi
+          npx --yes netlify-cli@27.16.1 deploy $destinazione \
+            --no-build --dir build/web \
+            --site "$NETLIFY_SITE_ID" \
+            --message "$GITHUB_REF_NAME ${GITHUB_SHA::7}"
