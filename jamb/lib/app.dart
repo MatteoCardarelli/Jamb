@@ -17,6 +17,7 @@ import 'package:jamb/domain/repositories/evento_repository.dart';
 import 'package:jamb/data/repositories/supabase_evento_repository.dart';
 import 'package:jamb/ui/calendario/view_model/calendario_view_model.dart';
 import 'package:jamb/ui/auth/widgets/login_screen.dart';
+import 'package:jamb/ui/auth/widgets/verifica_codice_screen.dart';
 import 'package:jamb/core/session_service.dart';
 import 'package:jamb/ui/core/widgets/jamb_feedback.dart';
 import 'package:jamb/ui/core/widgets/cornice_schermo_largo.dart';
@@ -155,6 +156,9 @@ class AuthGate extends StatelessWidget {
     switch (session.status) {
       case SessionStatus.unauthenticated:
         return LoginScreen();
+
+      case SessionStatus.secondoFattore:
+        return const VerificaCodiceScreen();
 
       case SessionStatus.loading:
         return const Scaffold(
