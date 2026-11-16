@@ -3,6 +3,8 @@ import 'package:jamb/core/supabase_client.dart';
 import 'package:jamb/core/session_service.dart';
 import 'package:jamb/data/cache_letture.dart';
 import 'package:jamb/data/errori_supabase.dart';
+import 'package:jamb/domain/errori/jamb_exception.dart';
+import '../../domain/entities/nuovo_ragazzo.dart';
 import '../../domain/entities/scout.dart';
 import '../../domain/entities/progresso.dart';
 import '../../domain/repositories/scout_repository.dart';
@@ -76,9 +78,53 @@ class SupabaseScoutRepository extends IScoutRepository {
       'p_unit_id': _session.activeUnitId,
       'p_ragazzo': payloadRagazzo(ragazzo),
     });
+    _dimenticaRagazzi();
+  }
+
+  /// Le letture che contengono i ragazzi dell'unità o i loro ruoli.
+  void _dimenticaRagazzi() {
     _cache.dimentica(const ['ragazzi', 'sottogruppi', 'campo_staff', 'formazione/capi']);
     notifyListeners();
   }
+
+  /// Scheda e membership nella stessa transazione, con la funzione SQL
+  /// `aggiungi_ragazzo`: decidono le policy (Capo Unità o Capo Gruppo).
+  @override
+  Future<void> aggiungiRagazzo(NuovoRagazzo ragazzo) => eseguiSupabase(() async {
+        final unitId = _session.activeUnitId;
+        if (unitId == null) throw sessioneSenzaUnita;
+        await supabase.rpc('aggiungi_ragazzo', params: {
+          'p_unit_id': unitId,
+          'p_nome': ragazzo.nome,
+          'p_cognome': ragazzo.cognome,
+          'p_data_nascita': _dateOnly(ragazzo.dataNascita),
+          'p_squadriglia': ragazzo.squadriglia,
+          'p_ruolo': ragazzo.ruolo,
+        });
+        _dimenticaRagazzi();
+      });
+
+  /// Chiude la membership attiva nell'unità. Sotto RLS un rifiuto non dà
+  /// errore ma non aggiorna nulla: per questo si controllano le righe.
+  @override
+  Future<void> togliDallUnita(String ragazzoId) => eseguiSupabase(() async {
+        final unitId = _session.activeUnitId;
+        if (unitId == null) throw sessioneSenzaUnita;
+        final List<dynamic> chiuse = await supabase
+            .from('memberships')
+            .update({'is_active': false, 'data_fine': _dateOnly(DateTime.now())})
+            .eq('user_id', ragazzoId)
+            .eq('unit_id', unitId)
+            .eq('is_active', true)
+            .select('id');
+        if (chiuse.isEmpty) {
+          throw const JambException(
+            TipoErrore.permessoNegato,
+            "Solo il Capo Unità può togliere un ragazzo dall'unità.",
+          );
+        }
+        _dimenticaRagazzi();
+      });
 
   /// Rappresentazione JSON dello [Scout] letta dalla funzione `salva_ragazzo`
   /// (la forma è documentata nella migrazione che la definisce).

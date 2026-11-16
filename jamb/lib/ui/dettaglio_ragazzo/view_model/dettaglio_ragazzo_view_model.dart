@@ -16,6 +16,10 @@ class DettaglioRagazzoViewModel extends ChangeNotifier {
 
   Future<List<String>> getSquadriglie() => _repository.getSquadriglie();
 
+  /// Toglie il ragazzo dall'unità attiva (la scheda resta). Un errore viene
+  /// propagato alla View.
+  Future<void> togliDallUnita() => _repository.togliDallUnita(_scout.id);
+
   Scout get scout => _scout;
 
   /// Getter per calcolare dinamicamente se mostrare l'alert medico (allergie)

@@ -41,7 +41,7 @@ void main() {
       ));
 
       expect(find.text('Solo il Capo Unità può cambiare squadriglia e ruolo.'), findsOneWidget);
-      expect(find.text('ORSI'), findsNothing);
+      expect(find.text('Orsi'), findsNothing);
       expect(find.text('Vice Capo'), findsNothing);
 
       await _salva(tester);
@@ -55,7 +55,7 @@ void main() {
         onSalva: (squadriglia, ruolo) => salvato = (squadriglia, ruolo),
       ));
 
-      await tester.tap(find.text('ORSI'));
+      await tester.tap(find.text('Orsi'));
       await tester.tap(find.text('Vice Capo'));
       await tester.pump();
       await _salva(tester);

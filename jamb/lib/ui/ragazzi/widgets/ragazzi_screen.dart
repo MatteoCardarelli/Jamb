@@ -8,6 +8,7 @@ import 'package:jamb/ui/sottogruppi/widgets/sottogruppi_screen.dart';
 import 'package:jamb/ui/core/widgets/jamb_search_bar.dart';
 import 'package:jamb/ui/core/widgets/jamb_stato_errore.dart';
 import 'package:jamb/ui/core/widgets/jamb_stati.dart';
+import 'package:jamb/ui/ragazzi/widgets/aggiungi_ragazzo_screen.dart';
 import 'package:jamb/ui/ragazzi/widgets/ragazzo_card.dart';
 import 'package:jamb/ui/ragazzi/widgets/ragazzi_filters.dart';
 import 'package:jamb/ui/ragazzi/view_model/ragazzi_view_model.dart';
@@ -50,6 +51,16 @@ class RagazziScreen extends StatelessWidget {
                     onAlertChanged: viewModel.setAlertFiltro,
                   ),
                   const SizedBox(height: 16),
+
+                  // AGGIUNGI RAGAZZO, per Capo Unità e Capo Gruppo (come le policy)
+                  if (context.read<SessionService>().permessi.puoCambiareRuoloESquadriglia) ...[
+                    JambPulsanteSecondario(
+                      icona: Icons.person_add_alt_1_rounded,
+                      etichetta: "Aggiungi ragazzo",
+                      onTap: () => AggiungiRagazzoScreen.apri(context),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
 
                   // SOTTOGRUPPI, per le branche che ne hanno
                   if (!SottogruppiBranca.di(context.read<SessionService>().tipoBrancaAttiva).vuota) ...[

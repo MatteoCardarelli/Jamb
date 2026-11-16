@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 
 /// Pulsante a tutta larghezza per un'azione secondaria dentro un riquadro
 /// (es. «Aggiungi specialità», «Fai l'appello»): sfondo chiaro, bordo
-/// sottile, icona e testo blu.
+/// sottile, icona e testo blu. Con [onTap] `null` è disattivato e attenuato.
 class JambPulsanteSecondario extends StatelessWidget {
   final IconData icona;
   final String etichetta;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
 
   const JambPulsanteSecondario({
     super.key,
@@ -19,7 +19,9 @@ class JambPulsanteSecondario extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      child: Container(
+      child: Opacity(
+        opacity: onTap == null ? 0.45 : 1,
+        child: Container(
         padding: const EdgeInsets.symmetric(vertical: 14),
         decoration: BoxDecoration(
           color: const Color(0xFFF8FAFC),
@@ -40,6 +42,7 @@ class JambPulsanteSecondario extends StatelessWidget {
               ),
             ),
           ],
+        ),
         ),
       ),
     );
